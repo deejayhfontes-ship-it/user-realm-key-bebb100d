@@ -44,26 +44,26 @@ export function AdminSidebar() {
   return (
     <aside 
       className={cn(
-        "h-screen flex flex-col gradient-sidebar border-r border-sidebar-border transition-all duration-300",
+        "h-screen flex flex-col gradient-sidebar border-r border-border/30 transition-all duration-300",
         collapsed ? "w-16" : "w-64"
       )}
     >
       {/* Logo */}
-      <div className="h-16 flex items-center justify-between px-4 border-b border-sidebar-border">
+      <div className="h-16 flex items-center justify-between px-4 border-b border-border/30">
         {!collapsed && (
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-accent/20 flex items-center justify-center">
-              <Palette className="w-5 h-5 text-accent" />
+            <div className="w-9 h-9 rounded-xl bg-accent/15 flex items-center justify-center">
+              <Palette className="w-5 h-5 text-accent opacity-80" />
             </div>
             <div className="flex flex-col">
-              <span className="font-bold text-foreground text-sm leading-tight">Fontes Graphics</span>
-              <span className="text-[10px] text-muted-foreground">Platform</span>
+              <span className="font-medium text-foreground text-sm leading-tight tracking-tight">Fontes Graphics</span>
+              <span className="text-[10px] text-muted-foreground font-normal">Platform</span>
             </div>
           </div>
         )}
         {collapsed && (
-          <div className="w-9 h-9 rounded-lg bg-accent/20 flex items-center justify-center mx-auto">
-            <Palette className="w-5 h-5 text-accent" />
+          <div className="w-9 h-9 rounded-xl bg-accent/15 flex items-center justify-center mx-auto">
+            <Palette className="w-5 h-5 text-accent opacity-80" />
           </div>
         )}
         {!collapsed && (
@@ -71,7 +71,7 @@ export function AdminSidebar() {
             variant="ghost"
             size="icon"
             onClick={() => setCollapsed(!collapsed)}
-            className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-accent"
+            className="text-muted-foreground hover:bg-accent/10 hover:text-accent rounded-lg"
           >
             <ChevronLeft className={cn(
               "w-4 h-4 transition-transform",
@@ -87,7 +87,7 @@ export function AdminSidebar() {
             variant="ghost"
             size="icon"
             onClick={() => setCollapsed(!collapsed)}
-            className="w-full text-sidebar-foreground hover:bg-sidebar-accent hover:text-accent"
+            className="w-full text-muted-foreground hover:bg-accent/10 hover:text-accent rounded-lg"
           >
             <ChevronLeft className="w-4 h-4 rotate-180" />
           </Button>
@@ -103,21 +103,21 @@ export function AdminSidebar() {
               key={item.href}
               to={item.href}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group",
-                "text-sidebar-foreground hover:bg-sidebar-accent",
+                "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group",
+                "text-muted-foreground hover:bg-accent/10",
                 isActive 
-                  ? "bg-sidebar-accent text-foreground active-indicator" 
-                  : "hover:text-accent"
+                  ? "bg-accent/10 text-foreground active-indicator" 
+                  : "hover:text-foreground"
               )}
             >
               <item.icon className={cn(
-                "w-5 h-5 flex-shrink-0 transition-colors",
-                isActive ? "text-accent" : "group-hover:text-accent"
+                "w-5 h-5 flex-shrink-0 transition-colors opacity-70",
+                isActive ? "text-accent opacity-100" : "group-hover:text-accent group-hover:opacity-100"
               )} />
               {!collapsed && (
                 <span className={cn(
-                  "font-medium",
-                  isActive && "text-foreground"
+                  "font-normal",
+                  isActive && "font-medium text-foreground"
                 )}>
                   {item.title}
                 </span>
@@ -128,13 +128,13 @@ export function AdminSidebar() {
       </nav>
 
       {/* User section */}
-      <div className="p-2 border-t border-sidebar-border">
+      <div className="p-2 border-t border-border/30">
         {!collapsed && profile && (
           <div className="px-3 py-2 mb-2">
             <p className="text-sm font-medium text-foreground truncate">
               {profile.email}
             </p>
-            <p className="text-xs text-muted-foreground capitalize">
+            <p className="text-xs text-muted-foreground font-normal capitalize">
               {profile.role}
             </p>
           </div>
@@ -143,12 +143,12 @@ export function AdminSidebar() {
           variant="ghost"
           onClick={signOut}
           className={cn(
-            "w-full text-sidebar-foreground hover:bg-destructive/10 hover:text-destructive",
+            "w-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive rounded-xl",
             collapsed ? "justify-center px-0" : "justify-start"
           )}
         >
-          <LogOut className="w-5 h-5" />
-          {!collapsed && <span className="ml-3">Sair</span>}
+          <LogOut className="w-5 h-5 opacity-70" />
+          {!collapsed && <span className="ml-3 font-normal">Sair</span>}
         </Button>
       </div>
     </aside>
