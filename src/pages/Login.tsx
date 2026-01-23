@@ -23,26 +23,35 @@ export default function Login() {
     }
 
     setIsLoading(true);
+    console.log('🚀 Tentando login com:', email);
 
     try {
-      const { error } = await signIn(email, password);
+      const { error, role } = await signIn(email, password);
 
       if (error) {
-        toast.error(error.message || 'Erro ao fazer login');
+        console.error('❌ Erro no login:', error.message);
+        // Melhorar mensagem de erro para o usuário
+        if (error.message.includes('Invalid login credentials')) {
+          toast.error('Email ou senha incorretos. Verifique se o usuário existe no Supabase Auth.');
+        } else {
+          toast.error(error.message || 'Email ou senha incorretos');
+        }
         return;
       }
 
+      console.log('✅ Login OK! Role:', role);
       toast.success('Login realizado com sucesso!');
       
-      // Redirect based on role
-      setTimeout(() => {
-        if (isAdmin) {
-          navigate('/admin/dashboard');
-        } else {
-          navigate('/client');
-        }
-      }, 100);
+      // Redirecionar baseado no role retornado
+      if (role === 'admin') {
+        console.log('➡️ Redirecionando para /admin/dashboard');
+        navigate('/admin/dashboard');
+      } else {
+        console.log('➡️ Redirecionando para /client');
+        navigate('/client');
+      }
     } catch (err) {
+      console.error('❌ Erro inesperado:', err);
       toast.error('Erro inesperado ao fazer login');
     } finally {
       setIsLoading(false);

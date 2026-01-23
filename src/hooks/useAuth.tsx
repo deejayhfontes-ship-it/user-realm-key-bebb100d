@@ -14,7 +14,7 @@ interface AuthContextType {
   session: Session | null;
   profile: UserProfile | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signIn: (email: string, password: string) => Promise<{ error: Error | null; role?: string }>;
   signOut: () => Promise<void>;
   isAdmin: boolean;
 }
@@ -78,31 +78,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string): Promise<{ error: Error | null; role?: string }> => {
     try {
-      // First, verify user exists in our users table
-      const { data: userRecord, error: userError } = await supabase
-        .from('users')
-        .select('id, email, role, password_hash')
-        .eq('email', email)
-        .single();
-
-      if (userError || !userRecord) {
-        return { error: new Error('Usuário não encontrado') };
-      }
-
-      // For now, use Supabase Auth
-      const { error } = await supabase.auth.signInWithPassword({
+      console.log('🔐 [1] Iniciando login para:', email);
+      
+      // 1. Login via Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) {
-        return { error };
+      if (authError) {
+        console.error('❌ [2] Erro no Supabase Auth:', authError.message);
+        return { error: authError };
       }
 
-      return { error: null };
+      console.log('✅ [2] Login Supabase Auth OK, user:', authData.user?.id);
+
+      // 2. Buscar role na tabela users
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('role, client_id')
+        .eq('email', email)
+        .maybeSingle();
+
+      if (userError) {
+        console.error('❌ [3] Erro ao buscar role:', userError.message);
+        return { error: userError };
+      }
+
+      if (!userData) {
+        console.warn('⚠️ [3] Usuário não encontrado na tabela users, usando role padrão');
+        return { error: null, role: 'client' };
+      }
+
+      console.log('✅ [3] Role encontrado:', userData.role);
+      
+      // Update profile state
+      setProfile({
+        id: authData.user!.id,
+        email: email,
+        role: userData.role as 'admin' | 'client',
+        client_id: userData.client_id,
+      });
+
+      return { error: null, role: userData.role };
     } catch (err) {
+      console.error('❌ Erro inesperado:', err);
       return { error: err as Error };
     }
   };
