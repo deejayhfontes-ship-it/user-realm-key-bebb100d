@@ -12,18 +12,11 @@ interface StatCardProps {
   variant?: 'default' | 'primary' | 'success' | 'warning';
 }
 
-const variantStyles = {
-  default: 'bg-card border-border',
-  primary: 'bg-card border-border',
-  success: 'bg-card border-border',
-  warning: 'bg-card border-border',
-};
-
 const iconStyles = {
   default: 'bg-accent/10 text-accent',
   primary: 'bg-accent/10 text-accent',
-  success: 'bg-emerald-500/10 text-emerald-500',
-  warning: 'bg-amber-500/10 text-amber-500',
+  success: 'bg-emerald-500/10 text-emerald-400',
+  warning: 'bg-amber-500/10 text-amber-400',
 };
 
 export function StatCard({ 
@@ -34,28 +27,25 @@ export function StatCard({
   variant = 'default' 
 }: StatCardProps) {
   return (
-    <div className={cn(
-      "p-6 rounded-xl border transition-all hover:shadow-lg card-shadow",
-      variantStyles[variant]
-    )}>
+    <div className="glass-card p-6 transition-all hover:scale-[1.01]">
       <div className="flex items-start justify-between">
         <div className="space-y-2">
-          <p className="text-sm text-muted-foreground font-medium">{title}</p>
-          <p className="text-3xl font-bold text-foreground">{value}</p>
+          <p className="text-sm text-muted-foreground font-normal tracking-wide">{title}</p>
+          <p className="text-3xl font-semibold text-foreground tracking-tight">{value}</p>
           {trend && (
             <p className={cn(
-              "text-sm font-semibold",
-              trend.isPositive ? "text-[hsl(160_60%_40%)]" : "text-destructive"
+              "text-sm font-medium",
+              trend.isPositive ? "text-emerald-400" : "text-destructive"
             )}>
               {trend.isPositive ? '+' : ''}{trend.value}% vs ontem
             </p>
           )}
         </div>
         <div className={cn(
-          "w-12 h-12 rounded-xl flex items-center justify-center",
+          "w-11 h-11 rounded-xl flex items-center justify-center",
           iconStyles[variant]
         )}>
-          <Icon className="w-6 h-6" />
+          <Icon className="w-5 h-5 opacity-80" />
         </div>
       </div>
     </div>

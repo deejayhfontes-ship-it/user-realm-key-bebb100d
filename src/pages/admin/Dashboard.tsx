@@ -113,11 +113,11 @@ export default function AdminDashboard() {
     }
   };
 
-  // Accent color: hsl(33 35% 57%) = #B8956A
+  // Accent color: warm amber
   const chartConfig = {
     generations: {
       label: 'Gerações',
-      color: 'hsl(33 35% 57%)',
+      color: 'hsl(25 65% 50%)',
     },
   };
 
@@ -159,41 +159,41 @@ export default function AdminDashboard() {
         </div>
 
         {/* Chart */}
-        <div className="bg-card border border-border rounded-xl p-6 card-shadow">
-          <h2 className="text-lg font-bold text-foreground mb-4">
+        <div className="glass-card p-6">
+          <h2 className="text-lg font-medium text-foreground mb-4 tracking-tight">
             Gerações - Últimos 7 dias
           </h2>
           <ChartContainer config={chartConfig} className="h-[300px] w-full">
             <AreaChart data={chartData}>
               <defs>
                 <linearGradient id="colorGenerations" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(33 35% 57%)" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="hsl(33 35% 57%)" stopOpacity={0} />
+                  <stop offset="5%" stopColor="hsl(25 65% 50%)" stopOpacity={0.25} />
+                  <stop offset="95%" stopColor="hsl(25 65% 50%)" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(0 0% 16%)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(20 15% 18%)" strokeOpacity={0.5} />
               <XAxis 
                 dataKey="date" 
-                stroke="hsl(220 9% 60%)"
+                stroke="hsl(25 10% 50%)"
                 fontSize={12}
                 tickLine={false}
                 axisLine={false}
               />
               <YAxis 
-                stroke="hsl(220 9% 60%)"
+                stroke="hsl(25 10% 50%)"
                 fontSize={12}
                 tickLine={false}
                 axisLine={false}
               />
               <ChartTooltip 
                 content={<ChartTooltipContent />}
-                cursor={{ stroke: 'hsl(33 35% 57%)', strokeWidth: 1, strokeDasharray: '4 4' }}
+                cursor={{ stroke: 'hsl(25 65% 50%)', strokeWidth: 1, strokeDasharray: '4 4' }}
               />
               <Area
                 type="monotone"
                 dataKey="generations"
-                stroke="hsl(33 35% 57%)"
-                strokeWidth={2}
+                stroke="hsl(25 65% 50%)"
+                strokeWidth={1.5}
                 fillOpacity={1}
                 fill="url(#colorGenerations)"
               />
