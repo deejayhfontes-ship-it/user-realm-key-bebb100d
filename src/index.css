@@ -46,14 +46,14 @@
 
     --radius: 0.875rem;
 
-    /* Sidebar - Deep warm black */
-    --sidebar-background: 12 30% 6%;
-    --sidebar-foreground: 18 15% 60%;
+    /* Sidebar - Glass with #892e13 tone */
+    --sidebar-background: 10 75% 30% / 0.15;
+    --sidebar-foreground: 25 15% 75%;
     --sidebar-primary: 10 76% 37%;
     --sidebar-primary-foreground: 30 20% 98%;
-    --sidebar-accent: 12 35% 14%;
+    --sidebar-accent: 10 70% 28% / 0.3;
     --sidebar-accent-foreground: 30 20% 98%;
-    --sidebar-border: 15 20% 14%;
+    --sidebar-border: 10 60% 35% / 0.2;
     --sidebar-ring: 10 76% 37%;
 
     /* Custom tokens */
@@ -108,14 +108,14 @@
     --input: 15 20% 20%;
     --ring: 10 76% 37%;
 
-    /* Sidebar */
-    --sidebar-background: 12 30% 6%;
-    --sidebar-foreground: 18 15% 60%;
+    /* Sidebar - Glass with #892e13 tone */
+    --sidebar-background: 10 75% 30% / 0.15;
+    --sidebar-foreground: 25 15% 75%;
     --sidebar-primary: 10 76% 37%;
     --sidebar-primary-foreground: 30 20% 98%;
-    --sidebar-accent: 12 35% 14%;
+    --sidebar-accent: 10 70% 28% / 0.3;
     --sidebar-accent-foreground: 30 20% 98%;
-    --sidebar-border: 15 20% 14%;
+    --sidebar-border: 10 60% 35% / 0.2;
     --sidebar-ring: 10 76% 37%;
 
     --glass-background: 12 30% 14% / 0.5;
@@ -163,8 +163,16 @@
       inset 0 1px 0 0 hsl(30 20% 100% / 0.05);
   }
 
+  /* Sidebar glass gradient with #892e13 */
   .gradient-sidebar {
-    background: linear-gradient(180deg, hsl(12 30% 6%) 0%, hsl(12 35% 10%) 100%);
+    background: linear-gradient(
+      180deg, 
+      hsl(10 75% 30% / 0.2) 0%, 
+      hsl(10 70% 25% / 0.15) 50%,
+      hsl(10 65% 20% / 0.1) 100%
+    );
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
   }
 
   /* Main gradient: #a63517 → #a6563b → dark */
