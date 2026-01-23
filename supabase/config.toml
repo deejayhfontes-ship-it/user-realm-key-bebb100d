@@ -1,1 +1,7 @@
 project_id = "nzngwbknezmfthbyfjmx"
+
+[functions.register]
+verify_jwt = false
+
+[functions.sync-user]
+verify_jwt = false
