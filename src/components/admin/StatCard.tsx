@@ -12,13 +12,6 @@ interface StatCardProps {
   variant?: 'default' | 'primary' | 'success' | 'warning';
 }
 
-const iconStyles = {
-  default: 'bg-accent/10 text-accent',
-  primary: 'bg-accent/10 text-accent',
-  success: 'bg-emerald-500/10 text-emerald-400',
-  warning: 'bg-amber-500/10 text-amber-400',
-};
-
 export function StatCard({ 
   title, 
   value, 
@@ -27,25 +20,31 @@ export function StatCard({
   variant = 'default' 
 }: StatCardProps) {
   return (
-    <div className="glass-card p-6 transition-all hover:scale-[1.01]">
-      <div className="flex items-start justify-between">
-        <div className="space-y-2">
-          <p className="text-sm text-muted-foreground font-normal tracking-wide">{title}</p>
-          <p className="text-3xl font-semibold text-foreground tracking-tight">{value}</p>
-          {trend && (
-            <p className={cn(
-              "text-sm font-medium",
-              trend.isPositive ? "text-emerald-400" : "text-destructive"
-            )}>
-              {trend.isPositive ? '+' : ''}{trend.value}% vs ontem
-            </p>
-          )}
+    <div className="relative overflow-hidden rounded-2xl p-5 transition-all hover:scale-[1.01] bg-foreground/[0.04] backdrop-blur-xl border border-foreground/[0.08]">
+      {/* Subtle inner glow */}
+      <div className="absolute inset-0 bg-gradient-to-br from-foreground/[0.02] to-transparent pointer-events-none" />
+      
+      <div className="relative flex items-center justify-between">
+        <div className="space-y-1">
+          <p className="text-sm text-foreground/60 font-light tracking-wide">{title}</p>
+          <div className="flex items-center gap-3">
+            <span className="inline-flex items-center px-3 py-1 rounded-full bg-foreground/[0.08] text-foreground text-xl font-normal tracking-tight">
+              {value}
+            </span>
+            {trend && (
+              <span className={cn(
+                "text-xs font-light px-2 py-0.5 rounded-full",
+                trend.isPositive 
+                  ? "bg-emerald-500/10 text-emerald-400" 
+                  : "bg-destructive/10 text-destructive"
+              )}>
+                {trend.isPositive ? '+' : ''}{trend.value}%
+              </span>
+            )}
+          </div>
         </div>
-        <div className={cn(
-          "w-11 h-11 rounded-xl flex items-center justify-center",
-          iconStyles[variant]
-        )}>
-          <Icon className="w-5 h-5 opacity-80" />
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-foreground/[0.06]">
+          <Icon className="w-5 h-5 text-foreground/50" />
         </div>
       </div>
     </div>
