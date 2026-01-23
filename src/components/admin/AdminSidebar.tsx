@@ -5,7 +5,7 @@ import {
   Wand2, 
   Settings, 
   LogOut,
-  Sparkles,
+  Palette,
   ChevronLeft
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -44,32 +44,55 @@ export function AdminSidebar() {
   return (
     <aside 
       className={cn(
-        "h-screen flex flex-col bg-sidebar border-r border-sidebar-border transition-all duration-300",
+        "h-screen flex flex-col gradient-sidebar border-r border-sidebar-border transition-all duration-300",
         collapsed ? "w-16" : "w-64"
       )}
     >
       {/* Logo */}
       <div className="h-16 flex items-center justify-between px-4 border-b border-sidebar-border">
         {!collapsed && (
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-primary" />
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-accent/20 flex items-center justify-center">
+              <Palette className="w-5 h-5 text-accent" />
             </div>
-            <span className="font-bold text-sidebar-foreground">FontesApp</span>
+            <div className="flex flex-col">
+              <span className="font-bold text-foreground text-sm leading-tight">Fontes Graphics</span>
+              <span className="text-[10px] text-muted-foreground">Platform</span>
+            </div>
           </div>
         )}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setCollapsed(!collapsed)}
-          className="text-sidebar-foreground hover:bg-sidebar-accent"
-        >
-          <ChevronLeft className={cn(
-            "w-4 h-4 transition-transform",
-            collapsed && "rotate-180"
-          )} />
-        </Button>
+        {collapsed && (
+          <div className="w-9 h-9 rounded-lg bg-accent/20 flex items-center justify-center mx-auto">
+            <Palette className="w-5 h-5 text-accent" />
+          </div>
+        )}
+        {!collapsed && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setCollapsed(!collapsed)}
+            className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-accent"
+          >
+            <ChevronLeft className={cn(
+              "w-4 h-4 transition-transform",
+              collapsed && "rotate-180"
+            )} />
+          </Button>
+        )}
       </div>
+
+      {collapsed && (
+        <div className="p-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setCollapsed(!collapsed)}
+            className="w-full text-sidebar-foreground hover:bg-sidebar-accent hover:text-accent"
+          >
+            <ChevronLeft className="w-4 h-4 rotate-180" />
+          </Button>
+        </div>
+      )}
 
       {/* Navigation */}
       <nav className="flex-1 p-2 space-y-1">
@@ -80,13 +103,25 @@ export function AdminSidebar() {
               key={item.href}
               to={item.href}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors",
-                "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                isActive && "bg-sidebar-primary text-sidebar-primary-foreground"
+                "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group",
+                "text-sidebar-foreground hover:bg-sidebar-accent",
+                isActive 
+                  ? "bg-sidebar-accent text-foreground active-indicator" 
+                  : "hover:text-accent"
               )}
             >
-              <item.icon className="w-5 h-5 flex-shrink-0" />
-              {!collapsed && <span className="font-medium">{item.title}</span>}
+              <item.icon className={cn(
+                "w-5 h-5 flex-shrink-0 transition-colors",
+                isActive ? "text-accent" : "group-hover:text-accent"
+              )} />
+              {!collapsed && (
+                <span className={cn(
+                  "font-medium",
+                  isActive && "text-foreground"
+                )}>
+                  {item.title}
+                </span>
+              )}
             </NavLink>
           );
         })}
@@ -96,10 +131,10 @@ export function AdminSidebar() {
       <div className="p-2 border-t border-sidebar-border">
         {!collapsed && profile && (
           <div className="px-3 py-2 mb-2">
-            <p className="text-sm font-medium text-sidebar-foreground truncate">
+            <p className="text-sm font-medium text-foreground truncate">
               {profile.email}
             </p>
-            <p className="text-xs text-sidebar-foreground/60 capitalize">
+            <p className="text-xs text-muted-foreground capitalize">
               {profile.role}
             </p>
           </div>

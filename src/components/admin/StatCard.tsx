@@ -14,14 +14,14 @@ interface StatCardProps {
 
 const variantStyles = {
   default: 'bg-card border-border',
-  primary: 'bg-primary/5 border-primary/20',
-  success: 'bg-emerald-500/5 border-emerald-500/20',
-  warning: 'bg-amber-500/5 border-amber-500/20',
+  primary: 'bg-card border-border',
+  success: 'bg-card border-border',
+  warning: 'bg-card border-border',
 };
 
 const iconStyles = {
-  default: 'bg-muted text-muted-foreground',
-  primary: 'bg-primary/10 text-primary',
+  default: 'bg-accent/10 text-accent',
+  primary: 'bg-accent/10 text-accent',
   success: 'bg-emerald-500/10 text-emerald-500',
   warning: 'bg-amber-500/10 text-amber-500',
 };
@@ -35,17 +35,17 @@ export function StatCard({
 }: StatCardProps) {
   return (
     <div className={cn(
-      "p-6 rounded-xl border transition-all hover:shadow-lg",
+      "p-6 rounded-xl border transition-all hover:shadow-lg card-shadow",
       variantStyles[variant]
     )}>
       <div className="flex items-start justify-between">
         <div className="space-y-2">
-          <p className="text-sm text-muted-foreground">{title}</p>
+          <p className="text-sm text-muted-foreground font-medium">{title}</p>
           <p className="text-3xl font-bold text-foreground">{value}</p>
           {trend && (
             <p className={cn(
-              "text-sm font-medium",
-              trend.isPositive ? "text-emerald-500" : "text-red-500"
+              "text-sm font-semibold",
+              trend.isPositive ? "text-[hsl(160_60%_40%)]" : "text-destructive"
             )}>
               {trend.isPositive ? '+' : ''}{trend.value}% vs ontem
             </p>

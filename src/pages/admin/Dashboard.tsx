@@ -8,7 +8,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid } from 'recharts';
 
 interface DashboardStats {
   totalClients: number;
@@ -113,10 +113,11 @@ export default function AdminDashboard() {
     }
   };
 
+  // Accent color: hsl(33 35% 57%) = #B8956A
   const chartConfig = {
     generations: {
       label: 'Gerações',
-      color: 'hsl(210 100% 50%)',
+      color: 'hsl(33 35% 57%)',
     },
   };
 
@@ -124,7 +125,7 @@ export default function AdminDashboard() {
     <div className="flex flex-col h-full">
       <AdminHeader 
         title="Dashboard" 
-        subtitle="Visão geral do sistema"
+        subtitle="Gestão Inteligente de Conteúdo Visual"
       />
 
       <div className="flex-1 p-6 space-y-6">
@@ -158,33 +159,40 @@ export default function AdminDashboard() {
         </div>
 
         {/* Chart */}
-        <div className="bg-card border border-border rounded-xl p-6">
-          <h2 className="text-lg font-semibold text-foreground mb-4">
+        <div className="bg-card border border-border rounded-xl p-6 card-shadow">
+          <h2 className="text-lg font-bold text-foreground mb-4">
             Gerações - Últimos 7 dias
           </h2>
           <ChartContainer config={chartConfig} className="h-[300px] w-full">
             <AreaChart data={chartData}>
               <defs>
                 <linearGradient id="colorGenerations" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(210 100% 50%)" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="hsl(210 100% 50%)" stopOpacity={0} />
+                  <stop offset="5%" stopColor="hsl(33 35% 57%)" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="hsl(33 35% 57%)" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 20% 20%)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(0 0% 16%)" />
               <XAxis 
                 dataKey="date" 
-                stroke="hsl(220 10% 50%)"
+                stroke="hsl(220 9% 60%)"
                 fontSize={12}
+                tickLine={false}
+                axisLine={false}
               />
               <YAxis 
-                stroke="hsl(220 10% 50%)"
+                stroke="hsl(220 9% 60%)"
                 fontSize={12}
+                tickLine={false}
+                axisLine={false}
               />
-              <ChartTooltip content={<ChartTooltipContent />} />
+              <ChartTooltip 
+                content={<ChartTooltipContent />}
+                cursor={{ stroke: 'hsl(33 35% 57%)', strokeWidth: 1, strokeDasharray: '4 4' }}
+              />
               <Area
                 type="monotone"
                 dataKey="generations"
-                stroke="hsl(210 100% 50%)"
+                stroke="hsl(33 35% 57%)"
                 strokeWidth={2}
                 fillOpacity={1}
                 fill="url(#colorGenerations)"
