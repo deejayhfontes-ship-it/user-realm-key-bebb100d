@@ -514,6 +514,7 @@ export type Database = {
     }
     Functions: {
       check_package_expiration: { Args: never; Returns: undefined }
+      is_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
