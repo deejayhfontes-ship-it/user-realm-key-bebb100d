@@ -48,11 +48,11 @@
 
     /* Sidebar - Glass with #892e13 tone */
     --sidebar-background: 10 75% 30% / 0.15;
-    --sidebar-foreground: 25 15% 75%;
+    --sidebar-foreground: 0 0% 100%;
     --sidebar-primary: 10 76% 37%;
-    --sidebar-primary-foreground: 30 20% 98%;
+    --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 10 70% 28% / 0.3;
-    --sidebar-accent-foreground: 30 20% 98%;
+    --sidebar-accent-foreground: 0 0% 100%;
     --sidebar-border: 10 60% 35% / 0.2;
     --sidebar-ring: 10 76% 37%;
 
@@ -110,11 +110,11 @@
 
     /* Sidebar - Glass with #892e13 tone */
     --sidebar-background: 10 75% 30% / 0.15;
-    --sidebar-foreground: 25 15% 75%;
+    --sidebar-foreground: 0 0% 100%;
     --sidebar-primary: 10 76% 37%;
-    --sidebar-primary-foreground: 30 20% 98%;
+    --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 10 70% 28% / 0.3;
-    --sidebar-accent-foreground: 30 20% 98%;
+    --sidebar-accent-foreground: 0 0% 100%;
     --sidebar-border: 10 60% 35% / 0.2;
     --sidebar-ring: 10 76% 37%;
 
