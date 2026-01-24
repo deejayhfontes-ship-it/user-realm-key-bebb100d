@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Loader2, Upload, X, Image } from 'lucide-react';
+import { Loader2, Upload, X, Image, ImageIcon } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -36,6 +36,7 @@ export function EditProviderModal({ provider, open, onOpenChange }: EditProvider
     timeout_seconds: 30,
     max_tokens: 4000,
     temperature: 0.7,
+    supports_images: true,
   });
   const [iconFile, setIconFile] = useState<File | null>(null);
   const [iconPreview, setIconPreview] = useState<string | null>(null);
@@ -56,6 +57,7 @@ export function EditProviderModal({ provider, open, onOpenChange }: EditProvider
         timeout_seconds: provider.timeout_seconds,
         max_tokens: provider.max_tokens,
         temperature: Number(provider.temperature),
+        supports_images: provider.supports_images ?? true,
       });
     }
   }, [provider]);
@@ -100,6 +102,7 @@ export function EditProviderModal({ provider, open, onOpenChange }: EditProvider
       timeout_seconds: form.timeout_seconds,
       max_tokens: form.max_tokens,
       temperature: form.temperature,
+      supports_images: form.supports_images,
     };
 
     // Only update API key if a new one was provided
@@ -225,6 +228,26 @@ export function EditProviderModal({ provider, open, onOpenChange }: EditProvider
                 placeholder="Ex: gpt-4, claude-3, gemini-pro"
                 className="rounded-xl"
               />
+            </div>
+
+            {/* Supports Images Checkbox */}
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50">
+              <input
+                type="checkbox"
+                id="edit_supports_images"
+                checked={form.supports_images}
+                onChange={(e) => setForm({ ...form, supports_images: e.target.checked })}
+                className="h-4 w-4 rounded border-border"
+              />
+              <div className="flex-1">
+                <label htmlFor="edit_supports_images" className="text-sm font-medium cursor-pointer flex items-center gap-2">
+                  <ImageIcon className="h-4 w-4 text-primary" />
+                  Suporta imagens (multimodal)
+                </label>
+                <p className="text-xs text-muted-foreground">
+                  Ative se a API aceita imagens junto com texto
+                </p>
+              </div>
             </div>
           </div>
 

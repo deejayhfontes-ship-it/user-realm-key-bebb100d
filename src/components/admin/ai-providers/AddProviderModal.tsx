@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Loader2, Upload, X, Image } from 'lucide-react';
+import { Loader2, Upload, X, Image, ImageIcon } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -53,6 +53,7 @@ export function AddProviderModal({ open, onOpenChange }: AddProviderModalProps) 
     timeout_seconds: 30,
     max_tokens: 4000,
     temperature: 0.7,
+    supports_images: true,
   });
   const [iconFile, setIconFile] = useState<File | null>(null);
   const [iconPreview, setIconPreview] = useState<string | null>(null);
@@ -133,6 +134,7 @@ export function AddProviderModal({ open, onOpenChange }: AddProviderModalProps) 
           timeout_seconds: 30,
           max_tokens: 4000,
           temperature: 0.7,
+          supports_images: true,
         });
       },
     });
@@ -278,6 +280,26 @@ export function AddProviderModal({ open, onOpenChange }: AddProviderModalProps) 
                 placeholder="Ex: gpt-4, claude-3, gemini-pro"
                 className="rounded-xl"
               />
+            </div>
+
+            {/* Supports Images Checkbox */}
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50">
+              <input
+                type="checkbox"
+                id="supports_images"
+                checked={form.supports_images}
+                onChange={(e) => setForm({ ...form, supports_images: e.target.checked })}
+                className="h-4 w-4 rounded border-border"
+              />
+              <div className="flex-1">
+                <label htmlFor="supports_images" className="text-sm font-medium cursor-pointer flex items-center gap-2">
+                  <ImageIcon className="h-4 w-4 text-primary" />
+                  Suporta imagens (multimodal)
+                </label>
+                <p className="text-xs text-muted-foreground">
+                  Ative se a API aceita imagens junto com texto (ex: GPT-4 Vision, Claude 3, Gemini)
+                </p>
+              </div>
             </div>
           </div>
 

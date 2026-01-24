@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Send, Trash2, Sparkles, History, Undo2, Loader2, Bot, User, Image as ImageIcon } from 'lucide-react';
+import { Send, Trash2, Sparkles, History, Undo2, Loader2, Bot, User, Image as ImageIcon, AlertTriangle, Paperclip } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
 import { useGeneratorsList } from '@/hooks/useGenerators';
 import { useActiveAIProviders } from '@/hooks/useAIProviders';
@@ -17,13 +18,14 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 const exampleCommands = [
-  'Adiciona campo telefone',
-  'Muda cor de fundo para azul',
-  'Remove campo data',
-  'Aumenta fonte para 72px',
-  'Adiciona logo no topo direito',
-  'Use as cores desta imagem',
-  'Extraia o texto da imagem',
+  { text: 'Adiciona campo telefone', hasImage: false },
+  { text: 'Muda cor de fundo para azul', hasImage: false },
+  { text: 'Remove campo data', hasImage: false },
+  { text: 'Aumenta fonte para 72px', hasImage: false },
+  { text: 'Use as cores desta imagem', hasImage: true },
+  { text: 'Crie layout similar', hasImage: true },
+  { text: 'Extraia texto da imagem', hasImage: true },
+  { text: 'Combine esses estilos', hasImage: true },
 ];
 
 export function AIEditorTab() {
@@ -143,10 +145,15 @@ export function AIEditorTab() {
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Bot className="h-4 w-4 text-primary" />
               Chat com IA
-              {supportsImages && (
-                <Badge variant="outline" className="text-[10px] gap-1">
+              {supportsImages ? (
+                <Badge variant="outline" className="text-[10px] gap-1 text-primary border-primary/30 bg-primary/10">
                   <ImageIcon className="h-3 w-3" />
                   Suporta imagens
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="text-[10px] gap-1 text-destructive border-destructive/30 bg-destructive/10">
+                  <AlertTriangle className="h-3 w-3" />
+                  Sem suporte a imagens
                 </Badge>
               )}
             </CardTitle>
@@ -232,14 +239,13 @@ export function AIEditorTab() {
             </ScrollArea>
 
             {/* Attachments */}
-            {supportsImages && (
-              <ImageAttachments
-                attachments={attachments}
-                onAttachmentsChange={setAttachments}
-                maxAttachments={5}
-                disabled={!selectedGenerator || isSending}
-              />
-            )}
+            <ImageAttachments
+              attachments={attachments}
+              onAttachmentsChange={setAttachments}
+              maxAttachments={5}
+              disabled={!selectedGenerator || isSending}
+              supportsImages={supportsImages}
+            />
 
             {/* Input */}
             <div className="space-y-3 mt-3">
@@ -295,12 +301,16 @@ export function AIEditorTab() {
             <div className="flex flex-wrap gap-2">
               {exampleCommands.map((cmd) => (
                 <Badge
-                  key={cmd}
+                  key={cmd.text}
                   variant="outline"
-                  className="cursor-pointer hover:bg-primary/10 transition-colors"
-                  onClick={() => setInputValue(cmd)}
+                  className={cn(
+                    "cursor-pointer hover:bg-primary/10 transition-colors gap-1",
+                    cmd.hasImage && "border-primary/30"
+                  )}
+                  onClick={() => setInputValue(cmd.text)}
                 >
-                  {cmd}
+                  {cmd.hasImage && <ImageIcon className="h-3 w-3" />}
+                  {cmd.text}
                 </Badge>
               ))}
             </div>
@@ -329,33 +339,56 @@ export function AIEditorTab() {
               </div>
             </CardHeader>
             <CardContent>
-              <ScrollArea className="h-[120px]">
+              <ScrollArea className="h-[150px]">
                 <div className="space-y-2">
-                  {history.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex items-start gap-2 text-xs p-2 rounded-lg bg-muted/50"
-                    >
-                      <Badge
-                        variant={item.success ? 'default' : 'destructive'}
-                        className="text-[10px] px-1.5 py-0"
+                  {history.map((item) => {
+                    const hasAttachments = item.attachments && (item.attachments as unknown[]).length > 0;
+                    return (
+                      <div
+                        key={item.id}
+                        className="flex items-start gap-2 text-xs p-2.5 rounded-xl bg-muted/50 hover:bg-muted/70 transition-colors"
                       >
-                        {item.success ? '✓' : '✗'}
-                      </Badge>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1">
-                          <p className="truncate font-medium">{item.user_prompt}</p>
-                          {item.attachments && (item.attachments as unknown[]).length > 0 && (
-                            <ImageIcon className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                          )}
+                        <Badge
+                          variant={item.success ? 'default' : 'destructive'}
+                          className="text-[10px] px-1.5 py-0 mt-0.5"
+                        >
+                          {item.success ? '✓' : '✗'}
+                        </Badge>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start gap-2">
+                            <p className="flex-1 font-medium leading-tight">{item.user_prompt}</p>
+                            {hasAttachments && (
+                              <div className="flex items-center gap-0.5 flex-shrink-0">
+                                <Paperclip className="h-3 w-3 text-primary" />
+                                <span className="text-[10px] text-primary">
+                                  {(item.attachments as unknown[]).length}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 mt-1 text-muted-foreground">
+                            <span>
+                              {format(new Date(item.created_at), "dd/MM HH:mm", { locale: ptBR })}
+                            </span>
+                            {item.provider && (
+                              <>
+                                <span>•</span>
+                                <span className="flex items-center gap-1">
+                                  {item.provider.name}
+                                </span>
+                              </>
+                            )}
+                            {item.tokens_used && (
+                              <>
+                                <span>•</span>
+                                <span>{item.tokens_used} tokens</span>
+                              </>
+                            )}
+                          </div>
                         </div>
-                        <p className="text-muted-foreground">
-                          {format(new Date(item.created_at), "dd/MM HH:mm", { locale: ptBR })}
-                          {item.provider && ` • ${item.provider.name}`}
-                        </p>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </ScrollArea>
             </CardContent>
