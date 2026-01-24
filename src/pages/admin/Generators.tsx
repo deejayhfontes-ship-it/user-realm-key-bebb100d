@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Download } from 'lucide-react';
+import { Plus, Download, Sparkles } from 'lucide-react';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -8,6 +8,7 @@ import { EditGeneratorModal } from '@/components/admin/generators/EditGeneratorM
 import { GeneratorDetailsDrawer } from '@/components/admin/generators/GeneratorDetailsDrawer';
 import { InstalledGeneratorsTab } from '@/components/admin/generators/InstalledGeneratorsTab';
 import { InstallGeneratorTab } from '@/components/admin/generators/InstallGeneratorTab';
+import { AIEditorTab } from '@/components/admin/generators/AIEditorTab';
 import { 
   useGeneratorsList, 
   useUpdateGeneratorStatus, 
@@ -91,6 +92,13 @@ export default function AdminGenerators() {
               <Download className="h-4 w-4 mr-2" />
               Instalar Novo
             </TabsTrigger>
+            <TabsTrigger 
+              value="ai-editor" 
+              className="rounded-full px-6 data-[state=active]:bg-background data-[state=active]:shadow-sm"
+            >
+              <Sparkles className="h-4 w-4 mr-2" />
+              Editor IA
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="installed" className="mt-6">
@@ -106,6 +114,10 @@ export default function AdminGenerators() {
 
           <TabsContent value="install" className="mt-6">
             <InstallGeneratorTab />
+          </TabsContent>
+
+          <TabsContent value="ai-editor" className="mt-6">
+            <AIEditorTab />
           </TabsContent>
         </Tabs>
       </div>
