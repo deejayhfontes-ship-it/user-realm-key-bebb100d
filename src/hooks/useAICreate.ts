@@ -4,7 +4,26 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import type { AIImageAttachment } from '@/lib/ai-engine/types';
 
-export type GeneratorType = 'stories' | 'carrossel' | 'post' | 'custom';
+export type GeneratorType = 'stories' | 'carrossel' | 'carrossel_vertical' | 'post' | 'custom';
+
+export interface OutputFormat {
+  name: string;
+  dimensions: { width: number; height: number };
+  label: string;
+}
+
+export interface DraggableTextField {
+  id: string;
+  label: string;
+  defaultText: string;
+  position: { x: number; y: number }; // percentual 0-100
+  fontSize: number;
+  fontFamily: string;
+  color: string;
+  align: 'left' | 'center' | 'right';
+  maxWidth?: number;
+  draggable: boolean;
+}
 
 export interface CreateGeneratorParams {
   name: string;
@@ -30,6 +49,9 @@ export interface ChatMessage {
 export const BASE_TEMPLATES: Record<GeneratorType, Record<string, unknown>> = {
   stories: {
     dimensions: { width: 1080, height: 1920 },
+    output_formats: [
+      { name: 'stories', dimensions: { width: 1080, height: 1920 }, label: 'Stories (1080×1920)' },
+    ],
     colors: {
       primary: '#000000',
       secondary: '#FFFFFF',
@@ -37,10 +59,24 @@ export const BASE_TEMPLATES: Record<GeneratorType, Record<string, unknown>> = {
     },
     features: {
       upload: true,
+      draggable_text: true,
       text_fields: [],
       preview: true,
       output_format: 'png',
     },
+    text_layers: [
+      {
+        id: 'titulo',
+        label: 'Título',
+        defaultText: 'Seu texto aqui',
+        position: { x: 50, y: 30 },
+        fontSize: 48,
+        fontFamily: 'Inter',
+        color: '#FFFFFF',
+        align: 'center',
+        draggable: true,
+      },
+    ],
     form_fields: [
       {
         name: 'imagem_fundo',
@@ -53,6 +89,11 @@ export const BASE_TEMPLATES: Record<GeneratorType, Record<string, unknown>> = {
   },
   carrossel: {
     dimensions: { width: 1080, height: 1080 },
+    output_formats: [
+      { name: 'quadrado', dimensions: { width: 1080, height: 1080 }, label: 'Quadrado (1080×1080)' },
+      { name: 'vertical', dimensions: { width: 1080, height: 1440 }, label: 'Vertical (1080×1440)' },
+      { name: 'stories', dimensions: { width: 1080, height: 1920 }, label: 'Stories (1080×1920)' },
+    ],
     colors: {
       primary: '#000000',
       secondary: '#FFFFFF',
@@ -61,37 +102,142 @@ export const BASE_TEMPLATES: Record<GeneratorType, Record<string, unknown>> = {
     features: {
       upload: true,
       multiple_slides: true,
+      draggable_text: true,
       text_fields: [],
       preview: true,
       output_format: 'zip',
     },
+    text_layers: [
+      {
+        id: 'titulo',
+        label: 'Título',
+        defaultText: 'Título do Slide',
+        position: { x: 50, y: 20 },
+        fontSize: 42,
+        fontFamily: 'Inter',
+        color: '#FFFFFF',
+        align: 'center',
+        draggable: true,
+      },
+      {
+        id: 'subtitulo',
+        label: 'Subtítulo',
+        defaultText: 'Subtítulo ou descrição',
+        position: { x: 50, y: 80 },
+        fontSize: 24,
+        fontFamily: 'Inter',
+        color: '#FFFFFF',
+        align: 'center',
+        draggable: true,
+      },
+    ],
+    form_fields: [],
+    credits_per_use: 2,
+  },
+  carrossel_vertical: {
+    dimensions: { width: 1080, height: 1440 },
+    output_formats: [
+      { name: 'vertical', dimensions: { width: 1080, height: 1440 }, label: 'Vertical (1080×1440)' },
+      { name: 'quadrado', dimensions: { width: 1080, height: 1080 }, label: 'Quadrado (1080×1080)' },
+      { name: 'stories', dimensions: { width: 1080, height: 1920 }, label: 'Stories (1080×1920)' },
+    ],
+    colors: {
+      primary: '#000000',
+      secondary: '#FFFFFF',
+      accent: '#0000FF',
+    },
+    features: {
+      upload: true,
+      multiple_slides: true,
+      draggable_text: true,
+      text_fields: [],
+      preview: true,
+      output_format: 'zip',
+    },
+    text_layers: [
+      {
+        id: 'titulo',
+        label: 'Título',
+        defaultText: 'Título do Slide',
+        position: { x: 50, y: 15 },
+        fontSize: 42,
+        fontFamily: 'Inter',
+        color: '#FFFFFF',
+        align: 'center',
+        draggable: true,
+      },
+      {
+        id: 'corpo',
+        label: 'Corpo do Texto',
+        defaultText: 'Conteúdo principal aqui',
+        position: { x: 50, y: 50 },
+        fontSize: 28,
+        fontFamily: 'Inter',
+        color: '#FFFFFF',
+        align: 'center',
+        maxWidth: 80,
+        draggable: true,
+      },
+      {
+        id: 'rodape',
+        label: 'Rodapé',
+        defaultText: '@seuperfil',
+        position: { x: 50, y: 90 },
+        fontSize: 20,
+        fontFamily: 'Inter',
+        color: '#FFFFFF',
+        align: 'center',
+        draggable: true,
+      },
+    ],
     form_fields: [],
     credits_per_use: 2,
   },
   post: {
     dimensions: { width: 1080, height: 1080 },
+    output_formats: [
+      { name: 'quadrado', dimensions: { width: 1080, height: 1080 }, label: 'Quadrado (1080×1080)' },
+      { name: 'vertical', dimensions: { width: 1080, height: 1350 }, label: 'Vertical (1080×1350)' },
+    ],
     colors: {
       primary: '#000000',
       secondary: '#FFFFFF',
     },
     features: {
       upload: true,
+      draggable_text: true,
       text_fields: [],
       preview: true,
       output_format: 'png',
     },
+    text_layers: [
+      {
+        id: 'titulo',
+        label: 'Título',
+        defaultText: 'Seu título',
+        position: { x: 50, y: 50 },
+        fontSize: 36,
+        fontFamily: 'Inter',
+        color: '#FFFFFF',
+        align: 'center',
+        draggable: true,
+      },
+    ],
     form_fields: [],
     credits_per_use: 1,
   },
   custom: {
     dimensions: { width: 1080, height: 1080 },
+    output_formats: [],
     colors: {},
     features: {
       upload: false,
+      draggable_text: true,
       text_fields: [],
       preview: true,
       output_format: 'png',
     },
+    text_layers: [],
     form_fields: [],
     credits_per_use: 1,
   },

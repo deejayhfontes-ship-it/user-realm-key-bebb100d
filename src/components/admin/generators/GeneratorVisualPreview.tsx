@@ -1,10 +1,31 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Image, Type, Calendar, Palette, Upload, Grid3X3, Sparkles } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Image, Type, Calendar, Palette, Upload, Grid3X3, Sparkles, Move, Maximize2 } from 'lucide-react';
+
+interface OutputFormat {
+  name: string;
+  dimensions: { width: number; height: number };
+  label: string;
+}
+
+interface TextLayer {
+  id: string;
+  label: string;
+  defaultText: string;
+  position: { x: number; y: number };
+  fontSize: number;
+  fontFamily: string;
+  color: string;
+  align: 'left' | 'center' | 'right';
+  maxWidth?: number;
+  draggable: boolean;
+}
 
 interface GeneratorConfig {
   dimensions?: { width: number; height: number };
+  output_formats?: OutputFormat[];
   colors?: {
     primary?: string;
     secondary?: string;
@@ -14,10 +35,12 @@ interface GeneratorConfig {
   features?: {
     upload?: boolean;
     multiple_slides?: boolean;
+    draggable_text?: boolean;
     text_fields?: string[];
     preview?: boolean;
     output_format?: string;
   };
+  text_layers?: TextLayer[];
   form_fields?: Array<{
     name: string;
     type: string;
@@ -34,14 +57,26 @@ interface Props {
 }
 
 export function GeneratorVisualPreview({ config, name, type }: Props) {
-  const dimensions = config?.dimensions || { width: 1080, height: 1080 };
+  const outputFormats = config?.output_formats || [];
+  const [selectedFormat, setSelectedFormat] = useState<string>(outputFormats[0]?.name || 'default');
+  
+  // Get dimensions based on selected format
+  const dimensions = useMemo(() => {
+    if (outputFormats.length > 0) {
+      const format = outputFormats.find(f => f.name === selectedFormat);
+      return format?.dimensions || config?.dimensions || { width: 1080, height: 1080 };
+    }
+    return config?.dimensions || { width: 1080, height: 1080 };
+  }, [selectedFormat, outputFormats, config?.dimensions]);
+  
   const colors = config?.colors || {};
   const features = config?.features || {};
   const formFields = config?.form_fields || [];
+  const textLayers = config?.text_layers || [];
 
   // Calculate preview canvas scale
-  const maxWidth = 280;
-  const maxHeight = 400;
+  const maxWidth = 260;
+  const maxHeight = 380;
   const aspectRatio = dimensions.width / dimensions.height;
   
   const previewDimensions = useMemo(() => {
@@ -81,12 +116,28 @@ export function GeneratorVisualPreview({ config, name, type }: Props) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Badge variant="outline" className="capitalize">{type}</Badge>
+          <Badge variant="outline" className="capitalize">{type.replace('_', ' ')}</Badge>
           <span className="font-semibold text-lg">{name || 'Novo Gerador'}</span>
         </div>
-        <Badge variant="secondary" className="text-xs">
-          {dimensions.width}×{dimensions.height}
-        </Badge>
+        {outputFormats.length > 1 ? (
+          <Select value={selectedFormat} onValueChange={setSelectedFormat}>
+            <SelectTrigger className="w-[180px] h-8 text-xs">
+              <Maximize2 className="h-3 w-3 mr-1" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {outputFormats.map((format) => (
+                <SelectItem key={format.name} value={format.name}>
+                  {format.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : (
+          <Badge variant="secondary" className="text-xs">
+            {dimensions.width}×{dimensions.height}
+          </Badge>
+        )}
       </div>
 
       <div className="flex gap-6">
@@ -115,32 +166,54 @@ export function GeneratorVisualPreview({ config, name, type }: Props) {
               ))}
             </div>
 
+            {/* Text Layers Preview (draggable indicators) */}
+            {textLayers.length > 0 && (
+              <div className="absolute inset-0 pointer-events-none">
+                {textLayers.map((layer) => (
+                  <div
+                    key={layer.id}
+                    className="absolute flex items-center gap-1 text-[10px] bg-primary/90 text-primary-foreground px-2 py-0.5 rounded shadow-sm"
+                    style={{
+                      left: `${layer.position.x}%`,
+                      top: `${layer.position.y}%`,
+                      transform: 'translate(-50%, -50%)',
+                    }}
+                  >
+                    {layer.draggable && <Move className="h-2.5 w-2.5" />}
+                    <span className="truncate max-w-[80px]">{layer.label}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
             {/* Placeholder elements based on form fields */}
-            <div className="relative z-10 flex flex-col items-center gap-3 p-4">
-              {formFields.length > 0 ? (
-                <>
-                  {formFields.slice(0, 4).map((field, idx) => (
-                    <div
-                      key={field.name}
-                      className="flex items-center gap-2 text-xs text-muted-foreground bg-background/80 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50"
-                    >
-                      {getFieldIcon(field.type)}
-                      <span className="truncate max-w-[120px]">{field.label}</span>
-                    </div>
-                  ))}
-                  {formFields.length > 4 && (
-                    <span className="text-xs text-muted-foreground">
-                      +{formFields.length - 4} campos
-                    </span>
-                  )}
-                </>
-              ) : (
-                <div className="text-center text-muted-foreground">
-                  <Image className="h-8 w-8 mx-auto mb-2 opacity-40" />
-                  <p className="text-xs">Preview visual</p>
-                </div>
-              )}
-            </div>
+            {textLayers.length === 0 && (
+              <div className="relative z-10 flex flex-col items-center gap-3 p-4">
+                {formFields.length > 0 ? (
+                  <>
+                    {formFields.slice(0, 4).map((field) => (
+                      <div
+                        key={field.name}
+                        className="flex items-center gap-2 text-xs text-muted-foreground bg-background/80 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50"
+                      >
+                        {getFieldIcon(field.type)}
+                        <span className="truncate max-w-[120px]">{field.label}</span>
+                      </div>
+                    ))}
+                    {formFields.length > 4 && (
+                      <span className="text-xs text-muted-foreground">
+                        +{formFields.length - 4} campos
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  <div className="text-center text-muted-foreground">
+                    <Image className="h-8 w-8 mx-auto mb-2 opacity-40" />
+                    <p className="text-xs">Preview visual</p>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Dimension indicator */}
             <div className="absolute bottom-2 right-2 text-[10px] text-muted-foreground bg-background/80 backdrop-blur-sm px-2 py-0.5 rounded">
@@ -153,6 +226,16 @@ export function GeneratorVisualPreview({ config, name, type }: Props) {
                 <Badge variant="secondary" className="text-[10px] gap-1">
                   <Grid3X3 className="h-3 w-3" />
                   Multi
+                </Badge>
+              </div>
+            )}
+            
+            {/* Draggable text indicator */}
+            {features.draggable_text && textLayers.length > 0 && (
+              <div className="absolute top-2 left-2">
+                <Badge variant="outline" className="text-[10px] gap-1 bg-background/80">
+                  <Move className="h-3 w-3" />
+                  Arrastar
                 </Badge>
               </div>
             )}
@@ -217,6 +300,39 @@ export function GeneratorVisualPreview({ config, name, type }: Props) {
             </div>
           )}
 
+          {/* Text Layers */}
+          {textLayers.length > 0 && (
+            <div>
+              <p className="text-xs text-muted-foreground mb-2 font-medium flex items-center gap-1">
+                <Type className="h-3 w-3" /> Campos de Texto ({textLayers.length})
+              </p>
+              <ScrollArea className="h-[120px]">
+                <div className="space-y-1.5 pr-2">
+                  {textLayers.map((layer) => (
+                    <div
+                      key={layer.id}
+                      className="flex items-center gap-2 text-sm p-2 rounded-lg bg-muted/50 hover:bg-muted/70 transition-colors"
+                    >
+                      <div className="w-6 h-6 rounded-md bg-background flex items-center justify-center">
+                        {layer.draggable ? <Move className="h-3 w-3 text-primary" /> : <Type className="h-3 w-3" />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">{layer.label}</p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {layer.defaultText}
+                        </p>
+                      </div>
+                      <div 
+                        className="w-4 h-4 rounded border border-border"
+                        style={{ backgroundColor: layer.color }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
+          )}
+
           {/* Features */}
           <div>
             <p className="text-xs text-muted-foreground mb-2 font-medium flex items-center gap-1">
@@ -233,9 +349,19 @@ export function GeneratorVisualPreview({ config, name, type }: Props) {
                   <Grid3X3 className="h-3 w-3" /> Multi-slide
                 </Badge>
               )}
+              {features.draggable_text && (
+                <Badge variant="secondary" className="text-[10px] gap-1">
+                  <Move className="h-3 w-3" /> Texto Arrastável
+                </Badge>
+              )}
               {features.preview && (
                 <Badge variant="secondary" className="text-[10px] gap-1">
                   Preview
+                </Badge>
+              )}
+              {outputFormats.length > 1 && (
+                <Badge variant="outline" className="text-[10px] gap-1">
+                  <Maximize2 className="h-3 w-3" /> {outputFormats.length} formatos
                 </Badge>
               )}
               {features.output_format && (
