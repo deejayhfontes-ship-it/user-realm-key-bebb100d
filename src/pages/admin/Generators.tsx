@@ -1,12 +1,13 @@
 import { useState } from 'react';
-import { Plus, Wand2 } from 'lucide-react';
+import { Plus, Download } from 'lucide-react';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { GeneratorCard } from '@/components/admin/generators/GeneratorCard';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { NewGeneratorModal } from '@/components/admin/generators/NewGeneratorModal';
 import { EditGeneratorModal } from '@/components/admin/generators/EditGeneratorModal';
 import { GeneratorDetailsDrawer } from '@/components/admin/generators/GeneratorDetailsDrawer';
+import { InstalledGeneratorsTab } from '@/components/admin/generators/InstalledGeneratorsTab';
+import { InstallGeneratorTab } from '@/components/admin/generators/InstallGeneratorTab';
 import { 
   useGeneratorsList, 
   useUpdateGeneratorStatus, 
@@ -24,6 +25,7 @@ import {
 } from '@/components/ui/alert-dialog';
 
 export default function AdminGenerators() {
+  const [activeTab, setActiveTab] = useState('installed');
   const [isNewModalOpen, setIsNewModalOpen] = useState(false);
   const [editGenerator, setEditGenerator] = useState<Generator | null>(null);
   const [viewGenerator, setViewGenerator] = useState<Generator | null>(null);
@@ -69,44 +71,43 @@ export default function AdminGenerators() {
       />
       
       <div className="flex-1 p-8">
-        {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <Skeleton key={i} className="h-64 w-full rounded-3xl" />
-            ))}
-          </div>
-        ) : generators && generators.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {generators.map((generator) => (
-              <GeneratorCard
-                key={generator.id}
-                generator={generator}
-                onView={handleView}
-                onEdit={handleEdit}
-                onToggleStatus={handleToggleStatus}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="soft-card flex flex-col items-center justify-center py-20 text-center">
-            <div className="w-16 h-16 rounded-3xl bg-muted flex items-center justify-center mb-4">
-              <Wand2 className="w-8 h-8 text-muted-foreground" />
-            </div>
-            <h3 className="text-lg font-semibold text-foreground mb-2">
-              Nenhum gerador cadastrado
-            </h3>
-            <p className="text-sm text-muted-foreground mb-6 max-w-sm">
-              Crie seu primeiro gerador para começar a produzir arte personalizada para seus clientes.
-            </p>
-            <Button 
-              onClick={() => setIsNewModalOpen(true)} 
-              className="gap-2 bg-primary text-primary-foreground hover:brightness-105 rounded-full px-6 shadow-lg shadow-primary/20"
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="bg-muted/50 p-1 rounded-full inline-flex">
+            <TabsTrigger 
+              value="installed" 
+              className="rounded-full px-6 data-[state=active]:bg-background data-[state=active]:shadow-sm"
             >
-              <Plus className="h-4 w-4" />
-              Criar Primeiro Gerador
-            </Button>
-          </div>
-        )}
+              Geradores Instalados
+              {generators && generators.length > 0 && (
+                <span className="ml-2 bg-primary/10 text-primary text-xs font-medium px-2 py-0.5 rounded-full">
+                  {generators.length}
+                </span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger 
+              value="install" 
+              className="rounded-full px-6 data-[state=active]:bg-background data-[state=active]:shadow-sm"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Instalar Novo
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="installed" className="mt-6">
+            <InstalledGeneratorsTab
+              generators={generators}
+              isLoading={isLoading}
+              onView={handleView}
+              onEdit={handleEdit}
+              onToggleStatus={handleToggleStatus}
+              onNewGenerator={() => setIsNewModalOpen(true)}
+            />
+          </TabsContent>
+
+          <TabsContent value="install" className="mt-6">
+            <InstallGeneratorTab />
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* Modals */}

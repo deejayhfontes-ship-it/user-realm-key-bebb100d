@@ -349,6 +349,8 @@ export type Database = {
           created_at: string | null
           description: string | null
           id: string
+          installed_at: string | null
+          installed_via: string | null
           name: string
           preview_image_url: string | null
           slug: string
@@ -357,12 +359,15 @@ export type Database = {
           template_url: string | null
           type: string
           updated_at: string | null
+          zip_file_path: string | null
         }
         Insert: {
           config?: Json | null
           created_at?: string | null
           description?: string | null
           id?: string
+          installed_at?: string | null
+          installed_via?: string | null
           name: string
           preview_image_url?: string | null
           slug: string
@@ -371,12 +376,15 @@ export type Database = {
           template_url?: string | null
           type: string
           updated_at?: string | null
+          zip_file_path?: string | null
         }
         Update: {
           config?: Json | null
           created_at?: string | null
           description?: string | null
           id?: string
+          installed_at?: string | null
+          installed_via?: string | null
           name?: string
           preview_image_url?: string | null
           slug?: string
@@ -385,6 +393,7 @@ export type Database = {
           template_url?: string | null
           type?: string
           updated_at?: string | null
+          zip_file_path?: string | null
         }
         Relationships: []
       }
