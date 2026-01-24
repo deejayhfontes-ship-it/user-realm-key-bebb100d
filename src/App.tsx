@@ -19,6 +19,8 @@ import AdminAIProviders from "@/pages/admin/AIProviders";
 import NotFound from "@/pages/NotFound";
 
 // Client Pages
+import ClientLogin from "@/pages/client/Login";
+import ClientPlans from "@/pages/client/Plans";
 import ClientDashboard from "@/pages/client/Dashboard";
 import ClientGenerators from "@/pages/client/Generators";
 import ClientHistory from "@/pages/client/History";
@@ -39,6 +41,8 @@ const App = () => (
           <Routes>
             {/* Public routes */}
             <Route path="/login" element={<Login />} />
+            <Route path="/client/login" element={<ClientLogin />} />
+            <Route path="/plans" element={<ClientPlans />} />
             
             {/* Redirect root to login or dashboard */}
             <Route path="/" element={<Navigate to="/login" replace />} />
