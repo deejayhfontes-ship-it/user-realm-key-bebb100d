@@ -217,28 +217,19 @@ export function ClientDetailsDrawer({
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="center" className="w-56">
                       <DropdownMenuItem 
-                        onClick={() => {
-                          onOpenChange(false);
-                          navigate('/admin/geradores?tab=instalar&method=zip');
-                        }}
+                        onClick={() => window.open('/admin/generators?tab=instalar', '_blank')}
                       >
                         <Package className="h-4 w-4 mr-2" />
                         Upload ZIP
                       </DropdownMenuItem>
                       <DropdownMenuItem 
-                        onClick={() => {
-                          onOpenChange(false);
-                          navigate('/admin/geradores?tab=instalar&method=url');
-                        }}
+                        onClick={() => window.open('/admin/generators?tab=instalar', '_blank')}
                       >
                         <Link className="h-4 w-4 mr-2" />
                         Importar via URL
                       </DropdownMenuItem>
                       <DropdownMenuItem 
-                        onClick={() => {
-                          onOpenChange(false);
-                          navigate('/admin/geradores?tab=editor&mode=create');
-                        }}
+                        onClick={() => window.open('/admin/generators?tab=editor', '_blank')}
                       >
                         <Sparkles className="h-4 w-4 mr-2" />
                         Criar com IA
