@@ -34,6 +34,7 @@ export type Database = {
           request_template: Json | null
           response_path: string | null
           slug: string
+          supports_images: boolean | null
           system_prompt: string | null
           temperature: number | null
           timeout_seconds: number | null
@@ -60,6 +61,7 @@ export type Database = {
           request_template?: Json | null
           response_path?: string | null
           slug: string
+          supports_images?: boolean | null
           system_prompt?: string | null
           temperature?: number | null
           timeout_seconds?: number | null
@@ -86,6 +88,7 @@ export type Database = {
           request_template?: Json | null
           response_path?: string | null
           slug?: string
+          supports_images?: boolean | null
           system_prompt?: string | null
           temperature?: number | null
           timeout_seconds?: number | null
@@ -435,6 +438,7 @@ export type Database = {
       generator_edit_history: {
         Row: {
           ai_response: string | null
+          attachments: Json | null
           created_at: string | null
           created_by: string | null
           error_message: string | null
@@ -450,6 +454,7 @@ export type Database = {
         }
         Insert: {
           ai_response?: string | null
+          attachments?: Json | null
           created_at?: string | null
           created_by?: string | null
           error_message?: string | null
@@ -465,6 +470,7 @@ export type Database = {
         }
         Update: {
           ai_response?: string | null
+          attachments?: Json | null
           created_at?: string | null
           created_by?: string | null
           error_message?: string | null

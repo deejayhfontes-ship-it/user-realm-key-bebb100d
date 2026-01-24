@@ -20,6 +20,13 @@ interface AIProvider {
   timeout_seconds: number;
   max_tokens: number;
   temperature: number;
+  supports_images: boolean;
+}
+
+interface ImageAttachment {
+  name: string;
+  type: string;
+  base64: string;
 }
 
 // Extrai valor de objeto usando path
@@ -67,23 +74,70 @@ function extractJSON(text: string): Record<string, unknown> | null {
   return null;
 }
 
+// Constrói content multimodal para mensagens com imagens
+function buildMultimodalContent(
+  textContent: string,
+  images: ImageAttachment[] | undefined,
+  provider: AIProvider
+): unknown {
+  if (!images || images.length === 0) {
+    return textContent;
+  }
+
+  switch (provider.api_type) {
+    case 'lovable':
+    case 'openai':
+      // OpenAI/Lovable format
+      return [
+        { type: 'text', text: textContent },
+        ...images.map(img => ({
+          type: 'image_url',
+          image_url: { url: `data:${img.type};base64,${img.base64}` }
+        }))
+      ];
+      
+    case 'anthropic':
+      // Anthropic format
+      return [
+        { type: 'text', text: textContent },
+        ...images.map(img => ({
+          type: 'image',
+          source: {
+            type: 'base64',
+            media_type: img.type,
+            data: img.base64
+          }
+        }))
+      ];
+      
+    case 'google':
+      // Google format - handled differently in buildRequest
+      return textContent;
+      
+    default:
+      return textContent;
+  }
+}
+
 // Constrói request baseado no tipo de API
 function buildRequest(
   provider: AIProvider,
   fullPrompt: string,
-  systemPrompt: string
+  systemPrompt: string,
+  images?: ImageAttachment[]
 ): Record<string, unknown> {
-  const baseMessages = [
-    { role: 'system', content: systemPrompt },
-    { role: 'user', content: fullPrompt }
-  ];
+  const hasImages = images && images.length > 0;
+  const multimodalContent = buildMultimodalContent(fullPrompt, images, provider);
 
   switch (provider.api_type) {
     case 'lovable':
     case 'openai':
       return {
         model: provider.model_name || 'gpt-4',
-        messages: baseMessages,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: multimodalContent }
+        ],
         max_tokens: provider.max_tokens,
         temperature: provider.temperature,
       };
@@ -93,14 +147,23 @@ function buildRequest(
         model: provider.model_name || 'claude-sonnet-4-20250514',
         max_tokens: provider.max_tokens,
         system: systemPrompt,
-        messages: [{ role: 'user', content: fullPrompt }],
+        messages: [{ role: 'user', content: multimodalContent }],
       };
       
     case 'google':
+      const parts: unknown[] = [{ text: `${systemPrompt}\n\n${fullPrompt}` }];
+      if (hasImages) {
+        images!.forEach(img => {
+          parts.push({
+            inline_data: {
+              mime_type: img.type,
+              data: img.base64
+            }
+          });
+        });
+      }
       return {
-        contents: [{
-          parts: [{ text: `${systemPrompt}\n\n${fullPrompt}` }]
-        }],
+        contents: [{ parts }],
         generationConfig: {
           maxOutputTokens: provider.max_tokens,
           temperature: provider.temperature,
@@ -110,7 +173,10 @@ function buildRequest(
     default:
       return {
         model: provider.model_name,
-        messages: baseMessages,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: multimodalContent }
+        ],
         max_tokens: provider.max_tokens,
         temperature: provider.temperature,
       };
@@ -165,7 +231,7 @@ serve(async (req) => {
   }
 
   try {
-    const { generatorId, userPrompt, providerId, conversationHistory } = await req.json();
+    const { generatorId, userPrompt, providerId, images } = await req.json();
 
     if (!generatorId || !userPrompt) {
       return new Response(
@@ -217,6 +283,12 @@ serve(async (req) => {
 
     const typedProvider = provider as AIProvider;
 
+    // Verificar suporte a imagens
+    const hasImages = images && Array.isArray(images) && images.length > 0;
+    if (hasImages && !typedProvider.supports_images) {
+      console.warn(`Provider ${typedProvider.name} não suporta imagens, serão ignoradas`);
+    }
+
     // Determinar API key
     let apiKey = typedProvider.api_key_encrypted;
     if (typedProvider.api_type === 'lovable') {
@@ -234,13 +306,17 @@ serve(async (req) => {
       'Você modifica configurações JSON de geradores. Retorne APENAS o JSON modificado.';
 
     // Construir prompt completo
+    const imageNote = hasImages && typedProvider.supports_images 
+      ? `\n\n[${images.length} imagem(ns) anexada(s) para referência]` 
+      : '';
+    
     const fullPrompt = `GERADOR: ${generator.name}
 
 CONFIG ATUAL:
 ${JSON.stringify(generator.config, null, 2)}
 
 ALTERAÇÃO SOLICITADA:
-${userPrompt}
+${userPrompt}${imageNote}
 
 Retorne APENAS o JSON modificado completo.`;
 
@@ -252,11 +328,14 @@ Retorne APENAS o JSON modificado completo.`;
       endpoint = `${endpoint}?key=${apiKey}`;
     }
 
+    // Preparar imagens para request (apenas se provider suporta)
+    const imagesToSend = hasImages && typedProvider.supports_images ? images as ImageAttachment[] : undefined;
+
     // Fazer request
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: getAuthHeaders(typedProvider, apiKey),
-      body: JSON.stringify(buildRequest(typedProvider, fullPrompt, systemPrompt)),
+      body: JSON.stringify(buildRequest(typedProvider, fullPrompt, systemPrompt, imagesToSend)),
       signal: AbortSignal.timeout(typedProvider.timeout_seconds * 1000),
     });
 
@@ -276,6 +355,7 @@ Retorne APENAS o JSON modificado completo.`;
         processing_time_ms: processingTime,
         success: false,
         error_message: `API error ${response.status}: ${errorText.substring(0, 500)}`,
+        attachments: hasImages ? images.map((img: ImageAttachment) => ({ name: img.name, type: img.type })) : [],
       });
 
       if (response.status === 429) {
@@ -317,6 +397,7 @@ Retorne APENAS o JSON modificado completo.`;
         processing_time_ms: processingTime,
         success: false,
         error_message: "Não foi possível extrair JSON válido da resposta",
+        attachments: hasImages ? images.map((img: ImageAttachment) => ({ name: img.name, type: img.type })) : [],
       });
 
       return new Response(
@@ -340,6 +421,7 @@ Retorne APENAS o JSON modificado completo.`;
       tokens_used: tokensUsed,
       processing_time_ms: processingTime,
       success: true,
+      attachments: hasImages ? images.map((img: ImageAttachment) => ({ name: img.name, type: img.type })) : [],
     });
 
     // Atualizar config do generator

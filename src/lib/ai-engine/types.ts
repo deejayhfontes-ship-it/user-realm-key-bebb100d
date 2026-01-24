@@ -58,6 +58,7 @@ export interface AIProviderFromDB {
   temperature: number;
   is_active: boolean;
   is_default: boolean;
+  supports_images: boolean;
   last_test_at: string | null;
   last_test_success: boolean | null;
   last_error: string | null;
@@ -66,6 +67,13 @@ export interface AIProviderFromDB {
   created_at: string;
   updated_at: string;
   created_by: string | null;
+}
+
+// Tipo para imagem anexada
+export interface AIImageAttachment {
+  name: string;
+  type: string;
+  base64: string;
 }
 
 // Templates pré-configurados para providers comuns
