@@ -1,5 +1,6 @@
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useNavigate } from 'react-router-dom';
 import { 
   X, 
   Mail, 
@@ -12,7 +13,11 @@ import {
   XCircle,
   Pencil,
   Ban,
-  Unlock
+  Unlock,
+  Plus,
+  Package,
+  Link,
+  Sparkles
 } from 'lucide-react';
 
 import {
@@ -21,6 +26,12 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -55,6 +66,7 @@ export function ClientDetailsDrawer({
   onEdit,
   onToggleBlock
 }: ClientDetailsDrawerProps) {
+  const navigate = useNavigate();
   const { data: details, isLoading } = useClientDetails(client?.id || null);
 
   if (!client) return null;
@@ -194,6 +206,45 @@ export function ClientDetailsDrawer({
                   ) : (
                     <p className="text-sm text-muted-foreground">Nenhum gerador atribuído</p>
                   )}
+
+                  {/* Add new generator dropdown */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" className="w-full border-dashed">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Adicionar Novo Gerador
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="center" className="w-56">
+                      <DropdownMenuItem 
+                        onClick={() => {
+                          onOpenChange(false);
+                          navigate('/admin/geradores?tab=instalar&method=zip');
+                        }}
+                      >
+                        <Package className="h-4 w-4 mr-2" />
+                        Upload ZIP
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => {
+                          onOpenChange(false);
+                          navigate('/admin/geradores?tab=instalar&method=url');
+                        }}
+                      >
+                        <Link className="h-4 w-4 mr-2" />
+                        Importar via URL
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => {
+                          onOpenChange(false);
+                          navigate('/admin/geradores?tab=editor&mode=create');
+                        }}
+                      >
+                        <Sparkles className="h-4 w-4 mr-2" />
+                        Criar com IA
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
 
                 {/* Recent Generations */}
