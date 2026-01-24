@@ -14,6 +14,95 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_providers: {
+        Row: {
+          api_key_encrypted: string | null
+          api_type: string
+          created_at: string | null
+          created_by: string | null
+          custom_headers: Json | null
+          endpoint_url: string
+          id: string
+          is_active: boolean | null
+          is_default: boolean | null
+          last_error: string | null
+          last_test_at: string | null
+          last_test_success: boolean | null
+          max_tokens: number | null
+          model_name: string | null
+          name: string
+          request_template: Json | null
+          response_path: string | null
+          slug: string
+          system_prompt: string | null
+          temperature: number | null
+          timeout_seconds: number | null
+          total_requests: number | null
+          total_tokens_used: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          api_key_encrypted?: string | null
+          api_type?: string
+          created_at?: string | null
+          created_by?: string | null
+          custom_headers?: Json | null
+          endpoint_url: string
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          last_error?: string | null
+          last_test_at?: string | null
+          last_test_success?: boolean | null
+          max_tokens?: number | null
+          model_name?: string | null
+          name: string
+          request_template?: Json | null
+          response_path?: string | null
+          slug: string
+          system_prompt?: string | null
+          temperature?: number | null
+          timeout_seconds?: number | null
+          total_requests?: number | null
+          total_tokens_used?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          api_key_encrypted?: string | null
+          api_type?: string
+          created_at?: string | null
+          created_by?: string | null
+          custom_headers?: Json | null
+          endpoint_url?: string
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          last_error?: string | null
+          last_test_at?: string | null
+          last_test_success?: boolean | null
+          max_tokens?: number | null
+          model_name?: string | null
+          name?: string
+          request_template?: Json | null
+          response_path?: string | null
+          slug?: string
+          system_prompt?: string | null
+          temperature?: number | null
+          timeout_seconds?: number | null
+          total_requests?: number | null
+          total_tokens_used?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_providers_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       art_templates: {
         Row: {
           active: boolean | null
@@ -339,6 +428,83 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      generator_edit_history: {
+        Row: {
+          ai_response: string | null
+          created_at: string | null
+          created_by: string | null
+          error_message: string | null
+          generator_id: string
+          id: string
+          new_config: Json
+          old_config: Json
+          processing_time_ms: number | null
+          provider_id: string | null
+          success: boolean | null
+          tokens_used: number | null
+          user_prompt: string
+        }
+        Insert: {
+          ai_response?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          error_message?: string | null
+          generator_id: string
+          id?: string
+          new_config: Json
+          old_config: Json
+          processing_time_ms?: number | null
+          provider_id?: string | null
+          success?: boolean | null
+          tokens_used?: number | null
+          user_prompt: string
+        }
+        Update: {
+          ai_response?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          error_message?: string | null
+          generator_id?: string
+          id?: string
+          new_config?: Json
+          old_config?: Json
+          processing_time_ms?: number | null
+          provider_id?: string | null
+          success?: boolean | null
+          tokens_used?: number | null
+          user_prompt?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "generator_edit_history_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "generator_edit_history_generator_id_fkey"
+            columns: ["generator_id"]
+            isOneToOne: false
+            referencedRelation: "generator_usage"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "generator_edit_history_generator_id_fkey"
+            columns: ["generator_id"]
+            isOneToOne: false
+            referencedRelation: "generators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "generator_edit_history_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "ai_providers"
             referencedColumns: ["id"]
           },
         ]

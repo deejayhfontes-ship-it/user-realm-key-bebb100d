@@ -13,6 +13,7 @@ import AdminDashboard from "@/pages/admin/Dashboard";
 import AdminClients from "@/pages/admin/Clients";
 import AdminGenerators from "@/pages/admin/Generators";
 import AdminSettings from "@/pages/admin/Settings";
+import AdminAIProviders from "@/pages/admin/AIProviders";
 import NotFound from "@/pages/NotFound";
 import GeneratorPage from "@/pages/client/Generator";
 
@@ -45,6 +46,7 @@ const App = () => (
               <Route path="dashboard" element={<AdminDashboard />} />
               <Route path="clients" element={<AdminClients />} />
               <Route path="generators" element={<AdminGenerators />} />
+              <Route path="ai-providers" element={<AdminAIProviders />} />
               <Route path="settings" element={<AdminSettings />} />
             </Route>
 

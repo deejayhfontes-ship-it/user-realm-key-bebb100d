@@ -6,7 +6,8 @@ import {
   Settings, 
   LogOut,
   Palette,
-  ChevronLeft
+  ChevronLeft,
+  Zap
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -28,6 +29,11 @@ const navItems = [
     title: 'Geradores', 
     href: '/admin/generators', 
     icon: Wand2 
+  },
+  { 
+    title: 'Provedores IA', 
+    href: '/admin/ai-providers', 
+    icon: Zap 
   },
   { 
     title: 'Configurações', 
