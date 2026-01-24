@@ -50,6 +50,10 @@ export interface CreateClientData {
   generators: ClientGenerator[];
 }
 
+export interface UpdateClientData extends Partial<CreateClientData> {
+  id: string;
+}
+
 export function useClients(statusFilter?: string, searchQuery?: string) {
   return useQuery({
     queryKey: ['clients', statusFilter, searchQuery],
@@ -83,6 +87,79 @@ export function useClients(statusFilter?: string, searchQuery?: string) {
         ) || 0
       })) as Client[];
     }
+  });
+}
+
+export function useClientDetails(clientId: string | null) {
+  return useQuery({
+    queryKey: ['client-details', clientId],
+    queryFn: async () => {
+      if (!clientId) return null;
+
+      // Get client with generators
+      const { data: client, error: clientError } = await supabase
+        .from('clients')
+        .select(`
+          *,
+          client_generators(
+            id,
+            generator_id,
+            credits_limit,
+            credits_used,
+            time_limit_start,
+            time_limit_end,
+            allowed_weekdays,
+            enabled
+          )
+        `)
+        .eq('id', clientId)
+        .single();
+
+      if (clientError) throw clientError;
+
+      // Get generator names
+      const { data: generators } = await supabase
+        .from('generators')
+        .select('id, name, slug');
+
+      // Get recent generations
+      const { data: recentGenerations } = await supabase
+        .from('generations')
+        .select('id, created_at, generator_id, success')
+        .eq('client_id', clientId)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      // Get total generations count
+      const { count: totalGenerations } = await supabase
+        .from('generations')
+        .select('*', { count: 'exact', head: true })
+        .eq('client_id', clientId);
+
+      // Map generator names to client_generators
+      const clientGeneratorsWithNames = client.client_generators?.map((cg: any) => ({
+        ...cg,
+        generator_name: generators?.find(g => g.id === cg.generator_id)?.name || 'Desconhecido'
+      })) || [];
+
+      // Map generator names to generations
+      const generationsWithNames = recentGenerations?.map((gen: any) => ({
+        ...gen,
+        generator_name: generators?.find(g => g.id === gen.generator_id)?.name || 'Desconhecido'
+      })) || [];
+
+      return {
+        ...client,
+        client_generators: clientGeneratorsWithNames,
+        recent_generations: generationsWithNames,
+        total_generations: totalGenerations || 0,
+        total_credits_used: clientGeneratorsWithNames.reduce(
+          (sum: number, cg: { credits_used?: number }) => sum + (cg.credits_used || 0), 
+          0
+        )
+      };
+    },
+    enabled: !!clientId
   });
 }
 
@@ -175,6 +252,91 @@ export function useCreateClient() {
   });
 }
 
+export function useUpdateClient() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: UpdateClientData) => {
+      const { id, generators, ...clientData } = data;
+
+      // Update client
+      const { data: client, error: clientError } = await supabase
+        .from('clients')
+        .update({
+          name: clientData.name,
+          email: clientData.email,
+          phone: clientData.phone || null,
+          type: clientData.type,
+          notes: clientData.notes || null,
+          contract_start: clientData.contract_start || null,
+          monthly_credits: clientData.monthly_credits || null,
+          package_type: clientData.package_type || null,
+          package_credits: clientData.package_credits || null,
+          access_expires_at: clientData.access_expires_at || null
+        })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (clientError) throw clientError;
+
+      // Update generators - delete old ones and insert new ones
+      if (generators && generators.length > 0) {
+        // Delete existing generators
+        await supabase
+          .from('client_generators')
+          .delete()
+          .eq('client_id', id);
+
+        // Insert new generators
+        const generatorInserts = generators.map(gen => ({
+          client_id: id,
+          generator_id: gen.generator_id,
+          enabled: true,
+          credits_limit: gen.credits_limit || null,
+          credits_used: gen.credits_used || 0,
+          time_limit_start: gen.time_limit_start || null,
+          time_limit_end: gen.time_limit_end || null,
+          allowed_weekdays: gen.allowed_weekdays || [0, 1, 2, 3, 4, 5, 6]
+        }));
+
+        const { error: genError } = await supabase
+          .from('client_generators')
+          .insert(generatorInserts);
+
+        if (genError) throw genError;
+      }
+
+      // Log audit
+      const { data: { user } } = await supabase.auth.getUser();
+      await supabase.from('audit_logs').insert([{
+        user_id: user?.id,
+        action: 'update',
+        entity_type: 'client',
+        entity_id: id,
+        new_data: JSON.parse(JSON.stringify(data))
+      }]);
+
+      return client;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
+      queryClient.invalidateQueries({ queryKey: ['client-details'] });
+      toast({
+        title: 'Cliente atualizado!',
+        description: 'As alterações foram salvas com sucesso.'
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Erro ao atualizar cliente',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
+  });
+}
+
 export function useUpdateClientStatus() {
   const queryClient = useQueryClient();
 
@@ -203,7 +365,8 @@ export function useUpdateClientStatus() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['clients'] });
-      const action = variables.status === 'blocked' ? 'bloqueado' : 'atualizado';
+      queryClient.invalidateQueries({ queryKey: ['client-details'] });
+      const action = variables.status === 'blocked' ? 'bloqueado' : 'desbloqueado';
       toast({
         title: `Cliente ${action}`,
         description: `Status do cliente foi alterado para ${variables.status}.`
