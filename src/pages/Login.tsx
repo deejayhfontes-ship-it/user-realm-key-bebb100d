@@ -57,59 +57,116 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      {/* Background decorations */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/20 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-accent/20 rounded-full blur-3xl" />
-      </div>
-
-      {/* Login Card */}
-      <div className="relative w-full max-w-md">
-        <div className="glass-card p-8 shadow-2xl card-shadow">
-          {/* Logo/Header */}
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-accent/20 mb-4">
-              <Palette className="w-8 h-8 text-accent" />
+    <div className="min-h-screen flex items-center justify-center bg-background p-6">
+      {/* Large container with two columns */}
+      <div className="w-full max-w-5xl flex rounded-[2.5rem] overflow-hidden soft-card-elevated">
+        
+        {/* Left side - Branding / Decorative */}
+        <div className="hidden lg:flex lg:w-1/2 bg-secondary p-12 flex-col justify-between relative overflow-hidden">
+          {/* Decorative circles */}
+          <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-primary/20 blur-3xl" />
+          <div className="absolute -bottom-20 -left-20 w-64 h-64 rounded-full bg-primary/10 blur-3xl" />
+          
+          {/* Logo area */}
+          <div className="relative z-10">
+            <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center mb-6">
+              <Palette className="w-7 h-7 text-primary-foreground" />
             </div>
-            <h1 className="text-2xl font-bold text-foreground">Fontes Graphics</h1>
-            <p className="text-sm text-muted-foreground mt-1">Platform</p>
-            <p className="text-muted-foreground mt-3">Acesse sua conta</p>
+            <h1 className="text-3xl font-bold text-secondary-foreground tracking-tight">
+              Fontes Graphics
+            </h1>
+            <p className="text-secondary-foreground/50 text-sm mt-1 font-light">Platform</p>
+          </div>
+
+          {/* Feature highlights */}
+          <div className="relative z-10 space-y-6">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-primary/15 flex items-center justify-center">
+                <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <div>
+                <p className="font-semibold text-secondary-foreground">Geradores Rápidos</p>
+                <p className="text-sm text-secondary-foreground/50 font-light">Crie artes em segundos</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-primary/15 flex items-center justify-center">
+                <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <div>
+                <p className="font-semibold text-secondary-foreground">Templates Premium</p>
+                <p className="text-sm text-secondary-foreground/50 font-light">Designs profissionais</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Decorative lime bar */}
+          <div className="relative z-10 flex items-center gap-3">
+            <div className="h-1.5 flex-1 rounded-full bg-primary/20">
+              <div className="h-full w-2/3 rounded-full bg-primary" />
+            </div>
+            <span className="text-xs text-secondary-foreground/40 font-light">v2.0</span>
+          </div>
+        </div>
+
+        {/* Right side - Login Form */}
+        <div className="w-full lg:w-1/2 p-8 md:p-12 flex flex-col justify-center bg-card">
+          {/* Mobile logo */}
+          <div className="lg:hidden text-center mb-10">
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary mb-4">
+              <Palette className="w-7 h-7 text-primary-foreground" />
+            </div>
+            <h1 className="text-2xl font-bold text-foreground tracking-tight">Fontes Graphics</h1>
+            <p className="text-muted-foreground text-sm font-light">Platform</p>
+          </div>
+
+          {/* Welcome text */}
+          <div className="mb-8">
+            <h2 className="text-2xl md:text-3xl font-semibold text-foreground tracking-tight">
+              Acesse sua conta
+            </h2>
+            <p className="text-muted-foreground mt-2 font-light">
+              Entre com suas credenciais para continuar
+            </p>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-foreground">
+              <Label htmlFor="email" className="text-foreground font-medium">
                 Email
               </Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
                   id="email"
                   type="email"
                   placeholder="seu@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10 bg-card border-border text-foreground placeholder:text-muted-foreground focus:border-accent focus:ring-accent/20"
+                  className="pl-12 h-13 bg-muted/50 border-0 rounded-2xl text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/30"
                   disabled={isLoading}
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-foreground">
+              <Label htmlFor="password" className="text-foreground font-medium">
                 Senha
               </Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
                   id="password"
                   type="password"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 bg-card border-border text-foreground placeholder:text-muted-foreground focus:border-accent focus:ring-accent/20"
+                  className="pl-12 h-13 bg-muted/50 border-0 rounded-2xl text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/30"
                   disabled={isLoading}
                 />
               </div>
@@ -117,12 +174,12 @@ export default function Login() {
 
             <Button
               type="submit"
-              className="w-full h-12 bg-accent hover:bg-accent/90 text-accent-foreground font-semibold"
+              className="w-full h-13 bg-primary hover:brightness-105 text-primary-foreground font-semibold rounded-2xl shadow-lg shadow-primary/25 transition-all mt-2"
               disabled={isLoading}
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                   Entrando...
                 </>
               ) : (
@@ -132,7 +189,7 @@ export default function Login() {
           </form>
 
           {/* Footer */}
-          <p className="text-center text-muted-foreground text-sm mt-6">
+          <p className="text-center text-muted-foreground text-sm mt-8 font-light">
             Esqueceu a senha? Entre em contato com o administrador.
           </p>
         </div>
