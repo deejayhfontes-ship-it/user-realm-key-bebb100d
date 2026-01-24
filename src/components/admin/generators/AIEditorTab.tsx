@@ -1,18 +1,16 @@
 import { useState } from 'react';
-import { Send, Trash2, Sparkles, History, Undo2, Loader2, Bot, User, Image as ImageIcon, AlertTriangle, Paperclip } from 'lucide-react';
+import { Trash2, Sparkles, History, Undo2, Loader2, Bot, User, Image as ImageIcon, AlertTriangle, Paperclip } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
 import { useGeneratorsList } from '@/hooks/useGenerators';
 import { useActiveAIProviders } from '@/hooks/useAIProviders';
 import { useAIEdit, useEditHistory, useUndoEdit } from '@/hooks/useAIEdit';
-import { ImageAttachments } from './ImageAttachments';
+import { MinimalImageChat } from './ImageAttachments';
 import { type ImageAttachment } from '@/lib/image-utils';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -238,56 +236,37 @@ export function AIEditorTab() {
               </div>
             </ScrollArea>
 
-            {/* Attachments */}
-            <ImageAttachments
-              attachments={attachments}
-              onAttachmentsChange={setAttachments}
-              maxAttachments={5}
-              disabled={!selectedGenerator || isSending}
-              supportsImages={supportsImages}
-            />
-
-            {/* Input */}
-            <div className="space-y-3 mt-3">
-              <Textarea
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
+            {/* Minimal Input with integrated attachments */}
+            <div className="mt-3">
+              <MinimalImageChat
+                attachments={attachments}
+                onAttachmentsChange={setAttachments}
+                inputValue={inputValue}
+                onInputChange={setInputValue}
+                onSend={handleSend}
+                maxAttachments={5}
+                disabled={!selectedGenerator}
+                isSending={isSending}
                 placeholder={
                   attachments.length > 0
                     ? "Descreva o que fazer com as imagens..."
                     : "Digite sua alteração..."
                 }
-                className="rounded-xl resize-none min-h-[80px]"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSend();
-                  }
-                }}
-                disabled={!selectedGenerator || isSending}
+                supportsImages={supportsImages}
               />
-              <div className="flex gap-2">
-                <Button
-                  onClick={handleSend}
-                  disabled={!inputValue.trim() || !selectedGenerator || isSending}
-                  className="flex-1 rounded-xl gap-2"
-                >
-                  {isSending ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Send className="h-4 w-4" />
-                  )}
-                  Enviar {attachments.length > 0 && `(${attachments.length} img)`}
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleClear}
-                  disabled={messages.length === 0 && attachments.length === 0}
-                  className="rounded-xl"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
+              {messages.length > 0 && (
+                <div className="flex justify-end mt-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleClear}
+                    className="text-xs text-muted-foreground hover:text-destructive gap-1"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                    Limpar conversa
+                  </Button>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
