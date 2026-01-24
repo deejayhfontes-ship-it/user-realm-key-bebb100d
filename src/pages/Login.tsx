@@ -45,8 +45,8 @@ export default function Login() {
         console.log('➡️ Redirecionando para /admin/dashboard');
         navigate('/admin/dashboard');
       } else {
-        console.log('➡️ Redirecionando para /client');
-        navigate('/client');
+        console.log('➡️ Redirecionando para /client/dashboard');
+        navigate('/client/dashboard');
       }
     } catch (err) {
       console.error('❌ Erro inesperado:', err);
