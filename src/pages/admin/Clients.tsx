@@ -54,14 +54,17 @@ export default function AdminClients() {
         title="Clientes" 
         subtitle="Gerenciar clientes e pacotes"
         action={
-          <Button onClick={() => setIsNewModalOpen(true)} className="gap-2">
+          <Button 
+            onClick={() => setIsNewModalOpen(true)} 
+            className="gap-2 bg-primary text-primary-foreground hover:brightness-105 rounded-full px-6 h-11 font-medium shadow-lg shadow-primary/20"
+          >
             <Plus className="h-4 w-4" />
             Novo Cliente
           </Button>
         }
       />
       
-      <div className="flex-1 p-6 space-y-6">
+      <div className="flex-1 p-8 space-y-6">
         <ClientFilters
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
@@ -84,9 +87,9 @@ export default function AdminClients() {
       />
 
       <AlertDialog open={!!clientToBlock} onOpenChange={() => setClientToBlock(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="soft-card-elevated border-0">
           <AlertDialogHeader>
-            <AlertDialogTitle>
+            <AlertDialogTitle className="text-xl">
               {clientToBlock?.status === 'blocked' ? 'Desbloquear' : 'Bloquear'} cliente?
             </AlertDialogTitle>
             <AlertDialogDescription>
@@ -97,8 +100,11 @@ export default function AdminClients() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmToggleBlock}>
+            <AlertDialogCancel className="rounded-full">Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmToggleBlock}
+              className="rounded-full bg-primary text-primary-foreground hover:brightness-105"
+            >
               {clientToBlock?.status === 'blocked' ? 'Desbloquear' : 'Bloquear'}
             </AlertDialogAction>
           </AlertDialogFooter>

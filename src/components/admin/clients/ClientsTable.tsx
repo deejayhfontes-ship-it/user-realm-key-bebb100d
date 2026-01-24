@@ -22,24 +22,24 @@ interface ClientsTableProps {
   onToggleBlock: (client: Client) => void;
 }
 
-const statusConfig: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
-  active: { label: 'Ativo', variant: 'default' },
-  inactive: { label: 'Inativo', variant: 'secondary' },
-  blocked: { label: 'Bloqueado', variant: 'destructive' },
-  expired: { label: 'Expirado', variant: 'outline' }
+const statusConfig: Record<string, { label: string; className: string }> = {
+  active: { label: 'Ativo', className: 'bg-primary/15 text-primary border-0 hover:bg-primary/20' },
+  inactive: { label: 'Inativo', className: 'bg-muted text-muted-foreground border-0' },
+  blocked: { label: 'Bloqueado', className: 'bg-destructive/15 text-destructive border-0' },
+  expired: { label: 'Expirado', className: 'bg-warning/15 text-warning border-0' }
 };
 
 const typeConfig: Record<string, { label: string; className: string }> = {
-  fixed: { label: 'Fixo', className: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
-  package: { label: 'Pacote', className: 'bg-blue-500/20 text-blue-400 border-blue-500/30' }
+  fixed: { label: 'Fixo', className: 'bg-secondary text-secondary-foreground border-0' },
+  package: { label: 'Pacote', className: 'bg-primary text-primary-foreground border-0' }
 };
 
 export function ClientsTable({ clients, isLoading, onView, onEdit, onToggleBlock }: ClientsTableProps) {
   if (isLoading) {
     return (
-      <div className="space-y-3">
+      <div className="space-y-4">
         {[...Array(5)].map((_, i) => (
-          <Skeleton key={i} className="h-16 w-full" />
+          <Skeleton key={i} className="h-20 w-full rounded-2xl" />
         ))}
       </div>
     );
@@ -47,8 +47,8 @@ export function ClientsTable({ clients, isLoading, onView, onEdit, onToggleBlock
 
   if (!clients?.length) {
     return (
-      <div className="text-center py-12 text-muted-foreground">
-        <p>Nenhum cliente encontrado.</p>
+      <div className="soft-card text-center py-16">
+        <p className="text-muted-foreground">Nenhum cliente encontrado.</p>
       </div>
     );
   }
@@ -74,16 +74,16 @@ export function ClientsTable({ clients, isLoading, onView, onEdit, onToggleBlock
   };
 
   return (
-    <div className="rounded-xl border border-border overflow-hidden">
+    <div className="soft-card overflow-hidden">
       <Table>
         <TableHeader>
-          <TableRow className="bg-muted/30 hover:bg-muted/30">
-            <TableHead className="font-medium">Nome do Cliente</TableHead>
-            <TableHead className="font-medium">Tipo</TableHead>
-            <TableHead className="font-medium">Status</TableHead>
-            <TableHead className="font-medium">Créditos</TableHead>
-            <TableHead className="font-medium">Validade</TableHead>
-            <TableHead className="font-medium text-right">Ações</TableHead>
+          <TableRow className="border-b border-border/50 hover:bg-transparent">
+            <TableHead className="font-semibold text-foreground py-5">Nome do Cliente</TableHead>
+            <TableHead className="font-semibold text-foreground">Tipo</TableHead>
+            <TableHead className="font-semibold text-foreground">Status</TableHead>
+            <TableHead className="font-semibold text-foreground">Créditos</TableHead>
+            <TableHead className="font-semibold text-foreground">Validade</TableHead>
+            <TableHead className="font-semibold text-foreground text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -92,37 +92,37 @@ export function ClientsTable({ clients, isLoading, onView, onEdit, onToggleBlock
             const type = typeConfig[client.type] || typeConfig.package;
             
             return (
-              <TableRow key={client.id} className="group">
-                <TableCell>
+              <TableRow key={client.id} className="group border-b border-border/30 hover:bg-muted/30 transition-colors">
+                <TableCell className="py-5">
                   <div>
-                    <p className="font-medium">{client.name}</p>
+                    <p className="font-semibold text-foreground">{client.name}</p>
                     {client.email && (
                       <p className="text-sm text-muted-foreground">{client.email}</p>
                     )}
                   </div>
                 </TableCell>
                 <TableCell>
-                  <Badge variant="outline" className={type.className}>
+                  <Badge className={`${type.className} rounded-full px-3 py-1 font-medium text-xs`}>
                     {type.label}
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <Badge variant={status.variant}>
+                  <Badge className={`${status.className} rounded-full px-3 py-1 font-medium text-xs`}>
                     {status.label}
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <span className="font-mono text-sm">{formatCredits(client)}</span>
+                  <span className="font-mono text-sm bg-muted/50 px-3 py-1.5 rounded-full">{formatCredits(client)}</span>
                 </TableCell>
                 <TableCell>
-                  <span className="text-sm">{formatValidity(client)}</span>
+                  <span className="text-sm text-muted-foreground">{formatValidity(client)}</span>
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8"
+                      className="h-9 w-9 rounded-full hover:bg-muted"
                       onClick={() => onView(client)}
                       title="Ver detalhes"
                     >
@@ -131,7 +131,7 @@ export function ClientsTable({ clients, isLoading, onView, onEdit, onToggleBlock
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8"
+                      className="h-9 w-9 rounded-full hover:bg-muted"
                       onClick={() => onEdit(client)}
                       title="Editar"
                     >
@@ -140,7 +140,7 @@ export function ClientsTable({ clients, isLoading, onView, onEdit, onToggleBlock
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8"
+                      className="h-9 w-9 rounded-full hover:bg-destructive/10 hover:text-destructive"
                       onClick={() => onToggleBlock(client)}
                       title={client.status === 'blocked' ? 'Desbloquear' : 'Bloquear'}
                     >
