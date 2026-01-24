@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Send, Trash2, Sparkles, History, Undo2, Loader2, Bot, User } from 'lucide-react';
+import { Send, Trash2, Sparkles, History, Undo2, Loader2, Bot, User, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,6 +11,8 @@ import { cn } from '@/lib/utils';
 import { useGeneratorsList } from '@/hooks/useGenerators';
 import { useActiveAIProviders } from '@/hooks/useAIProviders';
 import { useAIEdit, useEditHistory, useUndoEdit } from '@/hooks/useAIEdit';
+import { ImageAttachments } from './ImageAttachments';
+import { type ImageAttachment } from '@/lib/image-utils';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -20,12 +22,15 @@ const exampleCommands = [
   'Remove campo data',
   'Aumenta fonte para 72px',
   'Adiciona logo no topo direito',
+  'Use as cores desta imagem',
+  'Extraia o texto da imagem',
 ];
 
 export function AIEditorTab() {
   const [selectedGenerator, setSelectedGenerator] = useState<string>('');
   const [selectedProvider, setSelectedProvider] = useState<string>('');
   const [inputValue, setInputValue] = useState('');
+  const [attachments, setAttachments] = useState<ImageAttachment[]>([]);
 
   const { data: generators } = useGeneratorsList();
   const { data: providers } = useActiveAIProviders();
@@ -34,17 +39,42 @@ export function AIEditorTab() {
   const undoMutation = useUndoEdit();
 
   const currentGenerator = generators?.find(g => g.id === selectedGenerator);
+  const currentProvider = providers?.find(p => p.id === selectedProvider);
+  const supportsImages = currentProvider?.supports_images ?? true; // Default true for Lovable AI
 
   const handleSend = () => {
     if (!inputValue.trim() || !selectedGenerator) return;
-    sendMessage({ prompt: inputValue, providerId: selectedProvider || undefined });
+    
+    // Preparar imagens para envio
+    const images = attachments.map(att => ({
+      name: att.name,
+      type: att.type,
+      base64: att.base64,
+    }));
+
+    sendMessage({ 
+      prompt: inputValue, 
+      providerId: selectedProvider || undefined,
+      images: images.length > 0 ? images : undefined,
+    });
+    
+    // Limpar input e anexos
     setInputValue('');
+    // Revogar URLs de preview
+    attachments.forEach(att => URL.revokeObjectURL(att.preview));
+    setAttachments([]);
   };
 
   const handleUndo = () => {
     if (history && history.length > 0) {
       undoMutation.mutate(history[0]);
     }
+  };
+
+  const handleClear = () => {
+    clearMessages();
+    attachments.forEach(att => URL.revokeObjectURL(att.preview));
+    setAttachments([]);
   };
 
   return (
@@ -89,7 +119,11 @@ export function AIEditorTab() {
                 <SelectContent>
                   {providers?.map((prov) => (
                     <SelectItem key={prov.id} value={prov.id}>
-                      {prov.name} {prov.is_default && '(padrão)'}
+                      <div className="flex items-center gap-2">
+                        {prov.name}
+                        {prov.is_default && <Badge variant="secondary" className="text-[10px]">padrão</Badge>}
+                        {prov.supports_images && <ImageIcon className="h-3 w-3 text-muted-foreground" />}
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -109,6 +143,12 @@ export function AIEditorTab() {
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Bot className="h-4 w-4 text-primary" />
               Chat com IA
+              {supportsImages && (
+                <Badge variant="outline" className="text-[10px] gap-1">
+                  <ImageIcon className="h-3 w-3" />
+                  Suporta imagens
+                </Badge>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent className="flex-1 flex flex-col min-h-0 pb-4">
@@ -119,6 +159,11 @@ export function AIEditorTab() {
                   <div className="text-center py-8 text-muted-foreground text-sm">
                     <Bot className="h-8 w-8 mx-auto mb-2 opacity-50" />
                     <p>Selecione um gerador e descreva a alteração desejada.</p>
+                    {supportsImages && (
+                      <p className="text-xs mt-2">
+                        Você pode anexar imagens para referência.
+                      </p>
+                    )}
                   </div>
                 )}
                 {messages.map((msg) => (
@@ -142,6 +187,23 @@ export function AIEditorTab() {
                           : 'bg-muted'
                       )}
                     >
+                      {/* Image previews for user messages */}
+                      {msg.role === 'user' && msg.images && msg.images.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mb-2">
+                          {msg.images.map((img, idx) => (
+                            <div
+                              key={idx}
+                              className="w-12 h-12 rounded-lg overflow-hidden border border-primary-foreground/20"
+                            >
+                              <img
+                                src={`data:${img.type};base64,${img.base64}`}
+                                alt={img.name}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      )}
                       <p className="text-sm">{msg.content}</p>
                       {msg.tokensUsed && (
                         <p className="text-xs opacity-70 mt-1">
@@ -169,12 +231,26 @@ export function AIEditorTab() {
               </div>
             </ScrollArea>
 
+            {/* Attachments */}
+            {supportsImages && (
+              <ImageAttachments
+                attachments={attachments}
+                onAttachmentsChange={setAttachments}
+                maxAttachments={5}
+                disabled={!selectedGenerator || isSending}
+              />
+            )}
+
             {/* Input */}
-            <div className="space-y-3">
+            <div className="space-y-3 mt-3">
               <Textarea
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                placeholder="Digite sua alteração..."
+                placeholder={
+                  attachments.length > 0
+                    ? "Descreva o que fazer com as imagens..."
+                    : "Digite sua alteração..."
+                }
                 className="rounded-xl resize-none min-h-[80px]"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
@@ -195,12 +271,12 @@ export function AIEditorTab() {
                   ) : (
                     <Send className="h-4 w-4" />
                   )}
-                  Enviar
+                  Enviar {attachments.length > 0 && `(${attachments.length} img)`}
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={clearMessages}
-                  disabled={messages.length === 0}
+                  onClick={handleClear}
+                  disabled={messages.length === 0 && attachments.length === 0}
                   className="rounded-xl"
                 >
                   <Trash2 className="h-4 w-4" />
@@ -267,7 +343,12 @@ export function AIEditorTab() {
                         {item.success ? '✓' : '✗'}
                       </Badge>
                       <div className="flex-1 min-w-0">
-                        <p className="truncate font-medium">{item.user_prompt}</p>
+                        <div className="flex items-center gap-1">
+                          <p className="truncate font-medium">{item.user_prompt}</p>
+                          {item.attachments && (item.attachments as unknown[]).length > 0 && (
+                            <ImageIcon className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                          )}
+                        </div>
                         <p className="text-muted-foreground">
                           {format(new Date(item.created_at), "dd/MM HH:mm", { locale: ptBR })}
                           {item.provider && ` • ${item.provider.name}`}

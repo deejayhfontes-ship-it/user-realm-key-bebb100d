@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import type { Json } from '@/integrations/supabase/types';
+import type { AIImageAttachment } from '@/lib/ai-engine/types';
 
 export interface ChatMessage {
   id: string;
@@ -12,6 +13,7 @@ export interface ChatMessage {
   success?: boolean;
   tokensUsed?: number;
   processingTime?: number;
+  images?: AIImageAttachment[];
 }
 
 export interface EditHistoryItem {
@@ -28,6 +30,7 @@ export interface EditHistoryItem {
   error_message: string | null;
   created_at: string;
   created_by: string | null;
+  attachments?: AIImageAttachment[];
   provider?: {
     name: string;
   };
@@ -39,7 +42,7 @@ export function useAIEdit(generatorId: string | null) {
   const { toast } = useToast();
 
   const sendMessage = useMutation({
-    mutationFn: async ({ prompt, providerId }: { prompt: string; providerId?: string }) => {
+    mutationFn: async ({ prompt, providerId, images }: { prompt: string; providerId?: string; images?: AIImageAttachment[] }) => {
       if (!generatorId) throw new Error('Nenhum gerador selecionado');
 
       const { data, error } = await supabase.functions.invoke('ai-edit', {
@@ -47,25 +50,30 @@ export function useAIEdit(generatorId: string | null) {
           generatorId,
           userPrompt: prompt,
           providerId,
+          images,
         },
       });
 
       if (error) throw error;
-      return data as {
-        success: boolean;
-        newConfig?: Record<string, unknown>;
-        message?: string;
-        tokensUsed?: number;
-        processingTime?: number;
-        error?: string;
+      return {
+        ...(data as {
+          success: boolean;
+          newConfig?: Record<string, unknown>;
+          message?: string;
+          tokensUsed?: number;
+          processingTime?: number;
+          error?: string;
+        }),
+        images,
       };
     },
-    onMutate: ({ prompt }) => {
+    onMutate: ({ prompt, images }) => {
       const userMessage: ChatMessage = {
         id: crypto.randomUUID(),
         role: 'user',
         content: prompt,
         timestamp: new Date(),
+        images,
       };
       setMessages((prev) => [...prev, userMessage]);
     },
@@ -137,7 +145,7 @@ export function useEditHistory(generatorId: string | null, limit = 10) {
         .limit(limit);
 
       if (error) throw error;
-      return data as EditHistoryItem[];
+      return data as unknown as EditHistoryItem[];
     },
     enabled: !!generatorId,
   });
