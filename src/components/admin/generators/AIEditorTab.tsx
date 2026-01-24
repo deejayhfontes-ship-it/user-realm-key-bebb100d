@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Trash2, Sparkles, History, Undo2, Loader2, Bot, User, Image as ImageIcon, AlertTriangle, Paperclip, Plus, Edit3, Wand2, ExternalLink } from 'lucide-react';
+import { Trash2, Sparkles, History, Undo2, Loader2, Bot, User, Image as ImageIcon, AlertTriangle, Paperclip, Plus, Edit3, Wand2, ExternalLink, Code, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { useGeneratorsList } from '@/hooks/useGenerators';
 import { useActiveAIProviders } from '@/hooks/useAIProviders';
@@ -16,6 +17,7 @@ import { useAIEdit, useEditHistory, useUndoEdit } from '@/hooks/useAIEdit';
 import { useAICreate, type GeneratorType, BASE_TEMPLATES } from '@/hooks/useAICreate';
 import { MinimalImageChat } from './ImageAttachments';
 import { type ImageAttachment } from '@/lib/image-utils';
+import { GeneratorVisualPreview } from './GeneratorVisualPreview';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
@@ -589,11 +591,12 @@ export function AIEditorTab({ initialMode = 'edit' }: Props) {
 
       {/* Coluna Direita - Preview */}
       <div className="col-span-3">
-        <Card className="soft-card border-0 h-full">
+        <Card className="soft-card border-0 h-full flex flex-col">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium">
-                👁️ {mode === 'create' ? 'Preview do Template Base' : 'Preview em Tempo Real'}
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Eye className="h-4 w-4 text-primary" />
+                {mode === 'create' ? 'Preview do Template Base' : 'Preview em Tempo Real'}
               </CardTitle>
               {mode === 'edit' && currentGenerator && (
                 <Button
@@ -608,40 +611,38 @@ export function AIEditorTab({ initialMode = 'edit' }: Props) {
               )}
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex-1">
             {(mode === 'create' || currentGenerator) ? (
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline">
-                    {mode === 'create' ? newGeneratorType : currentGenerator?.type}
-                  </Badge>
-                  <span className="font-medium">
-                    {mode === 'create' 
-                      ? (newGeneratorName || 'Novo Gerador')
-                      : currentGenerator?.name
-                    }
-                  </span>
-                  {mode === 'create' && (
-                    <Badge variant="secondary" className="text-[10px]">
-                      {newGeneratorType === 'custom' 
-                        ? `${customWidth}×${customHeight}`
-                        : GENERATOR_TYPES.find(t => t.value === newGeneratorType)?.dimensions
-                      }
-                    </Badge>
-                  )}
-                </div>
-                <Separator />
-                <div className="bg-muted/50 rounded-xl p-4">
-                  <p className="text-sm font-medium mb-2 text-muted-foreground">
-                    {mode === 'create' ? 'Template base:' : 'Configuração atual:'}
-                  </p>
-                  <ScrollArea className="h-[calc(100vh-400px)]">
-                    <pre className="text-xs font-mono whitespace-pre-wrap">
-                      {JSON.stringify(getPreviewConfig(), null, 2)}
-                    </pre>
-                  </ScrollArea>
-                </div>
-              </div>
+              <Tabs defaultValue="visual" className="h-full flex flex-col">
+                <TabsList className="w-fit mb-4">
+                  <TabsTrigger value="visual" className="gap-1.5">
+                    <Eye className="h-3.5 w-3.5" />
+                    Visual
+                  </TabsTrigger>
+                  <TabsTrigger value="code" className="gap-1.5">
+                    <Code className="h-3.5 w-3.5" />
+                    JSON
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="visual" className="flex-1 mt-0">
+                  <GeneratorVisualPreview
+                    config={getPreviewConfig()}
+                    name={mode === 'create' ? (newGeneratorName || 'Novo Gerador') : (currentGenerator?.name || '')}
+                    type={mode === 'create' ? newGeneratorType : (currentGenerator?.type || '')}
+                  />
+                </TabsContent>
+                
+                <TabsContent value="code" className="flex-1 mt-0">
+                  <div className="bg-muted/50 rounded-xl p-4 h-full">
+                    <ScrollArea className="h-[calc(100vh-420px)]">
+                      <pre className="text-xs font-mono whitespace-pre-wrap">
+                        {JSON.stringify(getPreviewConfig(), null, 2)}
+                      </pre>
+                    </ScrollArea>
+                  </div>
+                </TabsContent>
+              </Tabs>
             ) : (
               <div className="h-full flex items-center justify-center text-muted-foreground">
                 <div className="text-center">
