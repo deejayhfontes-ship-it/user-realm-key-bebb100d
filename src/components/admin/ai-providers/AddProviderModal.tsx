@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Loader2 } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Loader2, Upload, X, Image } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -54,6 +54,9 @@ export function AddProviderModal({ open, onOpenChange }: AddProviderModalProps) 
     max_tokens: 4000,
     temperature: 0.7,
   });
+  const [iconFile, setIconFile] = useState<File | null>(null);
+  const [iconPreview, setIconPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const createMutation = useCreateAIProvider();
   const testMutation = useTestAIProvider();
@@ -91,11 +94,33 @@ export function AddProviderModal({ open, onOpenChange }: AddProviderModalProps) 
     });
   };
 
+  const handleIconUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setIconFile(file);
+      const url = URL.createObjectURL(file);
+      setIconPreview(url);
+    }
+  };
+
+  const handleRemoveIcon = () => {
+    setIconFile(null);
+    if (iconPreview) {
+      URL.revokeObjectURL(iconPreview);
+      setIconPreview(null);
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // TODO: Upload icon to storage and get URL
     createMutation.mutate(form, {
       onSuccess: () => {
         onOpenChange(false);
+        handleRemoveIcon();
         setForm({
           name: '',
           slug: '',
@@ -126,6 +151,58 @@ export function AddProviderModal({ open, onOpenChange }: AddProviderModalProps) 
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Icon Upload */}
+          <div className="space-y-2">
+            <Label>Ícone / Logo do Provedor</Label>
+            <div className="flex items-center gap-4">
+              {iconPreview ? (
+                <div className="relative">
+                  <img
+                    src={iconPreview}
+                    alt="Preview do ícone"
+                    className="w-16 h-16 rounded-xl object-cover border border-border"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleRemoveIcon}
+                    className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 hover:bg-destructive/90"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ) : (
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-16 h-16 rounded-xl border-2 border-dashed border-muted-foreground/30 flex items-center justify-center cursor-pointer hover:border-primary/50 transition-colors"
+                >
+                  <Image className="h-6 w-6 text-muted-foreground" />
+                </div>
+              )}
+              <div className="flex-1">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                  onChange={handleIconUpload}
+                  className="hidden"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="rounded-xl"
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  Carregar imagem
+                </Button>
+                <p className="text-xs text-muted-foreground mt-1">
+                  PNG, JPG, WebP ou SVG. Máx 1MB.
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* Basic Info */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
