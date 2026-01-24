@@ -59,7 +59,7 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-6">
       {/* Large container with two columns */}
-      <div className="w-full max-w-5xl flex rounded-[2.5rem] overflow-hidden glass-card shadow-2xl">
+      <div className="w-full max-w-5xl flex rounded-[2.5rem] overflow-hidden soft-card-elevated">
         
         {/* Left side - Branding / Decorative */}
         <div className="hidden lg:flex lg:w-1/2 bg-secondary p-12 flex-col justify-between relative overflow-hidden">
