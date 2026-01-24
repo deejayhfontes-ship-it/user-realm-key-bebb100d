@@ -231,17 +231,17 @@ export function NewClientModal({ open, onOpenChange }: NewClientModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto soft-card-elevated border-0 rounded-3xl">
         <DialogHeader>
-          <DialogTitle className="text-xl">Novo Cliente</DialogTitle>
+          <DialogTitle className="text-2xl font-semibold">Novo Cliente</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="info">Informações</TabsTrigger>
-              <TabsTrigger value="config">Configuração</TabsTrigger>
-              <TabsTrigger value="generators">Geradores</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-3 bg-muted rounded-2xl p-1 h-12">
+              <TabsTrigger value="info" className="rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-sm font-medium">Informações</TabsTrigger>
+              <TabsTrigger value="config" className="rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-sm font-medium">Configuração</TabsTrigger>
+              <TabsTrigger value="generators" className="rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-sm font-medium">Geradores</TabsTrigger>
             </TabsList>
 
             <TabsContent value="info" className="space-y-6 mt-6">
@@ -281,7 +281,7 @@ export function NewClientModal({ open, onOpenChange }: NewClientModalProps) {
                 </div>
 
                 <div className="space-y-3">
-                  <Label>Tipo de cliente</Label>
+                  <Label className="font-semibold">Tipo de cliente</Label>
                   <RadioGroup
                     value={clientType}
                     onValueChange={(value) => form.setValue('type', value as 'fixed' | 'package')}
@@ -290,33 +290,43 @@ export function NewClientModal({ open, onOpenChange }: NewClientModalProps) {
                     <Label
                       htmlFor="type-fixed"
                       className={cn(
-                        "flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all",
+                        "flex items-center gap-4 p-5 rounded-2xl cursor-pointer transition-all",
                         clientType === 'fixed'
-                          ? "border-primary bg-primary/5"
-                          : "border-border hover:border-muted-foreground/50"
+                          ? "bg-secondary text-secondary-foreground shadow-md"
+                          : "bg-muted/50 hover:bg-muted"
                       )}
                     >
                       <RadioGroupItem value="fixed" id="type-fixed" className="sr-only" />
-                      <Building2 className="h-6 w-6 text-emerald-500" />
+                      <div className={cn(
+                        "w-12 h-12 rounded-2xl flex items-center justify-center",
+                        clientType === 'fixed' ? "bg-primary" : "bg-card"
+                      )}>
+                        <Building2 className={cn("h-6 w-6", clientType === 'fixed' ? "text-primary-foreground" : "text-muted-foreground")} />
+                      </div>
                       <div>
-                        <p className="font-medium">Cliente Fixo</p>
-                        <p className="text-sm text-muted-foreground">Contrato mensal</p>
+                        <p className="font-semibold">Cliente Fixo</p>
+                        <p className={cn("text-sm", clientType === 'fixed' ? "text-secondary-foreground/70" : "text-muted-foreground")}>Contrato mensal</p>
                       </div>
                     </Label>
                     <Label
                       htmlFor="type-package"
                       className={cn(
-                        "flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all",
+                        "flex items-center gap-4 p-5 rounded-2xl cursor-pointer transition-all",
                         clientType === 'package'
-                          ? "border-primary bg-primary/5"
-                          : "border-border hover:border-muted-foreground/50"
+                          ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+                          : "bg-muted/50 hover:bg-muted"
                       )}
                     >
                       <RadioGroupItem value="package" id="type-package" className="sr-only" />
-                      <Package className="h-6 w-6 text-blue-500" />
+                      <div className={cn(
+                        "w-12 h-12 rounded-2xl flex items-center justify-center",
+                        clientType === 'package' ? "bg-primary-foreground/20" : "bg-card"
+                      )}>
+                        <Package className={cn("h-6 w-6", clientType === 'package' ? "text-primary-foreground" : "text-muted-foreground")} />
+                      </div>
                       <div>
-                        <p className="font-medium">Cliente Avulso</p>
-                        <p className="text-sm text-muted-foreground">Pacote temporário</p>
+                        <p className="font-semibold">Cliente Avulso</p>
+                        <p className={cn("text-sm", clientType === 'package' ? "text-primary-foreground/70" : "text-muted-foreground")}>Pacote temporário</p>
                       </div>
                     </Label>
                   </RadioGroup>
@@ -380,8 +390,8 @@ export function NewClientModal({ open, onOpenChange }: NewClientModalProps) {
               ) : (
                 <div className="space-y-6">
                   <div className="space-y-3">
-                    <Label>Selecionar pacote</Label>
-                    <div className="grid grid-cols-2 gap-3">
+                    <Label className="font-semibold">Selecionar pacote</Label>
+                    <div className="grid grid-cols-2 gap-4">
                       {packages?.map((pkg) => {
                         const icons: Record<number, React.ReactNode> = {
                           3: <Zap className="h-5 w-5" />,
@@ -389,24 +399,31 @@ export function NewClientModal({ open, onOpenChange }: NewClientModalProps) {
                           30: <Gem className="h-5 w-5" />
                         };
                         const icon = icons[pkg.duration_days] || <Package className="h-5 w-5" />;
+                        const isSelected = selectedPackageId === pkg.id;
                         
                         return (
                           <div
                             key={pkg.id}
                             onClick={() => form.setValue('package_id', pkg.id)}
                             className={cn(
-                              "p-4 rounded-xl border-2 cursor-pointer transition-all",
-                              selectedPackageId === pkg.id
-                                ? "border-primary bg-primary/5"
-                                : "border-border hover:border-muted-foreground/50"
+                              "p-5 rounded-2xl cursor-pointer transition-all",
+                              isSelected
+                                ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+                                : "bg-muted/50 hover:bg-muted"
                             )}
                           >
-                            <div className="flex items-center gap-2 mb-2 text-primary">
+                            <div className={cn(
+                              "flex items-center gap-2 mb-3",
+                              isSelected ? "text-primary-foreground" : "text-primary"
+                            )}>
                               {icon}
-                              <span className="font-medium">{pkg.duration_days} dias</span>
+                              <span className="font-semibold">{pkg.duration_days} dias</span>
                             </div>
-                            <p className="text-lg font-semibold">{pkg.credits} créditos</p>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-xl font-bold">{pkg.credits} créditos</p>
+                            <p className={cn(
+                              "text-sm mt-1",
+                              isSelected ? "text-primary-foreground/70" : "text-muted-foreground"
+                            )}>
                               R$ {Number(pkg.price).toFixed(2)}
                             </p>
                           </div>
@@ -415,17 +432,23 @@ export function NewClientModal({ open, onOpenChange }: NewClientModalProps) {
                       <div
                         onClick={() => form.setValue('package_id', 'custom')}
                         className={cn(
-                          "p-4 rounded-xl border-2 cursor-pointer transition-all",
+                          "p-5 rounded-2xl cursor-pointer transition-all",
                           isCustomPackage
-                            ? "border-primary bg-primary/5"
-                            : "border-border hover:border-muted-foreground/50"
+                            ? "bg-secondary text-secondary-foreground shadow-md"
+                            : "bg-muted/50 hover:bg-muted"
                         )}
                       >
-                        <div className="flex items-center gap-2 mb-2 text-muted-foreground">
+                        <div className={cn(
+                          "flex items-center gap-2 mb-3",
+                          isCustomPackage ? "text-secondary-foreground" : "text-muted-foreground"
+                        )}>
                           <Settings className="h-5 w-5" />
-                          <span className="font-medium">Personalizado</span>
+                          <span className="font-semibold">Personalizado</span>
                         </div>
-                        <p className="text-sm text-muted-foreground">
+                        <p className={cn(
+                          "text-sm",
+                          isCustomPackage ? "text-secondary-foreground/70" : "text-muted-foreground"
+                        )}>
                           Configure manualmente
                         </p>
                       </div>
@@ -433,48 +456,51 @@ export function NewClientModal({ open, onOpenChange }: NewClientModalProps) {
                   </div>
 
                   {isCustomPackage && (
-                    <div className="space-y-4 p-4 rounded-xl bg-muted/50 border">
+                    <div className="space-y-4 p-5 rounded-2xl bg-muted/50">
                       <div className="grid grid-cols-3 gap-4">
                         <div className="space-y-2">
-                          <Label htmlFor="custom_days">Duração (dias)</Label>
+                          <Label htmlFor="custom_days" className="font-medium">Duração (dias)</Label>
                           <Input
                             id="custom_days"
                             type="number"
                             {...form.register('custom_days', { valueAsNumber: true })}
                             placeholder="Ex: 10"
+                            className="rounded-xl border-0 bg-card h-11"
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="custom_credits">Total de créditos</Label>
+                          <Label htmlFor="custom_credits" className="font-medium">Total de créditos</Label>
                           <Input
                             id="custom_credits"
                             type="number"
                             {...form.register('custom_credits', { valueAsNumber: true })}
                             placeholder="Ex: 100"
+                            className="rounded-xl border-0 bg-card h-11"
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="custom_price">Valor (R$)</Label>
+                          <Label htmlFor="custom_price" className="font-medium">Valor (R$)</Label>
                           <Input
                             id="custom_price"
                             type="number"
                             step="0.01"
                             {...form.register('custom_price', { valueAsNumber: true })}
                             placeholder="Ex: 299.00"
+                            className="rounded-xl border-0 bg-card h-11"
                           />
                         </div>
                       </div>
                     </div>
                   )}
 
-                  <div className="grid grid-cols-2 gap-4 p-4 rounded-xl bg-muted/30">
+                  <div className="grid grid-cols-2 gap-4 p-5 rounded-2xl bg-secondary text-secondary-foreground">
                     <div>
-                      <p className="text-sm text-muted-foreground">Data início</p>
-                      <p className="font-medium">{format(new Date(), 'dd/MM/yyyy')}</p>
+                      <p className="text-sm text-secondary-foreground/60">Data início</p>
+                      <p className="font-semibold text-lg">{format(new Date(), 'dd/MM/yyyy')}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground">Data expiração</p>
-                      <p className="font-medium">{calculateExpirationDate()}</p>
+                      <p className="text-sm text-secondary-foreground/60">Data expiração</p>
+                      <p className="font-semibold text-lg">{calculateExpirationDate()}</p>
                     </div>
                   </div>
                 </div>
@@ -496,19 +522,20 @@ export function NewClientModal({ open, onOpenChange }: NewClientModalProps) {
                     <div
                       key={generator.id}
                       className={cn(
-                        "rounded-xl border transition-all",
-                        isEnabled ? "border-primary/50 bg-primary/5" : "border-border"
+                        "rounded-2xl transition-all overflow-hidden",
+                        isEnabled ? "bg-primary/10 ring-2 ring-primary/30" : "bg-muted/50"
                       )}
                     >
-                      <div className="flex items-center gap-3 p-4">
+                      <div className="flex items-center gap-4 p-5">
                         <Checkbox
                           id={`gen-${generator.id}`}
                           checked={isEnabled}
                           onCheckedChange={(checked) => toggleGenerator(generator.id, checked as boolean)}
+                          className="h-5 w-5 rounded-lg"
                         />
                         <Label
                           htmlFor={`gen-${generator.id}`}
-                          className="flex-1 cursor-pointer font-medium"
+                          className="flex-1 cursor-pointer font-semibold"
                         >
                           {generator.name}
                         </Label>
@@ -518,6 +545,7 @@ export function NewClientModal({ open, onOpenChange }: NewClientModalProps) {
                             variant="ghost"
                             size="sm"
                             onClick={() => toggleExpanded(generator.id)}
+                            className="rounded-full text-xs font-medium"
                           >
                             {isExpanded ? 'Ocultar' : 'Configurar'}
                           </Button>
@@ -525,9 +553,9 @@ export function NewClientModal({ open, onOpenChange }: NewClientModalProps) {
                       </div>
 
                       {isEnabled && isExpanded && (
-                        <div className="px-4 pb-4 pt-2 border-t border-border/50 space-y-4">
+                        <div className="px-5 pb-5 pt-3 border-t border-border/30 space-y-4 bg-card/50">
                           <div className="space-y-2">
-                            <Label>Limite de créditos</Label>
+                            <Label className="font-medium">Limite de créditos</Label>
                             <Input
                               type="number"
                               placeholder="Vazio = sem limite"
@@ -535,34 +563,37 @@ export function NewClientModal({ open, onOpenChange }: NewClientModalProps) {
                               onChange={(e) => updateGeneratorConfig(generator.id, {
                                 credits_limit: e.target.value ? parseInt(e.target.value) : null
                               })}
+                              className="rounded-xl border-0 bg-muted h-11"
                             />
                           </div>
 
                           <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                              <Label>Horário início</Label>
+                              <Label className="font-medium">Horário início</Label>
                               <Input
                                 type="time"
                                 value={config?.time_limit_start || ''}
                                 onChange={(e) => updateGeneratorConfig(generator.id, {
                                   time_limit_start: e.target.value || null
                                 })}
+                                className="rounded-xl border-0 bg-muted h-11"
                               />
                             </div>
                             <div className="space-y-2">
-                              <Label>Horário fim</Label>
+                              <Label className="font-medium">Horário fim</Label>
                               <Input
                                 type="time"
                                 value={config?.time_limit_end || ''}
                                 onChange={(e) => updateGeneratorConfig(generator.id, {
                                   time_limit_end: e.target.value || null
                                 })}
+                                className="rounded-xl border-0 bg-muted h-11"
                               />
                             </div>
                           </div>
 
                           <div className="space-y-2">
-                            <Label>Dias permitidos</Label>
+                            <Label className="font-medium">Dias permitidos</Label>
                             <div className="flex flex-wrap gap-2">
                               {weekdays.map((day) => {
                                 const isAllowed = config?.allowed_weekdays?.includes(day.value) ?? true;
@@ -570,7 +601,6 @@ export function NewClientModal({ open, onOpenChange }: NewClientModalProps) {
                                   <Button
                                     key={day.value}
                                     type="button"
-                                    variant={isAllowed ? "default" : "outline"}
                                     size="sm"
                                     onClick={() => {
                                       const current = config?.allowed_weekdays || [0, 1, 2, 3, 4, 5, 6];
@@ -579,6 +609,12 @@ export function NewClientModal({ open, onOpenChange }: NewClientModalProps) {
                                         : [...current, day.value].sort();
                                       updateGeneratorConfig(generator.id, { allowed_weekdays: updated });
                                     }}
+                                    className={cn(
+                                      "rounded-full px-4 h-9 font-medium",
+                                      isAllowed 
+                                        ? "bg-primary text-primary-foreground hover:brightness-105" 
+                                        : "bg-muted text-muted-foreground hover:bg-muted/80"
+                                    )}
                                   >
                                     {day.label}
                                   </Button>
@@ -595,29 +631,30 @@ export function NewClientModal({ open, onOpenChange }: NewClientModalProps) {
             </TabsContent>
           </Tabs>
 
-          <div className="flex items-center justify-between mt-8 pt-6 border-t">
+          <div className="flex items-center justify-between mt-8 pt-6 border-t border-border/50">
             <Button
               type="button"
               variant="ghost"
               onClick={() => onOpenChange(false)}
+              className="rounded-full px-6"
             >
               Cancelar
             </Button>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               {currentTabIndex > 0 && (
-                <Button type="button" variant="outline" onClick={goPrev}>
+                <Button type="button" variant="outline" onClick={goPrev} className="rounded-full px-5">
                   <ChevronLeft className="h-4 w-4 mr-1" />
                   Voltar
                 </Button>
               )}
               {currentTabIndex < tabs.length - 1 ? (
-                <Button type="button" onClick={goNext}>
+                <Button type="button" onClick={goNext} className="rounded-full px-5 bg-secondary text-secondary-foreground hover:bg-secondary/90">
                   Próximo
                   <ChevronRight className="h-4 w-4 ml-1" />
                 </Button>
               ) : (
-                <Button type="submit" disabled={createClient.isPending}>
+                <Button type="submit" disabled={createClient.isPending} className="rounded-full px-6 bg-primary text-primary-foreground hover:brightness-105 shadow-lg shadow-primary/20">
                   {createClient.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                   Salvar Cliente
                 </Button>
