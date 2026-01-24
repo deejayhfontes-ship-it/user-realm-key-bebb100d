@@ -24,11 +24,12 @@ import { useNavigate } from 'react-router-dom';
 
 type EditorMode = 'edit' | 'create';
 
-const GENERATOR_TYPES: { value: GeneratorType; label: string; dimensions: string }[] = [
-  { value: 'stories', label: 'Stories', dimensions: '1080×1920' },
-  { value: 'carrossel', label: 'Carrossel', dimensions: '1080×1080' },
-  { value: 'post', label: 'Post Feed', dimensions: '1080×1080' },
-  { value: 'custom', label: 'Personalizado', dimensions: 'Definir' },
+const GENERATOR_TYPES: { value: GeneratorType; label: string; dimensions: string; description?: string }[] = [
+  { value: 'stories', label: 'Stories', dimensions: '1080×1920', description: 'Formato vertical para stories' },
+  { value: 'carrossel', label: 'Carrossel', dimensions: '1080×1080', description: 'Multi-formato: 1080×1080, 1080×1440, Stories' },
+  { value: 'carrossel_vertical', label: 'Carrossel Vertical', dimensions: '1080×1440', description: 'Multi-formato: 1080×1440, 1080×1080, Stories' },
+  { value: 'post', label: 'Post Feed', dimensions: '1080×1080', description: 'Post quadrado ou vertical' },
+  { value: 'custom', label: 'Personalizado', dimensions: 'Definir', description: 'Dimensões customizadas' },
 ];
 
 const editExamples = [
