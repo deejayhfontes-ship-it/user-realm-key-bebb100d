@@ -1,66 +1,134 @@
-import { useState } from 'react';
-import { Trash2, Sparkles, History, Undo2, Loader2, Bot, User, Image as ImageIcon, AlertTriangle, Paperclip } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Trash2, Sparkles, History, Undo2, Loader2, Bot, User, Image as ImageIcon, AlertTriangle, Paperclip, Plus, Edit3, Wand2, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { useGeneratorsList } from '@/hooks/useGenerators';
 import { useActiveAIProviders } from '@/hooks/useAIProviders';
 import { useAIEdit, useEditHistory, useUndoEdit } from '@/hooks/useAIEdit';
+import { useAICreate, type GeneratorType, BASE_TEMPLATES } from '@/hooks/useAICreate';
 import { MinimalImageChat } from './ImageAttachments';
 import { type ImageAttachment } from '@/lib/image-utils';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useNavigate } from 'react-router-dom';
 
-const exampleCommands = [
+type EditorMode = 'edit' | 'create';
+
+const GENERATOR_TYPES: { value: GeneratorType; label: string; dimensions: string }[] = [
+  { value: 'stories', label: 'Stories', dimensions: '1080×1920' },
+  { value: 'carrossel', label: 'Carrossel', dimensions: '1080×1080' },
+  { value: 'post', label: 'Post Feed', dimensions: '1080×1080' },
+  { value: 'custom', label: 'Personalizado', dimensions: 'Definir' },
+];
+
+const editExamples = [
   { text: 'Adiciona campo telefone', hasImage: false },
   { text: 'Muda cor de fundo para azul', hasImage: false },
   { text: 'Remove campo data', hasImage: false },
-  { text: 'Aumenta fonte para 72px', hasImage: false },
   { text: 'Use as cores desta imagem', hasImage: true },
-  { text: 'Crie layout similar', hasImage: true },
-  { text: 'Extraia texto da imagem', hasImage: true },
-  { text: 'Combine esses estilos', hasImage: true },
 ];
 
-export function AIEditorTab() {
+const createExamples = [
+  { text: 'Gerador de capas de destaque com upload de foto e campo de título', hasImage: false },
+  { text: 'Posts quadrados com logo no canto e texto centralizado', hasImage: false },
+  { text: 'Stories com fundo gradiente, 3 campos de texto e logo no topo', hasImage: false },
+  { text: 'Carrossel de antes/depois com 2 uploads e texto descritivo', hasImage: false },
+  { text: 'Use as cores e estilo desta imagem como base', hasImage: true },
+];
+
+interface Props {
+  initialMode?: EditorMode;
+}
+
+export function AIEditorTab({ initialMode = 'edit' }: Props) {
+  const navigate = useNavigate();
+  
+  // Mode state
+  const [mode, setMode] = useState<EditorMode>(initialMode);
+  
+  // Edit mode state
   const [selectedGenerator, setSelectedGenerator] = useState<string>('');
   const [selectedProvider, setSelectedProvider] = useState<string>('');
   const [inputValue, setInputValue] = useState('');
   const [attachments, setAttachments] = useState<ImageAttachment[]>([]);
 
+  // Create mode state
+  const [newGeneratorName, setNewGeneratorName] = useState('');
+  const [newGeneratorType, setNewGeneratorType] = useState<GeneratorType>('stories');
+  const [customWidth, setCustomWidth] = useState(1080);
+  const [customHeight, setCustomHeight] = useState(1080);
+
+  // Data hooks
   const { data: generators } = useGeneratorsList();
   const { data: providers } = useActiveAIProviders();
-  const { messages, sendMessage, isSending, clearMessages } = useAIEdit(selectedGenerator || null);
+  
+  // Edit hooks
+  const { messages: editMessages, sendMessage, isSending: isEditSending, clearMessages: clearEditMessages } = useAIEdit(selectedGenerator || null);
   const { data: history } = useEditHistory(selectedGenerator || null);
   const undoMutation = useUndoEdit();
+  
+  // Create hooks
+  const { messages: createMessages, sendCreate, isCreating, createdGeneratorId, clearMessages: clearCreateMessages } = useAICreate();
 
+  // Derived state
   const currentGenerator = generators?.find(g => g.id === selectedGenerator);
   const currentProvider = providers?.find(p => p.id === selectedProvider);
-  const supportsImages = currentProvider?.supports_images ?? true; // Default true for Lovable AI
+  const supportsImages = currentProvider?.supports_images ?? true;
+  
+  const messages = mode === 'create' ? createMessages : editMessages;
+  const isSending = mode === 'create' ? isCreating : isEditSending;
+  const exampleCommands = mode === 'create' ? createExamples : editExamples;
+
+  // When generator is created, switch to edit mode
+  useEffect(() => {
+    if (createdGeneratorId) {
+      setSelectedGenerator(createdGeneratorId);
+      setMode('edit');
+      setNewGeneratorName('');
+    }
+  }, [createdGeneratorId]);
 
   const handleSend = () => {
-    if (!inputValue.trim() || !selectedGenerator) return;
+    if (!inputValue.trim()) return;
     
-    // Preparar imagens para envio
     const images = attachments.map(att => ({
       name: att.name,
       type: att.type,
       base64: att.base64,
     }));
 
-    sendMessage({ 
-      prompt: inputValue, 
-      providerId: selectedProvider || undefined,
-      images: images.length > 0 ? images : undefined,
-    });
+    if (mode === 'create') {
+      if (!newGeneratorName.trim()) return;
+      
+      sendCreate({
+        name: newGeneratorName,
+        type: newGeneratorType,
+        customDimensions: newGeneratorType === 'custom' 
+          ? { width: customWidth, height: customHeight }
+          : undefined,
+        userPrompt: inputValue,
+        providerId: selectedProvider || undefined,
+        images: images.length > 0 ? images : undefined,
+      });
+    } else {
+      if (!selectedGenerator) return;
+      
+      sendMessage({ 
+        prompt: inputValue, 
+        providerId: selectedProvider || undefined,
+        images: images.length > 0 ? images : undefined,
+      });
+    }
     
-    // Limpar input e anexos
     setInputValue('');
-    // Revogar URLs de preview
     attachments.forEach(att => URL.revokeObjectURL(att.preview));
     setAttachments([]);
   };
@@ -72,10 +140,36 @@ export function AIEditorTab() {
   };
 
   const handleClear = () => {
-    clearMessages();
+    if (mode === 'create') {
+      clearCreateMessages();
+    } else {
+      clearEditMessages();
+    }
     attachments.forEach(att => URL.revokeObjectURL(att.preview));
     setAttachments([]);
   };
+
+  const handleModeChange = (newMode: EditorMode) => {
+    setMode(newMode);
+    setInputValue('');
+    attachments.forEach(att => URL.revokeObjectURL(att.preview));
+    setAttachments([]);
+  };
+
+  const getPreviewConfig = () => {
+    if (mode === 'create') {
+      const baseTemplate = { ...BASE_TEMPLATES[newGeneratorType] };
+      if (newGeneratorType === 'custom') {
+        baseTemplate.dimensions = { width: customWidth, height: customHeight };
+      }
+      return baseTemplate;
+    }
+    return currentGenerator?.config;
+  };
+
+  const canSend = mode === 'create' 
+    ? inputValue.trim() && newGeneratorName.trim()
+    : inputValue.trim() && selectedGenerator;
 
   return (
     <div className="grid grid-cols-5 gap-6 h-[calc(100vh-220px)]">
@@ -90,24 +184,130 @@ export function AIEditorTab() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Mode Toggle */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-muted-foreground">
-                Gerador a editar
-              </label>
-              <Select value={selectedGenerator} onValueChange={setSelectedGenerator}>
-                <SelectTrigger className="rounded-xl">
-                  <SelectValue placeholder="Selecione um gerador" />
-                </SelectTrigger>
-                <SelectContent>
-                  {generators?.map((gen) => (
-                    <SelectItem key={gen.id} value={gen.id}>
-                      {gen.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <label className="text-sm font-medium text-muted-foreground">Modo</label>
+              <RadioGroup 
+                value={mode} 
+                onValueChange={(v) => handleModeChange(v as EditorMode)}
+                className="flex gap-4"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="edit" id="mode-edit" />
+                  <Label htmlFor="mode-edit" className="flex items-center gap-1.5 cursor-pointer">
+                    <Edit3 className="h-3.5 w-3.5" />
+                    Editar Existente
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="create" id="mode-create" />
+                  <Label htmlFor="mode-create" className="flex items-center gap-1.5 cursor-pointer">
+                    <Plus className="h-3.5 w-3.5" />
+                    Criar Novo
+                  </Label>
+                </div>
+              </RadioGroup>
             </div>
 
+            <Separator />
+
+            {mode === 'edit' ? (
+              /* Edit Mode Fields */
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-muted-foreground">
+                  Gerador a editar
+                </label>
+                <Select value={selectedGenerator} onValueChange={setSelectedGenerator}>
+                  <SelectTrigger className="rounded-xl">
+                    <SelectValue placeholder="Selecione um gerador" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {generators?.map((gen) => (
+                      <SelectItem key={gen.id} value={gen.id}>
+                        {gen.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              /* Create Mode Fields */
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-muted-foreground">
+                    Nome do novo gerador
+                  </label>
+                  <Input
+                    value={newGeneratorName}
+                    onChange={(e) => setNewGeneratorName(e.target.value)}
+                    placeholder="Ex: Gerador de Posts Feed"
+                    className="rounded-xl"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-muted-foreground">
+                    Tipo base
+                  </label>
+                  <Select 
+                    value={newGeneratorType} 
+                    onValueChange={(v) => setNewGeneratorType(v as GeneratorType)}
+                  >
+                    <SelectTrigger className="rounded-xl">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {GENERATOR_TYPES.map((type) => (
+                        <SelectItem key={type.value} value={type.value}>
+                          <div className="flex items-center justify-between w-full gap-4">
+                            <span>{type.label}</span>
+                            <Badge variant="secondary" className="text-[10px]">
+                              {type.dimensions}
+                            </Badge>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {newGeneratorType === 'custom' && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <label className="text-xs text-muted-foreground">Largura (px)</label>
+                      <Input
+                        type="number"
+                        value={customWidth}
+                        onChange={(e) => setCustomWidth(Number(e.target.value))}
+                        min={100}
+                        max={5000}
+                        className="rounded-xl"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs text-muted-foreground">Altura (px)</label>
+                      <Input
+                        type="number"
+                        value={customHeight}
+                        onChange={(e) => setCustomHeight(Number(e.target.value))}
+                        min={100}
+                        max={5000}
+                        className="rounded-xl"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Warning for create mode */}
+                <div className="p-2.5 bg-accent/50 border border-accent rounded-xl">
+                  <p className="text-xs text-accent-foreground">
+                    ⚠️ Geradores criados por IA são estruturas básicas que podem precisar de ajustes manuais.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Provider Selection (both modes) */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-muted-foreground">
                 Provedor de IA
@@ -128,11 +328,6 @@ export function AIEditorTab() {
                   ))}
                 </SelectContent>
               </Select>
-              {(!providers || providers.length === 0) && (
-                <p className="text-xs text-muted-foreground">
-                  Nenhum provedor configurado. Configure em Configurações → Provedores de IA.
-                </p>
-              )}
             </div>
           </CardContent>
         </Card>
@@ -142,16 +337,22 @@ export function AIEditorTab() {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Bot className="h-4 w-4 text-primary" />
-              Chat com IA
+              {mode === 'create' ? 'Criar com IA' : 'Chat com IA'}
+              {mode === 'create' && (
+                <Badge variant="outline" className="text-[10px] gap-1 text-primary border-primary/30 bg-primary/10">
+                  <Wand2 className="h-3 w-3" />
+                  Modo Criação
+                </Badge>
+              )}
               {supportsImages ? (
                 <Badge variant="outline" className="text-[10px] gap-1 text-primary border-primary/30 bg-primary/10">
                   <ImageIcon className="h-3 w-3" />
-                  Suporta imagens
+                  Imagens
                 </Badge>
               ) : (
                 <Badge variant="outline" className="text-[10px] gap-1 text-destructive border-destructive/30 bg-destructive/10">
                   <AlertTriangle className="h-3 w-3" />
-                  Sem suporte a imagens
+                  Sem imagens
                 </Badge>
               )}
             </CardTitle>
@@ -163,11 +364,18 @@ export function AIEditorTab() {
                 {messages.length === 0 && (
                   <div className="text-center py-8 text-muted-foreground text-sm">
                     <Bot className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p>Selecione um gerador e descreva a alteração desejada.</p>
-                    {supportsImages && (
-                      <p className="text-xs mt-2">
-                        Você pode anexar imagens para referência.
-                      </p>
+                    {mode === 'create' ? (
+                      <>
+                        <p>Preencha o nome e tipo, depois descreva o gerador desejado.</p>
+                        <p className="text-xs mt-2">A IA irá criar a estrutura completa para você.</p>
+                      </>
+                    ) : (
+                      <>
+                        <p>Selecione um gerador e descreva a alteração desejada.</p>
+                        {supportsImages && (
+                          <p className="text-xs mt-2">Você pode anexar imagens para referência.</p>
+                        )}
+                      </>
                     )}
                   </div>
                 )}
@@ -192,7 +400,6 @@ export function AIEditorTab() {
                           : 'bg-muted'
                       )}
                     >
-                      {/* Image previews for user messages */}
                       {msg.role === 'user' && msg.images && msg.images.length > 0 && (
                         <div className="flex flex-wrap gap-1 mb-2">
                           {msg.images.map((img, idx) => (
@@ -229,14 +436,16 @@ export function AIEditorTab() {
                       <Loader2 className="h-4 w-4 text-primary animate-spin" />
                     </div>
                     <div className="bg-muted rounded-2xl px-4 py-2">
-                      <p className="text-sm text-muted-foreground">Processando...</p>
+                      <p className="text-sm text-muted-foreground">
+                        {mode === 'create' ? 'Criando gerador...' : 'Processando...'}
+                      </p>
                     </div>
                   </div>
                 )}
               </div>
             </ScrollArea>
 
-            {/* Minimal Input with integrated attachments */}
+            {/* Input */}
             <div className="mt-3">
               <MinimalImageChat
                 attachments={attachments}
@@ -245,12 +454,14 @@ export function AIEditorTab() {
                 onInputChange={setInputValue}
                 onSend={handleSend}
                 maxAttachments={5}
-                disabled={!selectedGenerator}
+                disabled={mode === 'create' ? !newGeneratorName.trim() : !selectedGenerator}
                 isSending={isSending}
                 placeholder={
-                  attachments.length > 0
-                    ? "Descreva o que fazer com as imagens..."
-                    : "Digite sua alteração..."
+                  mode === 'create'
+                    ? "Descreva o gerador que deseja criar..."
+                    : attachments.length > 0
+                      ? "Descreva o que fazer com as imagens..."
+                      : "Digite sua alteração..."
                 }
                 supportsImages={supportsImages}
               />
@@ -274,7 +485,9 @@ export function AIEditorTab() {
         {/* Exemplos */}
         <Card className="soft-card border-0">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">💡 Exemplos de comandos</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              💡 {mode === 'create' ? 'Exemplos para criar' : 'Exemplos de comandos'}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
@@ -283,21 +496,21 @@ export function AIEditorTab() {
                   key={cmd.text}
                   variant="outline"
                   className={cn(
-                    "cursor-pointer hover:bg-primary/10 transition-colors gap-1",
+                    "cursor-pointer hover:bg-primary/10 transition-colors gap-1 text-xs",
                     cmd.hasImage && "border-primary/30"
                   )}
                   onClick={() => setInputValue(cmd.text)}
                 >
                   {cmd.hasImage && <ImageIcon className="h-3 w-3" />}
-                  {cmd.text}
+                  {cmd.text.length > 50 ? cmd.text.substring(0, 50) + '...' : cmd.text}
                 </Badge>
               ))}
             </div>
           </CardContent>
         </Card>
 
-        {/* Histórico */}
-        {history && history.length > 0 && (
+        {/* Histórico (somente modo editar) */}
+        {mode === 'edit' && history && history.length > 0 && (
           <Card className="soft-card border-0">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
@@ -322,16 +535,17 @@ export function AIEditorTab() {
                 <div className="space-y-2">
                   {history.map((item) => {
                     const hasAttachments = item.attachments && (item.attachments as unknown[]).length > 0;
+                    const isCreateAction = item.user_prompt.startsWith('[CRIAR NOVO]');
                     return (
                       <div
                         key={item.id}
                         className="flex items-start gap-2 text-xs p-2.5 rounded-xl bg-muted/50 hover:bg-muted/70 transition-colors"
                       >
                         <Badge
-                          variant={item.success ? 'default' : 'destructive'}
+                          variant={item.success ? (isCreateAction ? 'default' : 'secondary') : 'destructive'}
                           className="text-[10px] px-1.5 py-0 mt-0.5"
                         >
-                          {item.success ? '✓' : '✗'}
+                          {isCreateAction ? '✨' : item.success ? '✓' : '✗'}
                         </Badge>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start gap-2">
@@ -352,9 +566,7 @@ export function AIEditorTab() {
                             {item.provider && (
                               <>
                                 <span>•</span>
-                                <span className="flex items-center gap-1">
-                                  {item.provider.name}
-                                </span>
+                                <span>{item.provider.name}</span>
                               </>
                             )}
                             {item.tokens_used && (
@@ -379,25 +591,53 @@ export function AIEditorTab() {
       <div className="col-span-3">
         <Card className="soft-card border-0 h-full">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">
-              👁️ Preview em Tempo Real
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-medium">
+                👁️ {mode === 'create' ? 'Preview do Template Base' : 'Preview em Tempo Real'}
+              </CardTitle>
+              {mode === 'edit' && currentGenerator && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate(`/admin/generators`)}
+                  className="text-xs gap-1"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                  Ver gerador
+                </Button>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
-            {currentGenerator ? (
+            {(mode === 'create' || currentGenerator) ? (
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
-                  <Badge variant="outline">{currentGenerator.type}</Badge>
-                  <span className="font-medium">{currentGenerator.name}</span>
+                  <Badge variant="outline">
+                    {mode === 'create' ? newGeneratorType : currentGenerator?.type}
+                  </Badge>
+                  <span className="font-medium">
+                    {mode === 'create' 
+                      ? (newGeneratorName || 'Novo Gerador')
+                      : currentGenerator?.name
+                    }
+                  </span>
+                  {mode === 'create' && (
+                    <Badge variant="secondary" className="text-[10px]">
+                      {newGeneratorType === 'custom' 
+                        ? `${customWidth}×${customHeight}`
+                        : GENERATOR_TYPES.find(t => t.value === newGeneratorType)?.dimensions
+                      }
+                    </Badge>
+                  )}
                 </div>
                 <Separator />
                 <div className="bg-muted/50 rounded-xl p-4">
                   <p className="text-sm font-medium mb-2 text-muted-foreground">
-                    Configuração atual:
+                    {mode === 'create' ? 'Template base:' : 'Configuração atual:'}
                   </p>
                   <ScrollArea className="h-[calc(100vh-400px)]">
                     <pre className="text-xs font-mono whitespace-pre-wrap">
-                      {JSON.stringify(currentGenerator.config, null, 2)}
+                      {JSON.stringify(getPreviewConfig(), null, 2)}
                     </pre>
                   </ScrollArea>
                 </div>

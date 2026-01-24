@@ -74,6 +74,28 @@ function extractJSON(text: string): Record<string, unknown> | null {
   return null;
 }
 
+// Valida config gerado
+function validateGeneratorConfig(config: unknown): boolean {
+  if (!config || typeof config !== 'object') return false;
+  const obj = config as Record<string, unknown>;
+  
+  if (!obj.dimensions) return false;
+  const dims = obj.dimensions as Record<string, unknown>;
+  if (!dims.width || !dims.height) return false;
+  if (!obj.features) return false;
+  
+  if (obj.form_fields !== undefined && !Array.isArray(obj.form_fields)) {
+    return false;
+  }
+  
+  const width = dims.width as number;
+  const height = dims.height as number;
+  if (width < 100 || width > 5000) return false;
+  if (height < 100 || height > 5000) return false;
+  
+  return true;
+}
+
 // Constrói content multimodal para mensagens com imagens
 function buildMultimodalContent(
   textContent: string,
@@ -87,7 +109,6 @@ function buildMultimodalContent(
   switch (provider.api_type) {
     case 'lovable':
     case 'openai':
-      // OpenAI/Lovable format
       return [
         { type: 'text', text: textContent },
         ...images.map(img => ({
@@ -97,7 +118,6 @@ function buildMultimodalContent(
       ];
       
     case 'anthropic':
-      // Anthropic format
       return [
         { type: 'text', text: textContent },
         ...images.map(img => ({
@@ -111,7 +131,6 @@ function buildMultimodalContent(
       ];
       
     case 'google':
-      // Google format - handled differently in buildRequest
       return textContent;
       
     default:
@@ -199,13 +218,11 @@ function getAuthHeaders(provider: AIProvider, apiKey: string): Record<string, st
       headers['anthropic-version'] = '2023-06-01';
       break;
     case 'google':
-      // API key vai na URL para Google
       break;
     default:
       headers['Authorization'] = `Bearer ${apiKey}`;
   }
 
-  // Adiciona headers customizados
   if (provider.custom_headers) {
     Object.assign(headers, provider.custom_headers);
   }
@@ -231,13 +248,36 @@ serve(async (req) => {
   }
 
   try {
-    const { generatorId, userPrompt, providerId, images } = await req.json();
+    const body = await req.json();
+    const { 
+      mode = 'edit', // 'edit' ou 'create'
+      generatorId, 
+      generatorName,
+      generatorSlug,
+      generatorType,
+      baseConfig,
+      userPrompt, 
+      providerId, 
+      images 
+    } = body;
 
-    if (!generatorId || !userPrompt) {
-      return new Response(
-        JSON.stringify({ error: "generatorId e userPrompt são obrigatórios" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    const isCreateMode = mode === 'create';
+
+    // Validações
+    if (isCreateMode) {
+      if (!generatorName || !generatorSlug || !generatorType || !userPrompt) {
+        return new Response(
+          JSON.stringify({ error: "name, slug, type e userPrompt são obrigatórios para criação" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    } else {
+      if (!generatorId || !userPrompt) {
+        return new Response(
+          JSON.stringify({ error: "generatorId e userPrompt são obrigatórios" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -246,18 +286,42 @@ serve(async (req) => {
     
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Buscar generator
-    const { data: generator, error: genError } = await supabase
-      .from('generators')
-      .select('id, config, name')
-      .eq('id', generatorId)
-      .single();
+    let currentConfig: Record<string, unknown>;
+    let existingGenerator: { id: string; config: unknown; name: string } | null = null;
 
-    if (genError || !generator) {
-      return new Response(
-        JSON.stringify({ error: "Gerador não encontrado" }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    if (isCreateMode) {
+      // Verificar se slug já existe
+      const { data: existing } = await supabase
+        .from('generators')
+        .select('id')
+        .eq('slug', generatorSlug)
+        .maybeSingle();
+
+      if (existing) {
+        return new Response(
+          JSON.stringify({ error: "Slug já existe. Escolha outro nome." }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      currentConfig = baseConfig || {};
+    } else {
+      // Buscar generator existente
+      const { data: generator, error: genError } = await supabase
+        .from('generators')
+        .select('id, config, name')
+        .eq('id', generatorId)
+        .single();
+
+      if (genError || !generator) {
+        return new Response(
+          JSON.stringify({ error: "Gerador não encontrado" }),
+          { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      existingGenerator = generator;
+      currentConfig = generator.config as Record<string, unknown>;
     }
 
     // Buscar provider
@@ -302,33 +366,61 @@ serve(async (req) => {
       );
     }
 
-    const systemPrompt = typedProvider.system_prompt || 
-      'Você modifica configurações JSON de geradores. Retorne APENAS o JSON modificado.';
+    // System prompt baseado no modo
+    const systemPrompt = isCreateMode
+      ? `Você é um especialista em criar configurações JSON para geradores de arte/design.
+Crie configurações completas, criativas e funcionais.
+SEMPRE retorne APENAS o JSON válido, sem explicações.
+O JSON deve incluir: dimensions, colors, features, form_fields, credits_per_use.
+form_fields deve ser um array de objetos com: name, type, label, required (opcional), options (para select).
+Tipos válidos de campo: text, textarea, file, date, select, number, color, checkbox.`
+      : (typedProvider.system_prompt || 'Você modifica configurações JSON de geradores. Retorne APENAS o JSON modificado.');
 
-    // Construir prompt completo
+    // Construir prompt
     const imageNote = hasImages && typedProvider.supports_images 
       ? `\n\n[${images.length} imagem(ns) anexada(s) para referência]` 
       : '';
     
-    const fullPrompt = `GERADOR: ${generator.name}
+    let fullPrompt: string;
+    
+    if (isCreateMode) {
+      const dims = baseConfig?.dimensions as { width: number; height: number } || { width: 1080, height: 1080 };
+      fullPrompt = `CRIAR NOVO GERADOR:
+
+Nome: ${generatorName}
+Tipo: ${generatorType}
+Dimensões: ${dims.width}x${dims.height}
+
+CONFIG BASE (use como ponto de partida):
+${JSON.stringify(baseConfig, null, 2)}
+
+INSTRUÇÕES DO USUÁRIO:
+${userPrompt}${imageNote}
+
+Crie uma configuração completa e criativa para este gerador.
+Inclua form_fields relevantes baseados nas instruções.
+Retorne APENAS o JSON completo.`;
+    } else {
+      fullPrompt = `GERADOR: ${existingGenerator!.name}
 
 CONFIG ATUAL:
-${JSON.stringify(generator.config, null, 2)}
+${JSON.stringify(currentConfig, null, 2)}
 
 ALTERAÇÃO SOLICITADA:
 ${userPrompt}${imageNote}
 
 Retorne APENAS o JSON modificado completo.`;
+    }
 
     const startTime = Date.now();
 
-    // Construir endpoint (Google precisa da key na URL)
+    // Construir endpoint
     let endpoint = typedProvider.endpoint_url;
     if (typedProvider.api_type === 'google') {
       endpoint = `${endpoint}?key=${apiKey}`;
     }
 
-    // Preparar imagens para request (apenas se provider suporta)
+    // Preparar imagens para request
     const imagesToSend = hasImages && typedProvider.supports_images ? images as ImageAttachment[] : undefined;
 
     // Fazer request
@@ -344,19 +436,6 @@ Retorne APENAS o JSON modificado completo.`;
     if (!response.ok) {
       const errorText = await response.text();
       console.error("AI API error:", response.status, errorText);
-
-      // Salvar histórico com erro
-      await supabase.from('generator_edit_history').insert({
-        generator_id: generatorId,
-        provider_id: typedProvider.id,
-        old_config: generator.config,
-        new_config: generator.config,
-        user_prompt: userPrompt,
-        processing_time_ms: processingTime,
-        success: false,
-        error_message: `API error ${response.status}: ${errorText.substring(0, 500)}`,
-        attachments: hasImages ? images.map((img: ImageAttachment) => ({ name: img.name, type: img.type })) : [],
-      });
 
       if (response.status === 429) {
         return new Response(
@@ -386,20 +465,6 @@ Retorne APENAS o JSON modificado completo.`;
     const newConfig = extractJSON(aiText);
 
     if (!newConfig) {
-      await supabase.from('generator_edit_history').insert({
-        generator_id: generatorId,
-        provider_id: typedProvider.id,
-        old_config: generator.config,
-        new_config: generator.config,
-        user_prompt: userPrompt,
-        ai_response: aiText,
-        tokens_used: tokensUsed,
-        processing_time_ms: processingTime,
-        success: false,
-        error_message: "Não foi possível extrair JSON válido da resposta",
-        attachments: hasImages ? images.map((img: ImageAttachment) => ({ name: img.name, type: img.type })) : [],
-      });
-
       return new Response(
         JSON.stringify({ 
           success: false, 
@@ -410,25 +475,85 @@ Retorne APENAS o JSON modificado completo.`;
       );
     }
 
-    // Salvar histórico de sucesso
-    await supabase.from('generator_edit_history').insert({
-      generator_id: generatorId,
-      provider_id: typedProvider.id,
-      old_config: generator.config,
-      new_config: newConfig,
-      user_prompt: userPrompt,
-      ai_response: aiText,
-      tokens_used: tokensUsed,
-      processing_time_ms: processingTime,
-      success: true,
-      attachments: hasImages ? images.map((img: ImageAttachment) => ({ name: img.name, type: img.type })) : [],
-    });
+    // Validar config (especialmente importante para criação)
+    if (isCreateMode && !validateGeneratorConfig(newConfig)) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: "A configuração gerada é inválida. Tente novamente com instruções mais específicas.",
+          message: aiText 
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
-    // Atualizar config do generator
-    await supabase
-      .from('generators')
-      .update({ config: newConfig, updated_at: new Date().toISOString() })
-      .eq('id', generatorId);
+    let resultGeneratorId: string;
+
+    if (isCreateMode) {
+      // Criar novo gerador
+      const { data: newGenerator, error: createError } = await supabase
+        .from('generators')
+        .insert({
+          name: generatorName,
+          slug: generatorSlug,
+          type: generatorType,
+          description: (newConfig.description as string) || `Gerador de ${generatorType} criado via IA`,
+          status: 'ready',
+          config: newConfig,
+          installed_via: 'ai-created',
+          installed_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      if (createError || !newGenerator) {
+        console.error("Error creating generator:", createError);
+        return new Response(
+          JSON.stringify({ error: "Erro ao salvar gerador no banco de dados" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      resultGeneratorId = newGenerator.id;
+
+      // Salvar no histórico
+      await supabase.from('generator_edit_history').insert({
+        generator_id: newGenerator.id,
+        provider_id: typedProvider.id,
+        old_config: baseConfig || {},
+        new_config: newConfig,
+        user_prompt: `[CRIAR NOVO] ${userPrompt}`,
+        ai_response: aiText,
+        tokens_used: tokensUsed,
+        processing_time_ms: processingTime,
+        success: true,
+        attachments: hasImages ? images.map((img: ImageAttachment) => ({ name: img.name, type: img.type })) : [],
+      });
+
+    } else {
+      // Atualizar gerador existente
+      resultGeneratorId = generatorId;
+
+      // Salvar histórico
+      await supabase.from('generator_edit_history').insert({
+        generator_id: generatorId,
+        provider_id: typedProvider.id,
+        old_config: currentConfig,
+        new_config: newConfig,
+        user_prompt: userPrompt,
+        ai_response: aiText,
+        tokens_used: tokensUsed,
+        processing_time_ms: processingTime,
+        success: true,
+        attachments: hasImages ? images.map((img: ImageAttachment) => ({ name: img.name, type: img.type })) : [],
+      });
+
+      // Atualizar config
+      await supabase
+        .from('generators')
+        .update({ config: newConfig, updated_at: new Date().toISOString() })
+        .eq('id', generatorId);
+    }
 
     // Atualizar stats do provider
     await supabase
@@ -444,6 +569,7 @@ Retorne APENAS o JSON modificado completo.`;
     return new Response(
       JSON.stringify({
         success: true,
+        generatorId: resultGeneratorId,
         newConfig,
         message: aiText,
         tokensUsed,

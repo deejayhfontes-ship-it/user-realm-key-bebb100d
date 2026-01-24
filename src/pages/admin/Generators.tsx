@@ -1,8 +1,15 @@
 import { useState } from 'react';
-import { Plus, Download, Sparkles } from 'lucide-react';
+import { Plus, Download, Sparkles, Wand2, Upload, Link } from 'lucide-react';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
 import { NewGeneratorModal } from '@/components/admin/generators/NewGeneratorModal';
 import { EditGeneratorModal } from '@/components/admin/generators/EditGeneratorModal';
 import { GeneratorDetailsDrawer } from '@/components/admin/generators/GeneratorDetailsDrawer';
@@ -31,6 +38,7 @@ export default function AdminGenerators() {
   const [editGenerator, setEditGenerator] = useState<Generator | null>(null);
   const [viewGenerator, setViewGenerator] = useState<Generator | null>(null);
   const [toggleStatusGenerator, setToggleStatusGenerator] = useState<Generator | null>(null);
+  const [aiCreateMode, setAiCreateMode] = useState(false);
 
   const { data: generators, isLoading } = useGeneratorsList();
   const updateStatus = useUpdateGeneratorStatus();
@@ -55,19 +63,42 @@ export default function AdminGenerators() {
     }
   };
 
+  const handleCreateWithAI = () => {
+    setAiCreateMode(true);
+    setActiveTab('ai-editor');
+  };
+
   return (
     <div className="flex flex-col h-full">
       <AdminHeader 
         title="Geradores" 
         subtitle="Gerenciar geradores de arte"
         action={
-          <Button 
-            onClick={() => setIsNewModalOpen(true)} 
-            className="gap-2 bg-primary text-primary-foreground hover:brightness-105 rounded-full px-6 h-11 font-medium shadow-lg shadow-primary/20"
-          >
-            <Plus className="h-4 w-4" />
-            Novo Gerador
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                className="gap-2 bg-primary text-primary-foreground hover:brightness-105 rounded-full px-6 h-11 font-medium shadow-lg shadow-primary/20"
+              >
+                <Plus className="h-4 w-4" />
+                Novo Gerador
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem onClick={() => setIsNewModalOpen(true)}>
+                <Upload className="h-4 w-4 mr-2" />
+                Criar Manualmente
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setActiveTab('install')}>
+                <Link className="h-4 w-4 mr-2" />
+                Importar via URL/ZIP
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleCreateWithAI} className="text-primary">
+                <Wand2 className="h-4 w-4 mr-2" />
+                ✨ Criar com IA
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         }
       />
       
@@ -117,7 +148,7 @@ export default function AdminGenerators() {
           </TabsContent>
 
           <TabsContent value="ai-editor" className="mt-6">
-            <AIEditorTab />
+            <AIEditorTab initialMode={aiCreateMode ? 'create' : 'edit'} />
           </TabsContent>
         </Tabs>
       </div>
