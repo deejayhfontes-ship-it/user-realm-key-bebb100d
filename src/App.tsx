@@ -14,6 +14,7 @@ import AdminClients from "@/pages/admin/Clients";
 import AdminGenerators from "@/pages/admin/Generators";
 import AdminSettings from "@/pages/admin/Settings";
 import NotFound from "@/pages/NotFound";
+import GeneratorPage from "@/pages/client/Generator";
 
 const queryClient = new QueryClient();
 
@@ -47,7 +48,7 @@ const App = () => (
               <Route path="settings" element={<AdminSettings />} />
             </Route>
 
-            {/* Client routes (placeholder) */}
+            {/* Client routes */}
             <Route
               path="/client"
               element={
@@ -55,6 +56,14 @@ const App = () => (
                   <div className="min-h-screen flex items-center justify-center bg-background">
                     <p className="text-muted-foreground">Área do cliente em construção...</p>
                   </div>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/client/generator/:slug"
+              element={
+                <ProtectedRoute>
+                  <GeneratorPage />
                 </ProtectedRoute>
               }
             />
