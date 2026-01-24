@@ -66,7 +66,7 @@ export default function ClientLogin() {
     <div className="min-h-screen flex bg-background">
       {/* Left side - Login Form */}
       <div className="w-full lg:w-1/2 p-6 md:p-12 flex flex-col justify-center">
-        <div className="max-w-md mx-auto w-full">
+        <div className="w-full max-w-md mx-auto lg:ml-auto lg:mr-16">
           {/* Logo */}
           <div className="flex items-center gap-3 mb-10">
             <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center">
@@ -198,7 +198,7 @@ export default function ClientLogin() {
         <div className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full bg-primary/10 blur-3xl" />
         <div className="absolute top-1/4 right-1/4 w-32 h-32 rounded-full bg-primary/15 blur-2xl" />
         
-        <div className="relative z-10 max-w-lg">
+        <div className="relative z-10 max-w-lg ml-16">
           {/* Main headline */}
           <div className="mb-12">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/15 text-primary text-sm font-medium mb-6">
