@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Settings, Loader2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Settings, Loader2, Plus, Package, Link, Sparkles, AlertCircle } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -8,9 +9,16 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Client } from '@/hooks/useClients';
@@ -35,6 +43,7 @@ export interface GeneratorAssignment {
 }
 
 export function ManageGeneratorsModal({ client, open, onOpenChange }: ManageGeneratorsModalProps) {
+  const navigate = useNavigate();
   const [generators, setGenerators] = useState<GeneratorAssignment[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -245,6 +254,56 @@ export function ManageGeneratorsModal({ client, open, onOpenChange }: ManageGene
                   onUpdateConfig={(updates) => handleUpdateConfig(generator.id, updates)}
                 />
               ))}
+
+              {/* Informative message for few generators */}
+              {totalCount <= 3 && totalCount > 0 && (
+                <Alert className="bg-muted/50 border-muted-foreground/20">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    Você tem apenas {totalCount} gerador{totalCount > 1 ? 'es' : ''} no sistema. 
+                    Adicione mais para oferecer aos clientes!
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {/* Add new generator dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="w-full mt-2 border-dashed">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Adicionar Novo Gerador ao Sistema
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="center" className="w-56">
+                  <DropdownMenuItem 
+                    onClick={() => {
+                      onOpenChange(false);
+                      navigate('/admin/geradores?tab=instalar&method=zip');
+                    }}
+                  >
+                    <Package className="h-4 w-4 mr-2" />
+                    Upload ZIP
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => {
+                      onOpenChange(false);
+                      navigate('/admin/geradores?tab=instalar&method=url');
+                    }}
+                  >
+                    <Link className="h-4 w-4 mr-2" />
+                    Importar via URL
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => {
+                      onOpenChange(false);
+                      navigate('/admin/geradores?tab=editor&mode=create');
+                    }}
+                  >
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Criar com IA
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           )}
         </ScrollArea>
