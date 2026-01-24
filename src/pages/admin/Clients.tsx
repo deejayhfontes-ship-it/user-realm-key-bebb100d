@@ -7,6 +7,7 @@ import { ClientFilters } from '@/components/admin/clients/ClientFilters';
 import { NewClientModal } from '@/components/admin/clients/NewClientModal';
 import { EditClientModal } from '@/components/admin/clients/EditClientModal';
 import { ClientDetailsDrawer } from '@/components/admin/clients/ClientDetailsDrawer';
+import { ManageGeneratorsModal } from '@/components/admin/clients/ManageGeneratorsModal';
 import { useClients, useUpdateClientStatus, Client } from '@/hooks/useClients';
 import {
   AlertDialog,
@@ -26,6 +27,7 @@ export default function AdminClients() {
   const [clientToBlock, setClientToBlock] = useState<Client | null>(null);
   const [clientToView, setClientToView] = useState<Client | null>(null);
   const [clientToEdit, setClientToEdit] = useState<Client | null>(null);
+  const [clientToManageGenerators, setClientToManageGenerators] = useState<Client | null>(null);
 
   const { data: clients, isLoading } = useClients(statusFilter, searchQuery);
   const updateStatus = useUpdateClientStatus();
@@ -40,6 +42,10 @@ export default function AdminClients() {
 
   const handleToggleBlock = (client: Client) => {
     setClientToBlock(client);
+  };
+
+  const handleManageGenerators = (client: Client) => {
+    setClientToManageGenerators(client);
   };
 
   const confirmToggleBlock = () => {
@@ -80,6 +86,7 @@ export default function AdminClients() {
           onView={handleView}
           onEdit={handleEdit}
           onToggleBlock={handleToggleBlock}
+          onManageGenerators={handleManageGenerators}
         />
       </div>
 
@@ -100,6 +107,12 @@ export default function AdminClients() {
         onOpenChange={(open) => !open && setClientToView(null)}
         onEdit={handleEdit}
         onToggleBlock={handleToggleBlock}
+      />
+
+      <ManageGeneratorsModal
+        client={clientToManageGenerators}
+        open={!!clientToManageGenerators}
+        onOpenChange={(open) => !open && setClientToManageGenerators(null)}
       />
 
       <AlertDialog open={!!clientToBlock} onOpenChange={() => setClientToBlock(null)}>

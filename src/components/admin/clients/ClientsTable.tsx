@@ -1,4 +1,4 @@
-import { Eye, Pencil, Ban, Unlock } from 'lucide-react';
+import { Eye, Pencil, Ban, Unlock, Settings } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
@@ -20,6 +20,7 @@ interface ClientsTableProps {
   onView: (client: Client) => void;
   onEdit: (client: Client) => void;
   onToggleBlock: (client: Client) => void;
+  onManageGenerators: (client: Client) => void;
 }
 
 const statusConfig: Record<string, { label: string; className: string }> = {
@@ -34,7 +35,7 @@ const typeConfig: Record<string, { label: string; className: string }> = {
   package: { label: 'Pacote', className: 'bg-primary text-primary-foreground border-0' }
 };
 
-export function ClientsTable({ clients, isLoading, onView, onEdit, onToggleBlock }: ClientsTableProps) {
+export function ClientsTable({ clients, isLoading, onView, onEdit, onToggleBlock, onManageGenerators }: ClientsTableProps) {
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -136,6 +137,15 @@ export function ClientsTable({ clients, isLoading, onView, onEdit, onToggleBlock
                       title="Editar"
                     >
                       <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9 rounded-full hover:bg-primary/10 hover:text-primary"
+                      onClick={() => onManageGenerators(client)}
+                      title="Gerenciar geradores"
+                    >
+                      <Settings className="h-4 w-4" />
                     </Button>
                     <Button
                       variant="ghost"
