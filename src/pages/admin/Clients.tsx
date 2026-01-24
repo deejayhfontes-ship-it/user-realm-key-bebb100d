@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { ClientsTable } from '@/components/admin/clients/ClientsTable';
 import { ClientFilters } from '@/components/admin/clients/ClientFilters';
 import { NewClientModal } from '@/components/admin/clients/NewClientModal';
+import { EditClientModal } from '@/components/admin/clients/EditClientModal';
+import { ClientDetailsDrawer } from '@/components/admin/clients/ClientDetailsDrawer';
 import { useClients, useUpdateClientStatus, Client } from '@/hooks/useClients';
 import {
   AlertDialog,
@@ -22,18 +24,18 @@ export default function AdminClients() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [isNewModalOpen, setIsNewModalOpen] = useState(false);
   const [clientToBlock, setClientToBlock] = useState<Client | null>(null);
+  const [clientToView, setClientToView] = useState<Client | null>(null);
+  const [clientToEdit, setClientToEdit] = useState<Client | null>(null);
 
   const { data: clients, isLoading } = useClients(statusFilter, searchQuery);
   const updateStatus = useUpdateClientStatus();
 
   const handleView = (client: Client) => {
-    // TODO: Implement view modal
-    console.log('View client:', client);
+    setClientToView(client);
   };
 
   const handleEdit = (client: Client) => {
-    // TODO: Implement edit modal
-    console.log('Edit client:', client);
+    setClientToEdit(client);
   };
 
   const handleToggleBlock = (client: Client) => {
@@ -84,6 +86,20 @@ export default function AdminClients() {
       <NewClientModal
         open={isNewModalOpen}
         onOpenChange={setIsNewModalOpen}
+      />
+
+      <EditClientModal
+        client={clientToEdit}
+        open={!!clientToEdit}
+        onOpenChange={(open) => !open && setClientToEdit(null)}
+      />
+
+      <ClientDetailsDrawer
+        client={clientToView}
+        open={!!clientToView}
+        onOpenChange={(open) => !open && setClientToView(null)}
+        onEdit={handleEdit}
+        onToggleBlock={handleToggleBlock}
       />
 
       <AlertDialog open={!!clientToBlock} onOpenChange={() => setClientToBlock(null)}>
