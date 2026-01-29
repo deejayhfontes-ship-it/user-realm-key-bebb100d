@@ -22,9 +22,9 @@ import NotFound from "@/pages/NotFound";
 import ClientLogin from "@/pages/client/Login";
 import ClientPlans from "@/pages/client/Plans";
 import ClientDashboard from "@/pages/client/Dashboard";
-import ClientGenerators from "@/pages/client/Generators";
-import ClientHistory from "@/pages/client/History";
-import ClientSupport from "@/pages/client/Support";
+import ClientGeradores from "@/pages/client/Geradores";
+import ClientHistorico from "@/pages/client/Historico";
+import ClientPerfil from "@/pages/client/Perfil";
 import ClientBlocked from "@/pages/client/Blocked";
 import ClientExpired from "@/pages/client/Expired";
 import GeneratorPage from "@/pages/client/Generator";
@@ -75,14 +75,14 @@ const App = () => (
             >
               <Route index element={<Navigate to="dashboard" replace />} />
               <Route path="dashboard" element={<ClientDashboard />} />
-              <Route path="generators" element={<ClientGenerators />} />
-              <Route path="history" element={<ClientHistory />} />
-              <Route path="support" element={<ClientSupport />} />
+              <Route path="geradores" element={<ClientGeradores />} />
+              <Route path="historico" element={<ClientHistorico />} />
+              <Route path="perfil" element={<ClientPerfil />} />
             </Route>
 
             {/* Generator page (standalone for full-screen experience) */}
             <Route
-              path="/client/generator/:slug"
+              path="/client/gerador/:slug"
               element={
                 <ClientRoute>
                   <GeneratorPage />
