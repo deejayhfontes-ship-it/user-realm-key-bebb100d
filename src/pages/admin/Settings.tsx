@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { PixConfigForm } from '@/components/pix/PixConfigForm';
+import { PixAccountsList } from '@/components/admin/settings/PixAccountsList';
 import { QrCode, Building2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function AdminSettings() {
-  const [activeTab, setActiveTab] = useState('geral');
+  const [activeTab, setActiveTab] = useState('pix');
 
   return (
     <div className="flex flex-col h-full">
@@ -18,15 +18,19 @@ export default function AdminSettings() {
       <div className="flex-1 p-6">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-6">
+            <TabsTrigger value="pix" className="flex items-center gap-2">
+              <QrCode className="h-4 w-4" />
+              Contas PIX
+            </TabsTrigger>
             <TabsTrigger value="geral" className="flex items-center gap-2">
               <Building2 className="h-4 w-4" />
               Geral
             </TabsTrigger>
-            <TabsTrigger value="pix" className="flex items-center gap-2">
-              <QrCode className="h-4 w-4" />
-              PIX
-            </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="pix">
+            <PixAccountsList />
+          </TabsContent>
 
           <TabsContent value="geral">
             <Card className="border border-border">
@@ -42,10 +46,6 @@ export default function AdminSettings() {
                 </p>
               </CardContent>
             </Card>
-          </TabsContent>
-
-          <TabsContent value="pix">
-            <PixConfigForm />
           </TabsContent>
         </Tabs>
       </div>
