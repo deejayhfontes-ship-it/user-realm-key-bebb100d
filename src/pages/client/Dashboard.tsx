@@ -1,277 +1,207 @@
-import { useNavigate } from 'react-router-dom';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { Link } from 'react-router-dom';
 import { 
   CreditCard, 
   Wand2, 
-  Calendar, 
-  CheckCircle2, 
-  XCircle,
-  Clock,
+  Image as ImageIcon, 
+  Smartphone, 
+  Sparkles, 
+  Images,
   ArrowRight,
-  Sparkles
+  Calendar,
+  CheckCircle
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useClientData, checkGeneratorAccess } from '@/hooks/useClientData';
-import { cn } from '@/lib/utils';
+import { mockClientData } from '@/data/mockClientData';
+
+// TODO: Substituir por busca real do Supabase
+// import { useClientData } from '@/hooks/useClientData';
+// const { client, generators, recentGenerations, creditsInfo } = useClientData();
+
+const iconMap: Record<string, React.ElementType> = {
+  Smartphone: Smartphone,
+  Sparkles: Sparkles,
+  Images: Images,
+};
 
 export default function ClientDashboard() {
-  const navigate = useNavigate();
-  const { 
-    client, 
-    generators, 
-    recentGenerations, 
-    totalGenerations,
-    creditsInfo,
-    isLoading 
-  } = useClientData();
-
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <Skeleton className="h-10 w-64" />
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map(i => (
-            <Skeleton key={i} className="h-32 rounded-2xl" />
-          ))}
-        </div>
-        <Skeleton className="h-64 rounded-2xl" />
-      </div>
-    );
-  }
-
-  const statusConfig: Record<string, { label: string; className: string }> = {
-    active: { label: 'Ativo', className: 'bg-primary/15 text-primary' },
-    inactive: { label: 'Inativo', className: 'bg-muted text-muted-foreground' },
-    blocked: { label: 'Bloqueado', className: 'bg-destructive/15 text-destructive' },
-    expired: { label: 'Expirado', className: 'bg-warning/15 text-warning' }
-  };
-
-  const status = statusConfig[client?.status || 'inactive'];
+  const { user, credits, generators, recentArts } = mockClientData;
+  const creditsPercentage = (credits.used / credits.total) * 100;
+  const creditsRemaining = credits.total - credits.used;
 
   return (
-    <div className="space-y-8">
-      {/* Welcome Header */}
-      <div className="flex items-center gap-3">
-        <h1 className="text-2xl md:text-3xl font-semibold text-foreground">
-          Bem-vindo, {client?.name?.split(' ')[0]}! 👋
+    <div className="p-6 md:p-8 space-y-8">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+          Bem-vindo, {user.name.split(' ')[0]}! 👋
         </h1>
+        <p className="text-muted-foreground mt-1">
+          Gerencie seus geradores e acompanhe suas criações
+        </p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {/* Credits Card */}
-        <Card className="soft-card-lime border-0">
-          <CardContent className="p-5">
-            <div className="flex items-center gap-2 mb-3">
-              <CreditCard className="h-5 w-5" />
-              <span className="text-sm font-medium opacity-80">Créditos</span>
-            </div>
-            <p className="text-2xl font-bold">
-              {creditsInfo.used}/{creditsInfo.total === Infinity ? '∞' : creditsInfo.total}
-            </p>
-            {client?.type === 'package' && client?.access_expires_at && (
-              <p className="text-xs opacity-60 mt-1">
-                Expira: {format(new Date(client.access_expires_at), 'dd/MM/yyyy', { locale: ptBR })}
-              </p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Generations Card */}
-        <Card className="soft-card-dark border-0">
-          <CardContent className="p-5">
-            <div className="flex items-center gap-2 mb-3">
-              <Wand2 className="h-5 w-5" />
-              <span className="text-sm font-medium opacity-80">Gerações</span>
-            </div>
-            <p className="text-2xl font-bold">{totalGenerations || 0}</p>
-            <p className="text-xs opacity-60 mt-1">Total</p>
-          </CardContent>
-        </Card>
-
-        {/* Validity Card */}
-        <Card className="soft-card border-0">
-          <CardContent className="p-5">
-            <div className="flex items-center gap-2 mb-3">
-              <Calendar className="h-5 w-5 text-muted-foreground" />
-              <span className="text-sm font-medium text-muted-foreground">Validade</span>
-            </div>
-            <p className="text-xl font-bold text-foreground">
-              {client?.type === 'fixed' 
-                ? 'Ilimitado'
-                : client?.access_expires_at 
-                  ? format(new Date(client.access_expires_at), 'dd/MM/yy', { locale: ptBR })
-                  : 'N/A'
-              }
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              {client?.type === 'fixed' ? 'Contrato' : 'Pacote'}
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Status Card */}
-        <Card className="soft-card border-0">
-          <CardContent className="p-5">
-            <div className="flex items-center gap-2 mb-3">
-              <CheckCircle2 className="h-5 w-5 text-muted-foreground" />
-              <span className="text-sm font-medium text-muted-foreground">Status</span>
-            </div>
-            <Badge className={cn("text-base px-3 py-1", status.className)}>
-              {status.label}
-            </Badge>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Generators Section */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-foreground">Geradores Disponíveis</h2>
-          <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={() => navigate('/client/generators')}
-            className="text-primary"
-          >
-            Ver todos
-            <ArrowRight className="h-4 w-4 ml-1" />
-          </Button>
-        </div>
-
-        {generators && generators.length > 0 ? (
-          <div className="grid md:grid-cols-2 gap-4">
-            {generators.slice(0, 4).map((cg) => {
-              const access = checkGeneratorAccess(cg, client);
-              
-              return (
-                <Card 
-                  key={cg.id} 
-                  className={cn(
-                    "soft-card border-0 transition-all hover:shadow-lg cursor-pointer",
-                    !access.allowed && "opacity-60"
-                  )}
-                  onClick={() => access.allowed && navigate(`/client/generator/${cg.generator.slug}`)}
-                >
-                  <CardContent className="p-5">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center">
-                          <Sparkles className="h-5 w-5 text-primary" />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-foreground">{cg.generator.name}</h3>
-                          <p className="text-sm text-muted-foreground line-clamp-1">
-                            {cg.generator.description}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between mt-4">
-                      <div className="text-sm text-muted-foreground">
-                        <span className="font-mono">
-                          {cg.credits_used}
-                          {cg.credits_limit && `/${cg.credits_limit}`}
-                        </span>
-                        {' '}gerações
-                      </div>
-                      
-                      <Button 
-                        size="sm" 
-                        disabled={!access.allowed}
-                        className={cn(
-                          "rounded-full",
-                          access.allowed 
-                            ? "bg-primary text-primary-foreground" 
-                            : "bg-muted text-muted-foreground"
-                        )}
-                      >
-                        {access.allowed ? 'Usar Agora' : access.reason}
-                        {access.allowed && <ArrowRight className="h-4 w-4 ml-1" />}
-                      </Button>
-                    </div>
-
-                    {!access.allowed && access.details && (
-                      <p className="text-xs text-muted-foreground mt-2">
-                        {access.details}
-                      </p>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        ) : (
-          <Card className="soft-card border-0">
-            <CardContent className="p-8 text-center">
-              <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
-                <Wand2 className="h-8 w-8 text-muted-foreground" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Créditos Disponíveis */}
+        <Card className="border-none shadow-sm bg-card">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <CreditCard className="w-5 h-5 text-primary" />
               </div>
-              <h3 className="font-semibold text-foreground mb-2">Nenhum gerador disponível</h3>
-              <p className="text-sm text-muted-foreground">
-                Entre em contato com o suporte para liberar geradores.
-              </p>
-            </CardContent>
-          </Card>
-        )}
+              <div>
+                <p className="text-sm text-muted-foreground">Créditos Disponíveis</p>
+                <p className="text-2xl font-bold text-foreground">
+                  {creditsRemaining}
+                  <span className="text-sm font-normal text-muted-foreground">/{credits.total}</span>
+                </p>
+              </div>
+            </div>
+            <Progress value={100 - creditsPercentage} className="h-2" />
+            <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
+              <Calendar className="w-3 h-3" />
+              Renova em {new Date(credits.resetDate).toLocaleDateString('pt-BR')}
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Geradores Liberados */}
+        <Card className="border-none shadow-sm bg-card">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                <Wand2 className="w-5 h-5 text-emerald-500" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Geradores Liberados</p>
+                <p className="text-2xl font-bold text-foreground">{generators.length}</p>
+              </div>
+            </div>
+            <div className="flex gap-1 mt-4">
+              {generators.map((gen) => {
+                const Icon = iconMap[gen.icon] || Wand2;
+                return (
+                  <div 
+                    key={gen.id} 
+                    className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center"
+                    title={gen.name}
+                  >
+                    <Icon className="w-4 h-4 text-muted-foreground" />
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Artes Geradas */}
+        <Card className="border-none shadow-sm bg-card">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center">
+                <ImageIcon className="w-5 h-5 text-violet-500" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Artes Geradas</p>
+                <p className="text-2xl font-bold text-foreground">{recentArts.length}</p>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground mt-4">Este mês</p>
+          </CardContent>
+        </Card>
+
+        {/* Status */}
+        <Card className="border-none shadow-sm bg-card">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <CheckCircle className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Status da Conta</p>
+                <Badge className="bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/20 mt-1">
+                  Ativo
+                </Badge>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Recent Generations */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-foreground">Últimas Gerações</h2>
-          <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={() => navigate('/client/history')}
-            className="text-primary"
-          >
-            Ver histórico
-            <ArrowRight className="h-4 w-4 ml-1" />
-          </Button>
+      {/* Meus Geradores */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-foreground">Meus Geradores</h2>
+          <Link to="/client/geradores">
+            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+              Ver todos <ArrowRight className="w-4 h-4 ml-1" />
+            </Button>
+          </Link>
         </div>
-
-        <Card className="soft-card border-0">
-          <CardContent className="p-4">
-            {recentGenerations && recentGenerations.length > 0 ? (
-              <div className="space-y-2">
-                {recentGenerations.map((gen) => (
-                  <div 
-                    key={gen.id}
-                    className="flex items-center justify-between p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      {gen.success ? (
-                        <CheckCircle2 className="h-4 w-4 text-primary" />
-                      ) : (
-                        <XCircle className="h-4 w-4 text-destructive" />
-                      )}
-                      <div>
-                        <p className="font-medium text-sm text-foreground">{gen.generator_name}</p>
-                        {gen.prompt && (
-                          <p className="text-xs text-muted-foreground line-clamp-1">{gen.prompt}</p>
-                        )}
-                      </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {generators.map((generator) => {
+            const Icon = iconMap[generator.icon] || Wand2;
+            return (
+              <Card key={generator.id} className="border-none shadow-sm bg-card hover:shadow-md transition-shadow">
+                <CardContent className="p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <Icon className="w-6 h-6 text-primary" />
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <Clock className="h-3 w-3" />
-                      {format(new Date(gen.created_at), 'dd/MM HH:mm', { locale: ptBR })}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-foreground truncate">{generator.name}</h3>
+                      <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
+                        {generator.description}
+                      </p>
                     </div>
                   </div>
-                ))}
+                  <Link to={`/client/gerador/${generator.type}`}>
+                    <Button className="w-full mt-4" size="sm">
+                      Usar Agora
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Últimas Criações */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-foreground">Últimas Criações</h2>
+          <Link to="/client/historico">
+            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+              Ver histórico <ArrowRight className="w-4 h-4 ml-1" />
+            </Button>
+          </Link>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {recentArts.slice(0, 4).map((art) => (
+            <Card key={art.id} className="border-none shadow-sm bg-card overflow-hidden group cursor-pointer hover:shadow-md transition-shadow">
+              <div className="aspect-square bg-muted flex items-center justify-center relative">
+                {art.thumbnail ? (
+                  <img src={art.thumbnail} alt={art.name} className="w-full h-full object-cover" />
+                ) : (
+                  <ImageIcon className="w-12 h-12 text-muted-foreground/30" />
+                )}
+                <div className="absolute inset-0 bg-foreground/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <Button variant="secondary" size="sm">Ver</Button>
+                </div>
               </div>
-            ) : (
-              <p className="text-sm text-muted-foreground text-center py-8">
-                Nenhuma geração encontrada
-              </p>
-            )}
-          </CardContent>
-        </Card>
+              <CardContent className="p-3">
+                <p className="text-sm font-medium text-foreground truncate">{art.name}</p>
+                <p className="text-xs text-muted-foreground">
+                  {new Date(art.date).toLocaleDateString('pt-BR')}
+                </p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     </div>
   );
