@@ -6,7 +6,8 @@ import {
   User,
   LogOut,
   Palette,
-  ChevronLeft
+  ChevronLeft,
+  Receipt
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -39,6 +40,11 @@ const navItems = [
     title: 'Minhas Artes', 
     href: '/client/historico', 
     icon: Images 
+  },
+  { 
+    title: 'Minhas Faturas', 
+    href: '/client/faturas', 
+    icon: Receipt 
   },
   { 
     title: 'Perfil', 

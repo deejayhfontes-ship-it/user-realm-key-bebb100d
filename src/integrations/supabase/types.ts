@@ -614,6 +614,172 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_configs: {
+        Row: {
+          api_key_encrypted: string | null
+          config_json: Json | null
+          created_at: string | null
+          gateway_name: string
+          id: string
+          is_active: boolean | null
+          sandbox_mode: boolean | null
+          updated_at: string | null
+          webhook_secret: string | null
+        }
+        Insert: {
+          api_key_encrypted?: string | null
+          config_json?: Json | null
+          created_at?: string | null
+          gateway_name: string
+          id?: string
+          is_active?: boolean | null
+          sandbox_mode?: boolean | null
+          updated_at?: string | null
+          webhook_secret?: string | null
+        }
+        Update: {
+          api_key_encrypted?: string | null
+          config_json?: Json | null
+          created_at?: string | null
+          gateway_name?: string
+          id?: string
+          is_active?: boolean | null
+          sandbox_mode?: boolean | null
+          updated_at?: string | null
+          webhook_secret?: string | null
+        }
+        Relationships: []
+      }
+      payment_plans: {
+        Row: {
+          created_at: string | null
+          credits_included: number
+          currency: string | null
+          description: string | null
+          features: Json | null
+          id: string
+          interval: string | null
+          is_active: boolean | null
+          is_featured: boolean | null
+          name: string
+          price_cents: number
+          sort_order: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          credits_included?: number
+          currency?: string | null
+          description?: string | null
+          features?: Json | null
+          id?: string
+          interval?: string | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          name: string
+          price_cents: number
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          credits_included?: number
+          currency?: string | null
+          description?: string | null
+          features?: Json | null
+          id?: string
+          interval?: string | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          name?: string
+          price_cents?: number
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      payments: {
+        Row: {
+          amount_cents: number
+          client_id: string | null
+          created_at: string | null
+          currency: string | null
+          customer_gateway_id: string | null
+          external_id: string | null
+          failure_reason: string | null
+          gateway: string
+          id: string
+          next_billing_at: string | null
+          paid_at: string | null
+          payment_method: string | null
+          plan_id: string | null
+          status: string | null
+          subscription_id: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount_cents: number
+          client_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          customer_gateway_id?: string | null
+          external_id?: string | null
+          failure_reason?: string | null
+          gateway: string
+          id?: string
+          next_billing_at?: string | null
+          paid_at?: string | null
+          payment_method?: string | null
+          plan_id?: string | null
+          status?: string | null
+          subscription_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount_cents?: number
+          client_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          customer_gateway_id?: string | null
+          external_id?: string | null
+          failure_reason?: string | null
+          gateway?: string
+          id?: string
+          next_billing_at?: string | null
+          paid_at?: string | null
+          payment_method?: string | null
+          plan_id?: string | null
+          status?: string | null
+          subscription_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "client_stats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "payment_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           client_id: string | null
@@ -664,6 +830,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      webhook_logs: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          event_type: string
+          gateway: string
+          id: string
+          payload: Json
+          processed: boolean | null
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          event_type: string
+          gateway: string
+          id?: string
+          payload: Json
+          processed?: boolean | null
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          event_type?: string
+          gateway?: string
+          id?: string
+          payload?: Json
+          processed?: boolean | null
+        }
+        Relationships: []
       }
     }
     Views: {

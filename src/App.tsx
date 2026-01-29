@@ -16,6 +16,7 @@ import AdminClients from "@/pages/admin/Clients";
 import AdminGenerators from "@/pages/admin/Generators";
 import AdminSettings from "@/pages/admin/Settings";
 import AdminAIProviders from "@/pages/admin/AIProviders";
+import AdminPayments from "@/pages/admin/Payments";
 import NotFound from "@/pages/NotFound";
 import Platform from "@/pages/Platform";
 
@@ -33,6 +34,7 @@ import ClientPerfil from "@/pages/client/Perfil";
 import ClientBlocked from "@/pages/client/Blocked";
 import ClientExpired from "@/pages/client/Expired";
 import ClientCreditsExhausted from "@/pages/client/CreditsExhausted";
+import ClientFaturas from "@/pages/client/Faturas";
 import GeneratorPage from "@/pages/client/Generator";
 
 const queryClient = new QueryClient();
@@ -72,6 +74,7 @@ const App = () => (
               <Route path="clients" element={<AdminClients />} />
               <Route path="generators" element={<AdminGenerators />} />
               <Route path="ai-providers" element={<AdminAIProviders />} />
+              <Route path="payments" element={<AdminPayments />} />
               <Route path="settings" element={<AdminSettings />} />
             </Route>
 
@@ -88,6 +91,7 @@ const App = () => (
               <Route path="dashboard" element={<ClientDashboard />} />
               <Route path="geradores" element={<ClientGeradores />} />
               <Route path="historico" element={<ClientHistorico />} />
+              <Route path="faturas" element={<ClientFaturas />} />
               <Route path="perfil" element={<ClientPerfil />} />
             </Route>
 
