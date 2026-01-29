@@ -27,6 +27,7 @@ import ClientHistorico from "@/pages/client/Historico";
 import ClientPerfil from "@/pages/client/Perfil";
 import ClientBlocked from "@/pages/client/Blocked";
 import ClientExpired from "@/pages/client/Expired";
+import ClientCreditsExhausted from "@/pages/client/CreditsExhausted";
 import GeneratorPage from "@/pages/client/Generator";
 
 const queryClient = new QueryClient();
@@ -93,6 +94,7 @@ const App = () => (
             {/* Client error pages (no auth needed to show error) */}
             <Route path="/client/blocked" element={<ClientBlocked />} />
             <Route path="/client/expired" element={<ClientExpired />} />
+            <Route path="/client/creditos-esgotados" element={<ClientCreditsExhausted />} />
 
             {/* Catch-all */}
             <Route path="*" element={<NotFound />} />
