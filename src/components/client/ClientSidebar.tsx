@@ -14,16 +14,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { toast } from 'sonner';
-
-// TODO: Substituir por dados reais do Supabase
-// const { data: client } = await supabase.from('clients').select('*').eq('user_id', user.id).single()
-const mockClientData = {
-  user: {
-    name: "Prefeitura de Osasco",
-    email: "prefeitura@osasco.sp.gov.br",
-    avatar: null
-  }
-};
+import { useClientData } from '@/hooks/useClientData';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const navItems = [
   { 
@@ -57,6 +49,7 @@ export function ClientSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut, profile, isAdmin } = useAuth();
+  const { client, isLoading } = useClientData();
   const [collapsed, setCollapsed] = useState(false);
 
   const handleLogout = async () => {
@@ -163,13 +156,21 @@ export function ClientSidebar() {
       <div className="p-3 border-t border-white/5">
         {!collapsed && (
           <div className="px-3 py-3 mb-2 rounded-2xl bg-white/5">
-            <p className="text-sm font-medium text-white truncate">
-              {/* TODO: Substituir por dados reais do cliente */}
-              {mockClientData.user.name}
-            </p>
-            <p className="text-xs text-white/50 font-normal">
-              {mockClientData.user.email}
-            </p>
+            {isLoading ? (
+              <>
+                <Skeleton className="h-4 w-32 bg-white/10 mb-1" />
+                <Skeleton className="h-3 w-40 bg-white/10" />
+              </>
+            ) : (
+              <>
+                <p className="text-sm font-medium text-white truncate">
+                  {client?.name || profile?.email}
+                </p>
+                <p className="text-xs text-white/50 font-normal">
+                  {client?.email || profile?.email}
+                </p>
+              </>
+            )}
           </div>
         )}
         <Button
