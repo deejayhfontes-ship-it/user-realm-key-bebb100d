@@ -10,7 +10,8 @@ import {
   Zap,
   CreditCard,
   FileText,
-  FileSignature
+  FileSignature,
+  Receipt
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -52,6 +53,11 @@ const navItems = [
     title: 'Propostas', 
     href: '/admin/propostas', 
     icon: FileSignature 
+  },
+  { 
+    title: 'Faturas', 
+    href: '/admin/invoices', 
+    icon: Receipt 
   },
   { 
     title: 'Configurações', 
