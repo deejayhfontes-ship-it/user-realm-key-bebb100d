@@ -27,10 +27,10 @@ export function PlatformFooter() {
             >
               Site Principal
             </a>
-            <Link to="/terms" className="hover:text-white transition-colors">
+            <Link to="/termos" className="hover:text-white transition-colors">
               Termos de Uso
             </Link>
-            <Link to="/privacy" className="hover:text-white transition-colors">
+            <Link to="/privacidade" className="hover:text-white transition-colors">
               Privacidade
             </Link>
           </div>
