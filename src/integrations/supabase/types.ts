@@ -210,6 +210,171 @@ export type Database = {
           },
         ]
       }
+      budget_lines: {
+        Row: {
+          budget_id: string | null
+          catalog_item_id: string | null
+          created_at: string | null
+          description: string
+          discount_type: string | null
+          discount_value: number | null
+          id: string
+          quantity: number | null
+          sort_order: number | null
+          total: number
+          unit_price: number
+        }
+        Insert: {
+          budget_id?: string | null
+          catalog_item_id?: string | null
+          created_at?: string | null
+          description: string
+          discount_type?: string | null
+          discount_value?: number | null
+          id?: string
+          quantity?: number | null
+          sort_order?: number | null
+          total: number
+          unit_price: number
+        }
+        Update: {
+          budget_id?: string | null
+          catalog_item_id?: string | null
+          created_at?: string | null
+          description?: string
+          discount_type?: string | null
+          discount_value?: number | null
+          id?: string
+          quantity?: number | null
+          sort_order?: number | null
+          total?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_lines_budget_id_fkey"
+            columns: ["budget_id"]
+            isOneToOne: false
+            referencedRelation: "budgets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budget_lines_catalog_item_id_fkey"
+            columns: ["catalog_item_id"]
+            isOneToOne: false
+            referencedRelation: "catalog_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      budgets: {
+        Row: {
+          budget_number: string
+          client_address: string | null
+          client_document: string | null
+          client_email: string | null
+          client_name: string
+          client_phone: string | null
+          created_at: string | null
+          created_by: string | null
+          date: string | null
+          global_discount_type: string | null
+          global_discount_value: number | null
+          id: string
+          notes: string | null
+          shipping: number | null
+          status: string | null
+          subtotal: number
+          terms_and_conditions: string | null
+          total: number
+          updated_at: string | null
+          validity_days: number | null
+        }
+        Insert: {
+          budget_number: string
+          client_address?: string | null
+          client_document?: string | null
+          client_email?: string | null
+          client_name: string
+          client_phone?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          date?: string | null
+          global_discount_type?: string | null
+          global_discount_value?: number | null
+          id?: string
+          notes?: string | null
+          shipping?: number | null
+          status?: string | null
+          subtotal?: number
+          terms_and_conditions?: string | null
+          total?: number
+          updated_at?: string | null
+          validity_days?: number | null
+        }
+        Update: {
+          budget_number?: string
+          client_address?: string | null
+          client_document?: string | null
+          client_email?: string | null
+          client_name?: string
+          client_phone?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          date?: string | null
+          global_discount_type?: string | null
+          global_discount_value?: number | null
+          id?: string
+          notes?: string | null
+          shipping?: number | null
+          status?: string | null
+          subtotal?: number
+          terms_and_conditions?: string | null
+          total?: number
+          updated_at?: string | null
+          validity_days?: number | null
+        }
+        Relationships: []
+      }
+      catalog_items: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          default_price: number
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          sku: string | null
+          unit: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          default_price: number
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          sku?: string | null
+          unit?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          default_price?: number
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          sku?: string | null
+          unit?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       client_generators: {
         Row: {
           allowed_weekdays: number[] | null
@@ -351,6 +516,54 @@ export type Database = {
           status?: string | null
           type?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      company_settings: {
+        Row: {
+          company_address: string | null
+          company_document: string | null
+          company_email: string | null
+          company_name: string | null
+          company_phone: string | null
+          created_at: string | null
+          default_notes: string | null
+          id: string
+          logo_url: string | null
+          show_criate_logo: boolean | null
+          show_fontes_logo: boolean | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          company_address?: string | null
+          company_document?: string | null
+          company_email?: string | null
+          company_name?: string | null
+          company_phone?: string | null
+          created_at?: string | null
+          default_notes?: string | null
+          id?: string
+          logo_url?: string | null
+          show_criate_logo?: boolean | null
+          show_fontes_logo?: boolean | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          company_address?: string | null
+          company_document?: string | null
+          company_email?: string | null
+          company_name?: string | null
+          company_phone?: string | null
+          created_at?: string | null
+          default_notes?: string | null
+          id?: string
+          logo_url?: string | null
+          show_criate_logo?: boolean | null
+          show_fontes_logo?: boolean | null
+          updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
