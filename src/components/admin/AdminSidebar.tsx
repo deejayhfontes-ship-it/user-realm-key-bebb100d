@@ -11,7 +11,8 @@ import {
   CreditCard,
   FileText,
   FileSignature,
-  Receipt
+  Receipt,
+  Inbox
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -43,6 +44,11 @@ const navItems = [
     title: 'Pagamentos', 
     href: '/admin/payments', 
     icon: CreditCard 
+  },
+  { 
+    title: 'Briefings', 
+    href: '/admin/briefings', 
+    icon: Inbox 
   },
   { 
     title: 'Orçamentos', 

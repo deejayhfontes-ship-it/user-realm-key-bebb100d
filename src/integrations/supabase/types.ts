@@ -210,6 +210,84 @@ export type Database = {
           },
         ]
       }
+      briefings: {
+        Row: {
+          arquivo_urls: Json | null
+          assigned_to: string | null
+          budget_id: string | null
+          created_at: string | null
+          descricao: string
+          email: string
+          empresa: string | null
+          id: string
+          nome: string
+          notas_internas: string | null
+          prazo: string | null
+          prioridade: string | null
+          proposal_id: string | null
+          referencias: string | null
+          status: string | null
+          telefone: string | null
+          tipo_projeto: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          arquivo_urls?: Json | null
+          assigned_to?: string | null
+          budget_id?: string | null
+          created_at?: string | null
+          descricao: string
+          email: string
+          empresa?: string | null
+          id?: string
+          nome: string
+          notas_internas?: string | null
+          prazo?: string | null
+          prioridade?: string | null
+          proposal_id?: string | null
+          referencias?: string | null
+          status?: string | null
+          telefone?: string | null
+          tipo_projeto?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          arquivo_urls?: Json | null
+          assigned_to?: string | null
+          budget_id?: string | null
+          created_at?: string | null
+          descricao?: string
+          email?: string
+          empresa?: string | null
+          id?: string
+          nome?: string
+          notas_internas?: string | null
+          prazo?: string | null
+          prioridade?: string | null
+          proposal_id?: string | null
+          referencias?: string | null
+          status?: string | null
+          telefone?: string | null
+          tipo_projeto?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "briefings_budget_id_fkey"
+            columns: ["budget_id"]
+            isOneToOne: false
+            referencedRelation: "budgets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "briefings_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       budget_lines: {
         Row: {
           budget_id: string | null
@@ -1079,6 +1157,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      pix_configs: {
+        Row: {
+          created_at: string | null
+          enabled: boolean | null
+          id: string
+          merchant_city: string
+          merchant_name: string
+          pix_key: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          enabled?: boolean | null
+          id?: string
+          merchant_city?: string
+          merchant_name?: string
+          pix_key: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          enabled?: boolean | null
+          id?: string
+          merchant_city?: string
+          merchant_name?: string
+          pix_key?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       proposal_settings: {
         Row: {
