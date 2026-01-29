@@ -1,20 +1,30 @@
-import { InvoiceData } from "@/types/invoice";
+import { InvoiceData, InvoiceRow } from "@/types/invoice";
 import QRCode from "react-qr-code";
 import { generatePixCode } from "@/lib/pix-generator";
 import { useMemo } from "react";
 import logoFontes from "@/assets/logo-fontes-graphics.png";
+import { Copy, Check } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { toast } from "sonner";
 
 interface InvoicePreviewProps {
   data: InvoiceData;
+  savedPixCode?: string | null; // Pre-generated PIX code from database
+  showInteractivePixPayment?: boolean; // Show copy button for PIX
 }
 
-export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
+export const InvoicePreview = ({ data, savedPixCode, showInteractivePixPayment = false }: InvoicePreviewProps) => {
+  const [copied, setCopied] = useState(false);
   const subtotal = data.items.reduce((acc, item) => acc + item.quantity * item.unitPrice, 0);
   const discountAmount = data.discount || 0;
   const taxAmount = ((subtotal - discountAmount) * (data.taxRate || 0)) / 100;
   const total = subtotal - discountAmount + taxAmount;
 
+  // Use saved PIX code if available, otherwise generate new one
   const pixCode = useMemo(() => {
+    if (savedPixCode) return savedPixCode;
+    
     if (!data.pix?.enabled || !data.pix?.pixKey || !data.pix?.merchantName || !data.pix?.merchantCity) return "";
     
     return generatePixCode({
@@ -25,7 +35,19 @@ export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
       transactionId: `INV${data.invoiceNumber}`,
       description: `Fatura ${data.invoiceNumber}`,
     });
-  }, [data.pix, total, data.invoiceNumber]);
+  }, [data.pix, total, data.invoiceNumber, savedPixCode]);
+
+  const handleCopyPixCode = async () => {
+    if (!pixCode) return;
+    try {
+      await navigator.clipboard.writeText(pixCode);
+      setCopied(true);
+      toast.success('Código PIX copiado!');
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error('Erro ao copiar código');
+    }
+  };
 
   return (
     <div className="bg-white text-black p-8 rounded-xl shadow-lg max-w-4xl mx-auto" style={{ fontFamily: 'system-ui, sans-serif' }}>
@@ -128,22 +150,46 @@ export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
       </div>
 
       {/* Payment Methods */}
-      {(data.pix?.enabled || data.wise?.enabled) && (
+      {(data.pix?.enabled || data.wise?.enabled || savedPixCode) && (
         <div className="border-t-2 border-gray-300 pt-6 mb-6">
           <h3 className="font-bold text-sm uppercase tracking-wider mb-4">Métodos de Pagamento</h3>
           
-          {data.pix?.enabled && pixCode && (
+          {(data.pix?.enabled || savedPixCode) && pixCode && (
             <div className="flex items-start gap-6 mb-4 p-4 bg-gray-50 rounded-lg">
-              <div className="bg-white p-2 rounded">
-                <QRCode value={pixCode} size={100} />
+              <div className="bg-white p-2 rounded shadow-sm">
+                <QRCode value={pixCode} size={120} />
               </div>
               <div className="flex-1">
                 <p className="font-bold text-sm mb-1">PIX</p>
-                <p className="text-xs text-gray-600 mb-2">Chave: {data.pix.pixKey}</p>
-                <p className="text-xs text-gray-600 mb-2">Beneficiário: {data.pix.merchantName}</p>
-                <div className="bg-white p-2 rounded text-xs font-mono break-all border">
+                {data.pix?.pixKey && (
+                  <p className="text-xs text-gray-600 mb-1">Chave: {data.pix.pixKey}</p>
+                )}
+                {data.pix?.merchantName && (
+                  <p className="text-xs text-gray-600 mb-2">Beneficiário: {data.pix.merchantName}</p>
+                )}
+                <div className="bg-white p-2 rounded text-xs font-mono break-all border max-h-20 overflow-y-auto">
                   {pixCode}
                 </div>
+                {showInteractivePixPayment && (
+                  <Button 
+                    onClick={handleCopyPixCode}
+                    size="sm"
+                    className="mt-2"
+                    variant={copied ? "secondary" : "default"}
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="h-3 w-3 mr-1" />
+                        Copiado!
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-3 w-3 mr-1" />
+                        Copiar Código PIX
+                      </>
+                    )}
+                  </Button>
+                )}
               </div>
             </div>
           )}

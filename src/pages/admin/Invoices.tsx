@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   FileText, Plus, Trash2, Eye, Download, Loader2, Copy, 
-  Search, Filter, CheckCircle, Clock, AlertCircle, XCircle 
+  Search, Filter, CheckCircle, Clock, AlertCircle, XCircle, QrCode 
 } from "lucide-react";
 import { toast } from "sonner";
 import { useInvoices } from "@/hooks/useInvoices";
@@ -260,10 +260,18 @@ const Invoices = () => {
                             R$ {(invoice.total / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                           </TableCell>
                           <TableCell>
-                            <Badge variant="outline" className={status.className}>
-                              <StatusIcon className="h-3 w-3 mr-1" />
-                              {status.label}
-                            </Badge>
+                            <div className="flex items-center gap-1">
+                              <Badge variant="outline" className={status.className}>
+                                <StatusIcon className="h-3 w-3 mr-1" />
+                                {status.label}
+                              </Badge>
+                              {invoice.pix_code && (
+                                <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/20">
+                                  <QrCode className="h-3 w-3 mr-1" />
+                                  PIX
+                                </Badge>
+                              )}
+                            </div>
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center justify-center gap-1">
@@ -344,7 +352,7 @@ const Invoices = () => {
           </DialogHeader>
           {selectedInvoice && (
             <div className="space-y-4">
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 {(['pending', 'paid', 'overdue', 'cancelled'] as const).map((status) => {
                   const config = statusConfig[status];
                   return (
@@ -362,8 +370,22 @@ const Invoices = () => {
                   );
                 })}
               </div>
+              
+              {/* Show PIX payment info prominently if pending and has PIX */}
+              {selectedInvoice.status === 'pending' && selectedInvoice.pix_code && (
+                <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Esta fatura tem um código PIX gerado. O QR Code está visível no preview abaixo.
+                  </p>
+                </div>
+              )}
+              
               <div ref={invoiceRef}>
-                <InvoicePreview data={rowToInvoiceData(selectedInvoice)} />
+                <InvoicePreview 
+                  data={rowToInvoiceData(selectedInvoice)} 
+                  savedPixCode={selectedInvoice.pix_code}
+                  showInteractivePixPayment={selectedInvoice.status === 'pending'}
+                />
               </div>
             </div>
           )}
