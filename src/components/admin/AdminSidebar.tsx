@@ -9,7 +9,8 @@ import {
   ChevronLeft,
   Zap,
   CreditCard,
-  FileText
+  FileText,
+  FileSignature
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -46,6 +47,11 @@ const navItems = [
     title: 'Orçamentos', 
     href: '/admin/budgets', 
     icon: FileText 
+  },
+  { 
+    title: 'Propostas', 
+    href: '/admin/propostas', 
+    icon: FileSignature 
   },
   { 
     title: 'Configurações', 

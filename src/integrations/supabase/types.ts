@@ -999,6 +999,138 @@ export type Database = {
           },
         ]
       }
+      proposal_settings: {
+        Row: {
+          company_address: string | null
+          company_document: string | null
+          company_email: string | null
+          company_name: string | null
+          company_phone: string | null
+          company_website: string | null
+          created_at: string | null
+          created_by: string | null
+          default_notes: string | null
+          default_payment_conditions: string | null
+          id: string
+          logo_url: string | null
+          show_criate_logo: boolean | null
+          show_fontes_logo: boolean | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          company_address?: string | null
+          company_document?: string | null
+          company_email?: string | null
+          company_name?: string | null
+          company_phone?: string | null
+          company_website?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          default_notes?: string | null
+          default_payment_conditions?: string | null
+          id?: string
+          logo_url?: string | null
+          show_criate_logo?: boolean | null
+          show_fontes_logo?: boolean | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          company_address?: string | null
+          company_document?: string | null
+          company_email?: string | null
+          company_name?: string | null
+          company_phone?: string | null
+          company_website?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          default_notes?: string | null
+          default_payment_conditions?: string | null
+          id?: string
+          logo_url?: string | null
+          show_criate_logo?: boolean | null
+          show_fontes_logo?: boolean | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      proposals: {
+        Row: {
+          client_address: string | null
+          client_company: string | null
+          client_email: string | null
+          client_name: string
+          client_phone: string | null
+          contract_period_months: number | null
+          created_at: string | null
+          created_by: string | null
+          date: string | null
+          estimated_days: number | null
+          id: string
+          investment_value: number
+          notes: string | null
+          payment_conditions: string | null
+          project_description: string | null
+          project_title: string
+          proposal_number: string
+          recurrence_type: string | null
+          scope_items: Json | null
+          status: string | null
+          updated_at: string | null
+          validity_days: number | null
+        }
+        Insert: {
+          client_address?: string | null
+          client_company?: string | null
+          client_email?: string | null
+          client_name: string
+          client_phone?: string | null
+          contract_period_months?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          date?: string | null
+          estimated_days?: number | null
+          id?: string
+          investment_value: number
+          notes?: string | null
+          payment_conditions?: string | null
+          project_description?: string | null
+          project_title: string
+          proposal_number: string
+          recurrence_type?: string | null
+          scope_items?: Json | null
+          status?: string | null
+          updated_at?: string | null
+          validity_days?: number | null
+        }
+        Update: {
+          client_address?: string | null
+          client_company?: string | null
+          client_email?: string | null
+          client_name?: string
+          client_phone?: string | null
+          contract_period_months?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          date?: string | null
+          estimated_days?: number | null
+          id?: string
+          investment_value?: number
+          notes?: string | null
+          payment_conditions?: string | null
+          project_description?: string | null
+          project_title?: string
+          proposal_number?: string
+          recurrence_type?: string | null
+          scope_items?: Json | null
+          status?: string | null
+          updated_at?: string | null
+          validity_days?: number | null
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           client_id: string | null
@@ -1110,6 +1242,7 @@ export type Database = {
     }
     Functions: {
       check_package_expiration: { Args: never; Returns: undefined }
+      generate_proposal_number: { Args: never; Returns: string }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
