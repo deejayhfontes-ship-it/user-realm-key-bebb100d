@@ -3,9 +3,9 @@ import { AdminSidebar } from '@/components/admin/AdminSidebar';
 
 export function AdminLayout() {
   return (
-    <div className="min-h-screen flex w-full bg-background">
+    <div className="min-h-screen bg-background">
       <AdminSidebar />
-      <main className="flex-1 overflow-auto">
+      <main className="ml-64 min-h-screen overflow-y-auto">
         <Outlet />
       </main>
     </div>

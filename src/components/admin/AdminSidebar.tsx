@@ -80,7 +80,7 @@ export function AdminSidebar() {
   return (
     <aside 
       className={cn(
-        "h-screen flex flex-col gradient-sidebar transition-all duration-300",
+        "fixed left-0 top-0 h-screen flex flex-col gradient-sidebar transition-all duration-300 z-50 overflow-y-auto",
         collapsed ? "w-16" : "w-64"
       )}
     >
