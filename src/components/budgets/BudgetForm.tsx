@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Trash2, Search, FileDown, Save } from 'lucide-react';
+import { Plus, Trash2, Search, FileDown, Save, Sparkles } from 'lucide-react';
 import { useCatalogItems, useBudgets, useBudgetSettings } from '@/hooks/useBudgets';
 import { formatCurrency, downloadBudgetPDF } from '@/lib/budget-pdf';
 import type { Budget, NewBudgetLine, BudgetWithLines } from '@/types/budget';
@@ -20,6 +20,7 @@ import {
   CommandList,
 } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { AIBudgetGeneratorModal } from './AIBudgetGeneratorModal';
 
 interface BudgetFormProps {
   editingBudget?: BudgetWithLines | null;
@@ -32,6 +33,7 @@ export function BudgetForm({ editingBudget, onSaved }: BudgetFormProps) {
   const { settings, saveSettings } = useBudgetSettings();
   const [saving, setSaving] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [aiModalOpen, setAiModalOpen] = useState(false);
   const [showFontesLogo, setShowFontesLogo] = useState(settings?.show_fontes_logo ?? false);
   const [showCriateLogo, setShowCriateLogo] = useState(settings?.show_criate_logo ?? false);
   
@@ -140,6 +142,11 @@ export function BudgetForm({ editingBudget, onSaved }: BudgetFormProps) {
 
   const removeLine = (index: number) => {
     setLines(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleAIApplyItems = (items: NewBudgetLine[]) => {
+    setLines(prev => [...prev, ...items]);
+    toast.success(`${items.length} item(s) adicionado(s) ao orçamento`);
   };
 
   // Handle logo toggle changes
@@ -314,7 +321,7 @@ export function BudgetForm({ editingBudget, onSaved }: BudgetFormProps) {
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
             <CardTitle className="text-base">Itens do Orçamento</CardTitle>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Popover open={searchOpen} onOpenChange={setSearchOpen}>
                 <PopoverTrigger asChild>
                   <Button variant="outline" size="sm">
@@ -347,6 +354,15 @@ export function BudgetForm({ editingBudget, onSaved }: BudgetFormProps) {
                   </Command>
                 </PopoverContent>
               </Popover>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setAiModalOpen(true)}
+                className="border-primary/50 hover:bg-primary/10"
+              >
+                <Sparkles className="h-4 w-4 mr-2 text-primary" />
+                Gerar com IA
+              </Button>
               <Button variant="outline" size="sm" onClick={addManualLine}>
                 <Plus className="h-4 w-4 mr-2" />
                 Manual
@@ -578,6 +594,14 @@ export function BudgetForm({ editingBudget, onSaved }: BudgetFormProps) {
           Salvar e Gerar PDF
         </Button>
       </div>
+
+      {/* AI Budget Generator Modal */}
+      <AIBudgetGeneratorModal
+        open={aiModalOpen}
+        onClose={() => setAiModalOpen(false)}
+        catalogItems={catalogItems}
+        onApplyItems={handleAIApplyItems}
+      />
     </div>
   );
 }
