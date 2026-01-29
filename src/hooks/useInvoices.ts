@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { InvoiceData, InvoiceRow, InvoiceItem, PixConfig, WiseConfig } from '@/types/invoice';
+import { generatePixCode } from '@/lib/pix-generator';
 
 export function useInvoices() {
   const queryClient = useQueryClient();
@@ -42,6 +43,22 @@ export function useInvoices() {
       const taxAmount = ((subtotal - discountAmount) * (invoice.taxRate || 0)) / 100;
       const total = Math.round((subtotal - discountAmount + taxAmount) * 100); // Convert to cents
 
+      // Generate PIX code if enabled
+      let pixCode: string | null = null;
+      let pixTxid: string | null = null;
+      
+      if (invoice.pix?.enabled && invoice.pix?.pixKey && invoice.pix?.merchantName && invoice.pix?.merchantCity) {
+        pixTxid = `INV${invoice.invoiceNumber}`;
+        pixCode = generatePixCode({
+          pixKey: invoice.pix.pixKey,
+          merchantName: invoice.pix.merchantName,
+          merchantCity: invoice.pix.merchantCity,
+          amount: (total / 100) > 0 ? (total / 100) : undefined,
+          transactionId: pixTxid,
+          description: `Fatura ${invoice.invoiceNumber}`,
+        });
+      }
+
       const insertData = {
         invoice_number: invoice.invoiceNumber,
         bill_to_name: invoice.billTo.name,
@@ -62,6 +79,9 @@ export function useInvoices() {
         notes: invoice.notes || null,
         pix_config: invoice.pix?.enabled ? invoice.pix as unknown as any : null,
         wise_config: invoice.wise?.enabled ? invoice.wise as unknown as any : null,
+        pix_code: pixCode,
+        pix_txid: pixTxid,
+        pix_generated_at: pixCode ? new Date().toISOString() : null,
         status: 'pending' as const,
         created_by: user?.id || null,
       };

@@ -68,6 +68,10 @@ export interface InvoiceRow {
   notes: string | null;
   pix_config: PixConfig | null;
   wise_config: WiseConfig | null;
+  pix_code: string | null;
+  pix_txid: string | null;
+  pix_generated_at: string | null;
+  pix_config_id: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;

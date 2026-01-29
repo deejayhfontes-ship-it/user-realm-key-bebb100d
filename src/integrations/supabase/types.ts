@@ -881,7 +881,11 @@ export type Database = {
           invoice_number: string
           items: Json | null
           notes: string | null
+          pix_code: string | null
           pix_config: Json | null
+          pix_config_id: string | null
+          pix_generated_at: string | null
+          pix_txid: string | null
           ship_to_email: string | null
           ship_to_event: string | null
           ship_to_location: string | null
@@ -907,7 +911,11 @@ export type Database = {
           invoice_number: string
           items?: Json | null
           notes?: string | null
+          pix_code?: string | null
           pix_config?: Json | null
+          pix_config_id?: string | null
+          pix_generated_at?: string | null
+          pix_txid?: string | null
           ship_to_email?: string | null
           ship_to_event?: string | null
           ship_to_location?: string | null
@@ -933,7 +941,11 @@ export type Database = {
           invoice_number?: string
           items?: Json | null
           notes?: string | null
+          pix_code?: string | null
           pix_config?: Json | null
+          pix_config_id?: string | null
+          pix_generated_at?: string | null
+          pix_txid?: string | null
           ship_to_email?: string | null
           ship_to_event?: string | null
           ship_to_location?: string | null
@@ -945,7 +957,15 @@ export type Database = {
           updated_at?: string | null
           wise_config?: Json | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "invoices_pix_config_id_fkey"
+            columns: ["pix_config_id"]
+            isOneToOne: false
+            referencedRelation: "pix_configs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       packages: {
         Row: {
