@@ -9,15 +9,38 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { mockClientData } from '@/data/mockClientData';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useClientData } from '@/hooks/useClientData';
+import { useAuth } from '@/hooks/useAuth';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-// TODO: Substituir por busca real do Supabase
-// const { data: client } = await supabase.from('clients').select('*').eq('user_id', user.id)
-
 export default function ClientPerfil() {
-  const { user, credits, plan, monthlyUsage } = mockClientData;
-  const creditsPercentage = (credits.used / credits.total) * 100;
+  const { profile } = useAuth();
+  const { client, creditsInfo, generators, isLoading } = useClientData();
+  
+  // Calculate credits percentage
+  const creditsTotal = creditsInfo.total === Infinity ? 100 : creditsInfo.total;
+  const creditsPercentage = creditsTotal > 0 ? (creditsInfo.used / creditsTotal) * 100 : 0;
+  
+  // Generate mock monthly usage based on real data (last 6 months)
+  const monthlyUsage = [
+    { month: 'Ago', credits: 0 },
+    { month: 'Set', credits: 0 },
+    { month: 'Out', credits: 0 },
+    { month: 'Nov', credits: 0 },
+    { month: 'Dez', credits: 0 },
+    { month: 'Jan', credits: creditsInfo.used },
+  ];
+  
+  // Build plan features based on client data
+  const planFeatures = [
+    `${creditsTotal === Infinity ? 'Ilimitado' : creditsTotal} créditos ${client?.type === 'fixed' ? 'por mês' : 'no pacote'}`,
+    `${generators?.length || 0} geradores ativos`,
+    'Suporte prioritário',
+    'Histórico completo',
+  ];
+  
+  const planName = client?.type === 'fixed' ? 'Mensal' : 'Pacote';
 
   return (
     <div className="p-6 md:p-8 space-y-8">
@@ -41,11 +64,26 @@ export default function ClientPerfil() {
           <CardContent className="space-y-4">
             <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/50">
               <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
-                <User className="w-8 h-8 text-primary" />
+                {client?.logo_url ? (
+                  <img src={client.logo_url} alt="Logo" className="w-12 h-12 rounded-xl object-cover" />
+                ) : (
+                  <User className="w-8 h-8 text-primary" />
+                )}
               </div>
               <div>
-                <h3 className="font-semibold text-lg text-foreground">{user.name}</h3>
-                <Badge variant="secondary" className="mt-1">Cliente Ativo</Badge>
+                {isLoading ? (
+                  <>
+                    <Skeleton className="h-5 w-40 mb-2" />
+                    <Skeleton className="h-5 w-20" />
+                  </>
+                ) : (
+                  <>
+                    <h3 className="font-semibold text-lg text-foreground">{client?.name || 'Carregando...'}</h3>
+                    <Badge variant="secondary" className="mt-1">
+                      {client?.status === 'active' ? 'Cliente Ativo' : client?.status === 'blocked' ? 'Bloqueado' : 'Expirado'}
+                    </Badge>
+                  </>
+                )}
               </div>
             </div>
 
@@ -54,7 +92,11 @@ export default function ClientPerfil() {
                 <Mail className="w-5 h-5 text-muted-foreground" />
                 <div>
                   <p className="text-xs text-muted-foreground">Email</p>
-                  <p className="text-sm font-medium text-foreground">{user.email}</p>
+                  {isLoading ? (
+                    <Skeleton className="h-4 w-48" />
+                  ) : (
+                    <p className="text-sm font-medium text-foreground">{client?.email || profile?.email || '-'}</p>
+                  )}
                 </div>
               </div>
 
@@ -62,7 +104,11 @@ export default function ClientPerfil() {
                 <Phone className="w-5 h-5 text-muted-foreground" />
                 <div>
                   <p className="text-xs text-muted-foreground">Telefone</p>
-                  <p className="text-sm font-medium text-foreground">{user.phone}</p>
+                  {isLoading ? (
+                    <Skeleton className="h-4 w-32" />
+                  ) : (
+                    <p className="text-sm font-medium text-foreground">{client?.phone || 'Não informado'}</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -80,32 +126,42 @@ export default function ClientPerfil() {
           <CardContent className="space-y-4">
             <div className="p-4 rounded-xl bg-primary/10 border border-primary/20">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="font-semibold text-lg text-foreground">Plano {plan.name}</h3>
-                <Badge className="bg-primary">Ativo</Badge>
+                {isLoading ? (
+                  <Skeleton className="h-5 w-32" />
+                ) : (
+                  <h3 className="font-semibold text-lg text-foreground">Plano {planName}</h3>
+                )}
+                <Badge className="bg-primary">{client?.status === 'active' ? 'Ativo' : 'Inativo'}</Badge>
               </div>
               <p className="text-sm text-muted-foreground">
-                {plan.creditsPerMonth} créditos por mês
+                {creditsTotal === Infinity ? 'Créditos ilimitados' : `${creditsTotal} créditos ${client?.type === 'fixed' ? 'por mês' : 'no pacote'}`}
               </p>
             </div>
 
             {/* Credits usage */}
             <div className="p-4 rounded-xl bg-muted/50">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-foreground">Créditos usados este mês</span>
-                <span className="text-sm font-bold text-foreground">
-                  {credits.used}/{credits.total}
-                </span>
+                <span className="text-sm font-medium text-foreground">Créditos usados</span>
+                {isLoading ? (
+                  <Skeleton className="h-4 w-16" />
+                ) : (
+                  <span className="text-sm font-bold text-foreground">
+                    {creditsInfo.used}/{creditsTotal === Infinity ? '∞' : creditsTotal}
+                  </span>
+                )}
               </div>
               <Progress value={creditsPercentage} className="h-2" />
-              <p className="text-xs text-muted-foreground mt-2">
-                Renova em {new Date(credits.resetDate).toLocaleDateString('pt-BR')}
-              </p>
+              {client?.access_expires_at && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  Expira em {new Date(client.access_expires_at).toLocaleDateString('pt-BR')}
+                </p>
+              )}
             </div>
 
             {/* Features */}
             <div className="space-y-2">
               <p className="text-sm font-medium text-foreground">Recursos inclusos:</p>
-              {plan.features.map((feature, index) => (
+              {planFeatures.map((feature, index) => (
                 <div key={index} className="flex items-center gap-2 text-sm text-muted-foreground">
                   <CheckCircle className="w-4 h-4 text-emerald-500" />
                   {feature}
