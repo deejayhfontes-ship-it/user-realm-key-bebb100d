@@ -17,6 +17,7 @@ import AdminGenerators from "@/pages/admin/Generators";
 import AdminSettings from "@/pages/admin/Settings";
 import AdminAIProviders from "@/pages/admin/AIProviders";
 import NotFound from "@/pages/NotFound";
+import Platform from "@/pages/Platform";
 
 // Client Pages
 import ClientLogin from "@/pages/client/Login";
@@ -44,6 +45,7 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/client/login" element={<ClientLogin />} />
             <Route path="/plans" element={<ClientPlans />} />
+            <Route path="/platform" element={<Platform />} />
             
             {/* Redirect root to login or dashboard */}
             <Route path="/" element={<Navigate to="/login" replace />} />
