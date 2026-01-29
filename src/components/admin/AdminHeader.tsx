@@ -14,17 +14,16 @@ export function AdminHeader({ title, subtitle, action }: AdminHeaderProps) {
 
   return (
     <header className="h-20 flex items-center justify-between px-8 sticky top-0 z-10 bg-background/80 backdrop-blur-lg border-b border-border/50">
-      <div className="flex items-center gap-6">
-        <div>
-          <h1 className="text-2xl font-semibold text-foreground tracking-tight">{title}</h1>
-          {subtitle && (
-            <p className="text-sm text-muted-foreground font-normal mt-0.5">{subtitle}</p>
-          )}
-        </div>
-        {action}
+      <div>
+        <h1 className="text-2xl font-semibold text-foreground tracking-tight">{title}</h1>
+        {subtitle && (
+          <p className="text-sm text-muted-foreground font-normal mt-0.5">{subtitle}</p>
+        )}
       </div>
 
       <div className="flex items-center gap-3">
+        {action}
+
         {/* Search */}
         <div className="relative hidden md:block">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -41,12 +40,10 @@ export function AdminHeader({ title, subtitle, action }: AdminHeaderProps) {
         </Button>
 
         {/* User avatar */}
-        <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-full bg-secondary flex items-center justify-center">
-            <span className="text-sm font-semibold text-secondary-foreground">
-              {profile?.email?.charAt(0).toUpperCase()}
-            </span>
-          </div>
+        <div className="w-11 h-11 rounded-full bg-secondary flex items-center justify-center">
+          <span className="text-sm font-semibold text-secondary-foreground">
+            {profile?.email?.charAt(0).toUpperCase()}
+          </span>
         </div>
       </div>
     </header>
