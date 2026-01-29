@@ -107,7 +107,7 @@ export function AdminSidebar() {
       )}
 
       {/* Navigation */}
-      <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+      <nav className="p-3 space-y-1">
         {navItems.map((item) => {
           const isActive = location.pathname === item.href;
           return (
@@ -137,6 +137,9 @@ export function AdminSidebar() {
           );
         })}
       </nav>
+
+      {/* Spacer to push user section to bottom */}
+      <div className="flex-1" />
 
       {/* User section */}
       <div className="p-3 border-t border-white/5">
