@@ -9,7 +9,7 @@ export default function AdminPayments() {
   const [activeTab, setActiveTab] = useState('config');
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 lg:p-8 space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-foreground">Pagamentos</h1>
         <p className="text-muted-foreground">
