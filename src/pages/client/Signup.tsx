@@ -5,31 +5,134 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { 
   Loader2, Lock, Mail, Palette, Eye, EyeOff, 
-  Building2, Phone, Sparkles, CheckCircle2 
+  Building2, Phone, Sparkles, CheckCircle2, User, FileText 
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
+// CPF validation function
+function validateCPF(cpf: string): boolean {
+  const cleanCPF = cpf.replace(/\D/g, '');
+  if (cleanCPF.length !== 11) return false;
+  
+  // Check for known invalid CPFs
+  if (/^(\d)\1+$/.test(cleanCPF)) return false;
+  
+  // Validate first digit
+  let sum = 0;
+  for (let i = 0; i < 9; i++) {
+    sum += parseInt(cleanCPF.charAt(i)) * (10 - i);
+  }
+  let remainder = (sum * 10) % 11;
+  if (remainder === 10 || remainder === 11) remainder = 0;
+  if (remainder !== parseInt(cleanCPF.charAt(9))) return false;
+  
+  // Validate second digit
+  sum = 0;
+  for (let i = 0; i < 10; i++) {
+    sum += parseInt(cleanCPF.charAt(i)) * (11 - i);
+  }
+  remainder = (sum * 10) % 11;
+  if (remainder === 10 || remainder === 11) remainder = 0;
+  if (remainder !== parseInt(cleanCPF.charAt(10))) return false;
+  
+  return true;
+}
+
+// CNPJ validation function
+function validateCNPJ(cnpj: string): boolean {
+  const cleanCNPJ = cnpj.replace(/\D/g, '');
+  if (cleanCNPJ.length !== 14) return false;
+  
+  // Check for known invalid CNPJs
+  if (/^(\d)\1+$/.test(cleanCNPJ)) return false;
+  
+  // Validate first digit
+  let size = cleanCNPJ.length - 2;
+  let numbers = cleanCNPJ.substring(0, size);
+  const digits = cleanCNPJ.substring(size);
+  let sum = 0;
+  let pos = size - 7;
+  
+  for (let i = size; i >= 1; i--) {
+    sum += parseInt(numbers.charAt(size - i)) * pos--;
+    if (pos < 2) pos = 9;
+  }
+  
+  let result = sum % 11 < 2 ? 0 : 11 - (sum % 11);
+  if (result !== parseInt(digits.charAt(0))) return false;
+  
+  // Validate second digit
+  size = size + 1;
+  numbers = cleanCNPJ.substring(0, size);
+  sum = 0;
+  pos = size - 7;
+  
+  for (let i = size; i >= 1; i--) {
+    sum += parseInt(numbers.charAt(size - i)) * pos--;
+    if (pos < 2) pos = 9;
+  }
+  
+  result = sum % 11 < 2 ? 0 : 11 - (sum % 11);
+  if (result !== parseInt(digits.charAt(1))) return false;
+  
+  return true;
+}
+
+// Format CPF: 000.000.000-00
+function formatCPF(value: string): string {
+  const clean = value.replace(/\D/g, '').slice(0, 11);
+  return clean
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+}
+
+// Format CNPJ: 00.000.000/0000-00
+function formatCNPJ(value: string): string {
+  const clean = value.replace(/\D/g, '').slice(0, 14);
+  return clean
+    .replace(/(\d{2})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d)/, '$1/$2')
+    .replace(/(\d{4})(\d{1,2})$/, '$1-$2');
+}
+
+type DocumentType = 'cpf' | 'cnpj';
+
 // Validation schema
 const signupSchema = z.object({
-  companyName: z.string().min(2, 'Nome da empresa deve ter pelo menos 2 caracteres'),
+  name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
   email: z.string().email('Email inválido'),
   password: z.string().min(8, 'Senha deve ter pelo menos 8 caracteres'),
   confirmPassword: z.string(),
+  documentType: z.enum(['cpf', 'cnpj']),
+  documentNumber: z.string().min(1, 'Documento é obrigatório'),
   whatsapp: z.string().optional(),
   acceptTerms: z.boolean().refine(val => val === true, 'Você deve aceitar os termos'),
 }).refine(data => data.password === data.confirmPassword, {
   message: 'As senhas não conferem',
   path: ['confirmPassword'],
+}).refine(data => {
+  if (data.documentType === 'cpf') {
+    return validateCPF(data.documentNumber);
+  }
+  return validateCNPJ(data.documentNumber);
+}, {
+  message: 'Documento inválido',
+  path: ['documentNumber'],
 });
 
 export default function ClientSignup() {
-  const [companyName, setCompanyName] = useState('');
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [documentType, setDocumentType] = useState<DocumentType>('cnpj');
+  const [documentNumber, setDocumentNumber] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
@@ -37,16 +140,31 @@ export default function ClientSignup() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const navigate = useNavigate();
 
+  const handleDocumentChange = (value: string) => {
+    if (documentType === 'cpf') {
+      setDocumentNumber(formatCPF(value));
+    } else {
+      setDocumentNumber(formatCNPJ(value));
+    }
+  };
+
+  const handleDocumentTypeChange = (value: DocumentType) => {
+    setDocumentType(value);
+    setDocumentNumber(''); // Clear document when changing type
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
 
     // Validate form
     const validation = signupSchema.safeParse({
-      companyName,
+      name,
       email,
       password,
       confirmPassword,
+      documentType,
+      documentNumber,
       whatsapp,
       acceptTerms,
     });
@@ -73,8 +191,9 @@ export default function ClientSignup() {
         options: {
           emailRedirectTo: `${window.location.origin}/client/login`,
           data: {
-            company_name: companyName,
+            name: name,
             phone: whatsapp,
+            document_type: documentType,
           },
         },
       });
@@ -101,13 +220,15 @@ export default function ClientSignup() {
       const { data: clientData, error: clientError } = await supabase
         .from('clients')
         .insert({
-          name: companyName,
+          name,
           email,
           phone: whatsapp || null,
           type: 'package',
           status: 'pending', // Pending approval/credits
           package_credits: 0,
           package_credits_used: 0,
+          document_type: documentType,
+          document_number: documentNumber.replace(/\D/g, ''), // Store only numbers
         })
         .select()
         .single();
@@ -189,37 +310,86 @@ export default function ClientSignup() {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Company Name */}
+            {/* Account Type */}
             <div className="space-y-2">
-              <Label htmlFor="companyName" className="text-foreground font-medium">
-                Nome da Empresa *
+              <Label className="text-foreground font-medium">
+                Tipo de Conta *
+              </Label>
+              <RadioGroup 
+                value={documentType} 
+                onValueChange={(v) => handleDocumentTypeChange(v as DocumentType)}
+                className="flex gap-4"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="cnpj" id="cnpj" />
+                  <Label htmlFor="cnpj" className="cursor-pointer font-normal">
+                    Pessoa Jurídica (CNPJ)
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="cpf" id="cpf" />
+                  <Label htmlFor="cpf" className="cursor-pointer font-normal">
+                    Pessoa Física (CPF)
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            {/* Name */}
+            <div className="space-y-2">
+              <Label htmlFor="name" className="text-foreground font-medium">
+                {documentType === 'cpf' ? 'Nome Completo *' : 'Nome Completo ou Razão Social *'}
               </Label>
               <div className="relative">
-                <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                {documentType === 'cpf' ? (
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                ) : (
+                  <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                )}
                 <Input
-                  id="companyName"
+                  id="name"
                   type="text"
-                  placeholder="Sua Empresa Ltda"
-                  value={companyName}
-                  onChange={(e) => setCompanyName(e.target.value)}
-                  className={`pl-12 h-12 bg-muted/50 border-0 rounded-2xl text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/30 ${errors.companyName ? 'ring-2 ring-destructive' : ''}`}
+                  placeholder={documentType === 'cpf' ? 'Seu nome completo' : 'Seu nome ou nome da empresa'}
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className={`pl-12 h-12 bg-muted/50 border-0 rounded-2xl text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/30 ${errors.name ? 'ring-2 ring-destructive' : ''}`}
                   disabled={isLoading}
                 />
               </div>
-              {errors.companyName && <p className="text-destructive text-sm">{errors.companyName}</p>}
+              {errors.name && <p className="text-destructive text-sm">{errors.name}</p>}
+            </div>
+
+            {/* Document Number */}
+            <div className="space-y-2">
+              <Label htmlFor="documentNumber" className="text-foreground font-medium">
+                {documentType === 'cpf' ? 'CPF *' : 'CNPJ *'}
+              </Label>
+              <div className="relative">
+                <FileText className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Input
+                  id="documentNumber"
+                  type="text"
+                  placeholder={documentType === 'cpf' ? '000.000.000-00' : '00.000.000/0000-00'}
+                  value={documentNumber}
+                  onChange={(e) => handleDocumentChange(e.target.value)}
+                  className={`pl-12 h-12 bg-muted/50 border-0 rounded-2xl text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/30 ${errors.documentNumber ? 'ring-2 ring-destructive' : ''}`}
+                  disabled={isLoading}
+                />
+              </div>
+              {errors.documentNumber && <p className="text-destructive text-sm">{errors.documentNumber}</p>}
             </div>
 
             {/* Email */}
             <div className="space-y-2">
               <Label htmlFor="email" className="text-foreground font-medium">
-                Email Corporativo *
+                Email {documentType === 'cnpj' ? 'Corporativo' : ''} *
               </Label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
                   id="email"
                   type="email"
-                  placeholder="contato@suaempresa.com"
+                  placeholder={documentType === 'cpf' ? 'seu@email.com' : 'contato@suaempresa.com'}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className={`pl-12 h-12 bg-muted/50 border-0 rounded-2xl text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/30 ${errors.email ? 'ring-2 ring-destructive' : ''}`}
@@ -356,7 +526,9 @@ export default function ClientSignup() {
           </div>
           
           <h2 className="text-4xl md:text-5xl font-bold text-secondary-foreground tracking-tight leading-tight mb-4">
-            Junte-se a centenas de empresas
+            {documentType === 'cpf' 
+              ? 'Crie artes incríveis' 
+              : 'Junte-se a centenas de empresas'}
           </h2>
           <p className="text-xl text-secondary-foreground/60 font-light mb-8">
             Crie uma conta e comece a gerar artes profissionais hoje mesmo.
