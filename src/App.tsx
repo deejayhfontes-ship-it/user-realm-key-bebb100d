@@ -21,6 +21,10 @@ import Platform from "@/pages/Platform";
 
 // Client Pages
 import ClientLogin from "@/pages/client/Login";
+import ClientSignup from "@/pages/client/Signup";
+import ClientSignupSuccess from "@/pages/client/SignupSuccess";
+import ClientForgotPassword from "@/pages/client/ForgotPassword";
+import ClientResetPassword from "@/pages/client/ResetPassword";
 import ClientPlans from "@/pages/client/Plans";
 import ClientDashboard from "@/pages/client/Dashboard";
 import ClientGeradores from "@/pages/client/Geradores";
@@ -44,6 +48,10 @@ const App = () => (
             {/* Public routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/client/login" element={<ClientLogin />} />
+            <Route path="/registro" element={<ClientSignup />} />
+            <Route path="/registro-sucesso" element={<ClientSignupSuccess />} />
+            <Route path="/recuperar-senha" element={<ClientForgotPassword />} />
+            <Route path="/nova-senha" element={<ClientResetPassword />} />
             <Route path="/plans" element={<ClientPlans />} />
             <Route path="/platform" element={<Platform />} />
             

@@ -133,6 +133,12 @@ export default function ClientLogin() {
               </div>
             </div>
 
+            <div className="flex items-center justify-end mb-4">
+              <Link to="/recuperar-senha" className="text-sm text-primary hover:underline">
+                Esqueceu a senha?
+              </Link>
+            </div>
+
             <Button
               type="submit"
               className="w-full h-13 bg-primary hover:brightness-105 text-primary-foreground font-semibold rounded-2xl shadow-lg shadow-primary/25 transition-all"
@@ -149,8 +155,18 @@ export default function ClientLogin() {
             </Button>
           </form>
 
+          {/* Signup link */}
+          <div className="text-center mb-6">
+            <p className="text-muted-foreground text-sm">
+              Ainda não tem conta?{' '}
+              <Link to="/registro" className="text-primary hover:underline font-medium">
+                Criar conta grátis
+              </Link>
+            </p>
+          </div>
+
           {/* Divider */}
-          <div className="relative my-8">
+          <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-border" />
             </div>
