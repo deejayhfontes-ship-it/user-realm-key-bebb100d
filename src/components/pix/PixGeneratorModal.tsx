@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { PixPayment } from './PixPayment';
-import { usePixConfig } from '@/hooks/usePixConfig';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { PixPayment } from '@/components/pix-payment';
+import { usePixConfigs, maskPixKey, type PixKeyType } from '@/hooks/usePixConfigs';
 import { QrCode, Loader2, Settings } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -26,9 +27,20 @@ export function PixGeneratorModal({
   documentType,
   clientName
 }: PixGeneratorModalProps) {
-  const { pixConfig, isLoading } = usePixConfig();
+  const { pixConfigs, isLoading } = usePixConfigs();
   const [paymentOption, setPaymentOption] = useState<'total' | 'entrada' | 'custom'>('total');
   const [customAmount, setCustomAmount] = useState(0);
+  const [selectedConfigId, setSelectedConfigId] = useState<string>('');
+  const [showPixPayment, setShowPixPayment] = useState(false);
+
+  // Find default or first enabled config
+  const defaultConfig = useMemo(() => {
+    if (!pixConfigs?.length) return null;
+    return pixConfigs.find(c => c.is_default && c.enabled) || pixConfigs.find(c => c.enabled);
+  }, [pixConfigs]);
+
+  // Use selected or default
+  const activeConfigId = selectedConfigId || defaultConfig?.id || '';
 
   const displayAmount = useMemo(() => {
     switch (paymentOption) {
@@ -69,6 +81,17 @@ export function PixGeneratorModal({
     }
   }, [documentType]);
 
+  const description = `${documentLabel} ${documentNumber}`;
+
+  const handleGenerate = () => {
+    setShowPixPayment(true);
+  };
+
+  const handleClose = () => {
+    setShowPixPayment(false);
+    onOpenChange(false);
+  };
+
   if (isLoading) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -81,7 +104,9 @@ export function PixGeneratorModal({
     );
   }
 
-  if (!pixConfig?.enabled) {
+  const enabledConfigs = pixConfigs?.filter(c => c.enabled) || [];
+
+  if (enabledConfigs.length === 0) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent>
@@ -93,7 +118,7 @@ export function PixGeneratorModal({
           </DialogHeader>
           <div className="py-6 text-center space-y-4">
             <p className="text-muted-foreground">
-              PIX não está configurado. Configure sua chave PIX para gerar códigos de pagamento.
+              Nenhuma conta PIX configurada. Configure suas chaves PIX para gerar códigos de pagamento.
             </p>
             <Button asChild>
               <Link to="/admin/settings" onClick={() => onOpenChange(false)}>
@@ -108,8 +133,8 @@ export function PixGeneratorModal({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <QrCode className="h-5 w-5 text-primary" />
@@ -121,62 +146,113 @@ export function PixGeneratorModal({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Payment Options */}
-          <div className="space-y-3">
-            <Label>Valor do Pagamento</Label>
-            <RadioGroup value={paymentOption} onValueChange={(v) => setPaymentOption(v as any)}>
-              <div className="flex items-center space-x-2 p-3 rounded-lg bg-secondary/50">
-                <RadioGroupItem value="total" id="total" />
-                <Label htmlFor="total" className="flex-1 cursor-pointer">
-                  <span className="font-medium">Total (100%)</span>
-                  <span className="block text-sm text-muted-foreground">
-                    R$ {(totalAmount / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                  </span>
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2 p-3 rounded-lg bg-secondary/50">
-                <RadioGroupItem value="entrada" id="entrada" />
-                <Label htmlFor="entrada" className="flex-1 cursor-pointer">
-                  <span className="font-medium">Entrada (50%)</span>
-                  <span className="block text-sm text-muted-foreground">
-                    R$ {(totalAmount / 200).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                  </span>
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2 p-3 rounded-lg bg-secondary/50">
-                <RadioGroupItem value="custom" id="custom" />
-                <Label htmlFor="custom" className="flex-1 cursor-pointer">
-                  <span className="font-medium">Valor Personalizado</span>
-                </Label>
-              </div>
-            </RadioGroup>
-
-            {paymentOption === 'custom' && (
-              <div className="pt-2">
-                <Label htmlFor="customAmount">Valor (R$)</Label>
-                <Input
-                  id="customAmount"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={customAmount / 100}
-                  onChange={(e) => setCustomAmount(Math.round(parseFloat(e.target.value || '0') * 100))}
-                  className="mt-1"
-                  placeholder="0,00"
-                />
+        {!showPixPayment ? (
+          <div className="space-y-6">
+            {/* Account Selection */}
+            {enabledConfigs.length > 1 && (
+              <div className="space-y-2">
+                <Label>Conta PIX</Label>
+                <Select value={activeConfigId} onValueChange={setSelectedConfigId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a conta" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {enabledConfigs.map((config) => (
+                      <SelectItem key={config.id} value={config.id}>
+                        <div className="flex items-center gap-2">
+                          <span>{config.nickname}</span>
+                          <span className="text-muted-foreground text-xs">
+                            ({maskPixKey(config.pix_key, config.key_type as PixKeyType)})
+                          </span>
+                          {config.is_default && (
+                            <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded">
+                              Padrão
+                            </span>
+                          )}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             )}
-          </div>
 
-          {/* PIX Component */}
-          <PixPayment
-            amount={displayAmount}
-            description={`${documentPrefix}${documentNumber}`}
-            transactionId={`${documentPrefix}${documentNumber}`}
-            showConfig
-          />
-        </div>
+            {/* Payment Options */}
+            <div className="space-y-3">
+              <Label>Valor do Pagamento</Label>
+              <RadioGroup value={paymentOption} onValueChange={(v) => setPaymentOption(v as 'total' | 'entrada' | 'custom')}>
+                <div className="flex items-center space-x-2 p-3 rounded-lg bg-secondary/50 hover:bg-secondary/70 transition-colors">
+                  <RadioGroupItem value="total" id="total" />
+                  <Label htmlFor="total" className="flex-1 cursor-pointer">
+                    <span className="font-medium">Total (100%)</span>
+                    <span className="block text-sm text-muted-foreground">
+                      R$ {(totalAmount / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </span>
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2 p-3 rounded-lg bg-secondary/50 hover:bg-secondary/70 transition-colors">
+                  <RadioGroupItem value="entrada" id="entrada" />
+                  <Label htmlFor="entrada" className="flex-1 cursor-pointer">
+                    <span className="font-medium">Entrada (50%)</span>
+                    <span className="block text-sm text-muted-foreground">
+                      R$ {(totalAmount / 200).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </span>
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2 p-3 rounded-lg bg-secondary/50 hover:bg-secondary/70 transition-colors">
+                  <RadioGroupItem value="custom" id="custom" />
+                  <Label htmlFor="custom" className="flex-1 cursor-pointer">
+                    <span className="font-medium">Valor Personalizado</span>
+                  </Label>
+                </div>
+              </RadioGroup>
+
+              {paymentOption === 'custom' && (
+                <div className="pt-2">
+                  <Label htmlFor="customAmount">Valor (R$)</Label>
+                  <Input
+                    id="customAmount"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={customAmount / 100 || ''}
+                    onChange={(e) => setCustomAmount(Math.round(parseFloat(e.target.value || '0') * 100))}
+                    className="mt-1"
+                    placeholder="0,00"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Description */}
+            <div className="space-y-2">
+              <Label>Descrição</Label>
+              <Input value={description} disabled className="bg-muted/50" />
+            </div>
+
+            {/* Generate Button */}
+            <Button onClick={handleGenerate} className="w-full" disabled={displayAmount <= 0}>
+              <QrCode className="h-4 w-4 mr-2" />
+              Gerar PIX
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {/* PIX Component */}
+            <PixPayment
+              amount={displayAmount}
+              description={description}
+              pixConfigId={activeConfigId}
+              transactionId={`${documentPrefix}${documentNumber}`}
+              showConfigInfo
+            />
+
+            {/* Close Button */}
+            <Button variant="outline" onClick={handleClose} className="w-full">
+              Concluído
+            </Button>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
