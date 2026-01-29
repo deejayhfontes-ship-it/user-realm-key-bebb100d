@@ -7,7 +7,8 @@ import {
   LogOut,
   Palette,
   ChevronLeft,
-  Zap
+  Zap,
+  CreditCard
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -34,6 +35,11 @@ const navItems = [
     title: 'Provedores IA', 
     href: '/admin/ai-providers', 
     icon: Zap 
+  },
+  { 
+    title: 'Pagamentos', 
+    href: '/admin/payments', 
+    icon: CreditCard 
   },
   { 
     title: 'Configurações', 
