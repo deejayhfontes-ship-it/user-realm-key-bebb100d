@@ -8,7 +8,8 @@ import {
   Palette,
   ChevronLeft,
   Zap,
-  CreditCard
+  CreditCard,
+  FileText
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -40,6 +41,11 @@ const navItems = [
     title: 'Pagamentos', 
     href: '/admin/payments', 
     icon: CreditCard 
+  },
+  { 
+    title: 'Orçamentos', 
+    href: '/admin/budgets', 
+    icon: FileText 
   },
   { 
     title: 'Configurações', 

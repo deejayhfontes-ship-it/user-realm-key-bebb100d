@@ -17,6 +17,7 @@ import AdminGenerators from "@/pages/admin/Generators";
 import AdminSettings from "@/pages/admin/Settings";
 import AdminAIProviders from "@/pages/admin/AIProviders";
 import AdminPayments from "@/pages/admin/Payments";
+import AdminBudgets from "@/pages/admin/Budgets";
 import NotFound from "@/pages/NotFound";
 import Platform from "@/pages/Platform";
 
@@ -81,6 +82,7 @@ const App = () => (
               <Route path="generators" element={<AdminGenerators />} />
               <Route path="ai-providers" element={<AdminAIProviders />} />
               <Route path="payments" element={<AdminPayments />} />
+              <Route path="budgets" element={<AdminBudgets />} />
               <Route path="settings" element={<AdminSettings />} />
             </Route>
 
