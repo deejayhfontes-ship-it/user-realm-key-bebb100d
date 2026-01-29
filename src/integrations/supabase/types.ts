@@ -1163,8 +1163,11 @@ export type Database = {
           created_at: string | null
           enabled: boolean | null
           id: string
+          is_default: boolean | null
+          key_type: string | null
           merchant_city: string
           merchant_name: string
+          nickname: string | null
           pix_key: string
           updated_at: string | null
           user_id: string
@@ -1173,8 +1176,11 @@ export type Database = {
           created_at?: string | null
           enabled?: boolean | null
           id?: string
+          is_default?: boolean | null
+          key_type?: string | null
           merchant_city?: string
           merchant_name?: string
+          nickname?: string | null
           pix_key: string
           updated_at?: string | null
           user_id: string
@@ -1183,8 +1189,11 @@ export type Database = {
           created_at?: string | null
           enabled?: boolean | null
           id?: string
+          is_default?: boolean | null
+          key_type?: string | null
           merchant_city?: string
           merchant_name?: string
+          nickname?: string | null
           pix_key?: string
           updated_at?: string | null
           user_id?: string
