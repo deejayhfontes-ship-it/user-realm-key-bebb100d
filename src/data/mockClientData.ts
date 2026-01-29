@@ -23,6 +23,7 @@ export interface MockGenerator {
   name: string;
   type: string;
   icon: string;
+  color: string;
   description: string;
   enabled: boolean;
   tags: string[];
@@ -69,7 +70,8 @@ export const mockClientData: MockClientData = {
       name: "Gerador de Stories", 
       type: "stories", 
       icon: "Smartphone", 
-      description: "Crie stories personalizados para redes sociais com sua marca",
+      color: "bg-lime-400",
+      description: "Crie stories verticais para Instagram e Facebook",
       enabled: true,
       tags: ["Instagram", "Facebook", "Redes Sociais"]
     },
@@ -78,7 +80,8 @@ export const mockClientData: MockClientData = {
       name: "Gerador de Derivações IA", 
       type: "derivations", 
       icon: "Sparkles", 
-      description: "Crie variações automáticas de artes usando Inteligência Artificial",
+      color: "bg-purple-400",
+      description: "Crie variações automáticas de uma arte base",
       enabled: true,
       tags: ["IA", "Variações", "Automático"]
     },
@@ -87,7 +90,8 @@ export const mockClientData: MockClientData = {
       name: "Carrossel de Interações", 
       type: "carousel", 
       icon: "Images", 
-      description: "Crie carrosséis interativos para aumentar engajamento no Instagram",
+      color: "bg-blue-400",
+      description: "Carrosséis para Instagram com múltiplos cards",
       enabled: true,
       tags: ["Instagram", "Carrossel", "Engajamento"]
     }
