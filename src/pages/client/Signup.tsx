@@ -476,13 +476,13 @@ export default function ClientSignup() {
               />
               <Label htmlFor="terms" className="text-sm text-muted-foreground font-normal cursor-pointer">
                 Li e aceito os{' '}
-                <Link to="/termos" className="text-primary hover:underline">
+                <a href="/termos" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                   Termos de Uso
-                </Link>{' '}
+                </a>{' '}
                 e{' '}
-                <Link to="/privacidade" className="text-primary hover:underline">
+                <a href="/privacidade" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                   Política de Privacidade
-                </Link>
+                </a>
               </Label>
             </div>
             {errors.acceptTerms && <p className="text-destructive text-sm">{errors.acceptTerms}</p>}

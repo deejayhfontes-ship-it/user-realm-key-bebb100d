@@ -20,6 +20,10 @@ import AdminPayments from "@/pages/admin/Payments";
 import NotFound from "@/pages/NotFound";
 import Platform from "@/pages/Platform";
 
+// Public Pages
+import Terms from "@/pages/public/Terms";
+import Privacy from "@/pages/public/Privacy";
+
 // Client Pages
 import ClientLogin from "@/pages/client/Login";
 import ClientSignup from "@/pages/client/Signup";
@@ -56,6 +60,8 @@ const App = () => (
             <Route path="/nova-senha" element={<ClientResetPassword />} />
             <Route path="/plans" element={<ClientPlans />} />
             <Route path="/platform" element={<Platform />} />
+            <Route path="/termos" element={<Terms />} />
+            <Route path="/privacidade" element={<Privacy />} />
             
             {/* Redirect root to login or dashboard */}
             <Route path="/" element={<Navigate to="/login" replace />} />
