@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { AdminHeader } from '@/components/admin/AdminHeader';
@@ -12,6 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { toast } from 'sonner';
 import { 
   Search, 
   Eye, 
@@ -24,7 +26,10 @@ import {
   Clock,
   ExternalLink,
   Trash2,
-  AlertTriangle
+  AlertTriangle,
+  Paperclip,
+  Receipt,
+  FileSignature
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -46,11 +51,13 @@ const PRIORIDADE_CONFIG: Record<Briefing['prioridade'], { label: string; classNa
 };
 
 export default function AdminBriefings() {
-  const { briefings, isLoading, updateStatus, deleteBriefing, isDeleting } = useBriefings();
+  const navigate = useNavigate();
+  const { briefings, isLoading, updateStatus, updateBriefing, deleteBriefing, isDeleting } = useBriefings();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedBriefing, setSelectedBriefing] = useState<Briefing | null>(null);
   const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [internalNotes, setInternalNotes] = useState('');
 
   // Filter briefings
   const filteredBriefings = briefings.filter(b => {
@@ -74,16 +81,85 @@ export default function AdminBriefings() {
 
   const handleViewBriefing = (briefing: Briefing) => {
     setSelectedBriefing(briefing);
+    setInternalNotes(briefing.notas_internas || '');
     setViewModalOpen(true);
   };
 
   const handleStatusChange = (id: string, newStatus: Briefing['status']) => {
     updateStatus({ id, status: newStatus });
+    if (selectedBriefing && selectedBriefing.id === id) {
+      setSelectedBriefing({ ...selectedBriefing, status: newStatus });
+    }
+  };
+
+  const handleSaveNotes = () => {
+    if (selectedBriefing) {
+      updateBriefing({ 
+        id: selectedBriefing.id, 
+        updates: { notas_internas: internalNotes } 
+      });
+      toast.success('Notas salvas!');
+    }
   };
 
   const handleDelete = (id: string) => {
     if (confirm('Tem certeza que deseja excluir este briefing?')) {
       deleteBriefing(id);
+    }
+  };
+
+  const handleCreateBudget = (briefing: Briefing) => {
+    // Store briefing data in sessionStorage for pre-filling the budget form
+    const budgetData = {
+      fromBriefing: true,
+      briefingId: briefing.id,
+      clientName: briefing.nome,
+      clientEmail: briefing.email,
+      clientPhone: briefing.telefone,
+      clientCompany: briefing.empresa,
+      notes: `Briefing: ${briefing.tipo_projeto || 'Projeto'}\n\n${briefing.descricao}`,
+    };
+    sessionStorage.setItem('budgetPrefill', JSON.stringify(budgetData));
+    
+    // Update status to orcamento_criado
+    updateStatus({ id: briefing.id, status: 'orcamento_criado' });
+    
+    setViewModalOpen(false);
+    navigate('/admin/budgets');
+    toast.success('Redirecionando para criar orçamento...');
+  };
+
+  const handleCreateProposal = (briefing: Briefing) => {
+    // Store briefing data in sessionStorage for pre-filling the proposal form
+    const proposalData = {
+      fromBriefing: true,
+      briefingId: briefing.id,
+      clientName: briefing.nome,
+      clientEmail: briefing.email,
+      clientPhone: briefing.telefone,
+      clientCompany: briefing.empresa,
+      projectTitle: briefing.tipo_projeto || 'Novo Projeto',
+      projectDescription: briefing.descricao,
+      notes: briefing.referencias || '',
+    };
+    sessionStorage.setItem('proposalPrefill', JSON.stringify(proposalData));
+    
+    // Update status to proposta_criada
+    updateStatus({ id: briefing.id, status: 'proposta_criada' });
+    
+    setViewModalOpen(false);
+    navigate('/admin/propostas');
+    toast.success('Redirecionando para criar proposta...');
+  };
+
+  const getFileNameFromUrl = (url: string) => {
+    try {
+      const urlObj = new URL(url);
+      const pathname = urlObj.pathname;
+      const fileName = pathname.split('/').pop() || 'arquivo';
+      return decodeURIComponent(fileName);
+    } catch {
+      return url.split('/').pop() || 'arquivo';
     }
   };
 
@@ -199,6 +275,7 @@ export default function AdminBriefings() {
                     <TableHead>Prazo</TableHead>
                     <TableHead>Prioridade</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Anexos</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -226,20 +303,50 @@ export default function AdminBriefings() {
                           {STATUS_CONFIG[briefing.status].label}
                         </Badge>
                       </TableCell>
+                      <TableCell>
+                        {briefing.arquivo_urls && briefing.arquivo_urls.length > 0 ? (
+                          <div className="flex items-center gap-1 text-primary">
+                            <Paperclip className="h-4 w-4" />
+                            <span className="text-xs">{briefing.arquivo_urls.length}</span>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
                           <Button
                             variant="ghost"
                             size="icon"
                             onClick={() => handleViewBriefing(briefing)}
+                            title="Visualizar"
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon"
+                            onClick={() => handleCreateBudget(briefing)}
+                            title="Criar Orçamento"
+                            className="text-purple-400 hover:text-purple-300"
+                          >
+                            <Receipt className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleCreateProposal(briefing)}
+                            title="Criar Proposta"
+                            className="text-indigo-400 hover:text-indigo-300"
+                          >
+                            <FileSignature className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             onClick={() => handleDelete(briefing.id)}
                             disabled={isDeleting}
+                            title="Excluir"
                           >
                             <Trash2 className="h-4 w-4 text-red-400" />
                           </Button>
@@ -292,7 +399,11 @@ export default function AdminBriefings() {
                   <Label className="text-muted-foreground text-xs">Telefone</Label>
                   <p className="font-medium flex items-center gap-2">
                     <Phone className="h-4 w-4" />
-                    {selectedBriefing.telefone || '-'}
+                    {selectedBriefing.telefone ? (
+                      <a href={`tel:${selectedBriefing.telefone}`} className="text-primary hover:underline">
+                        {selectedBriefing.telefone}
+                      </a>
+                    ) : '-'}
                   </p>
                 </div>
               </div>
@@ -315,7 +426,7 @@ export default function AdminBriefings() {
 
                 <div className="space-y-1">
                   <Label className="text-muted-foreground text-xs">Descrição do Projeto</Label>
-                  <div className="p-3 bg-secondary/50 rounded-lg whitespace-pre-wrap">
+                  <div className="p-3 bg-secondary/50 rounded-lg whitespace-pre-wrap text-sm">
                     {selectedBriefing.descricao}
                   </div>
                 </div>
@@ -323,12 +434,37 @@ export default function AdminBriefings() {
                 {selectedBriefing.referencias && (
                   <div className="space-y-1">
                     <Label className="text-muted-foreground text-xs">Referências</Label>
-                    <div className="p-3 bg-secondary/50 rounded-lg whitespace-pre-wrap">
+                    <div className="p-3 bg-secondary/50 rounded-lg whitespace-pre-wrap text-sm">
                       {selectedBriefing.referencias}
                     </div>
                   </div>
                 )}
               </div>
+
+              {/* Attachments */}
+              {selectedBriefing.arquivo_urls && selectedBriefing.arquivo_urls.length > 0 && (
+                <div className="space-y-2 pt-4 border-t border-border">
+                  <Label className="text-muted-foreground text-xs flex items-center gap-2">
+                    <Paperclip className="h-4 w-4" />
+                    Arquivos Anexados ({selectedBriefing.arquivo_urls.length})
+                  </Label>
+                  <div className="space-y-2">
+                    {selectedBriefing.arquivo_urls.map((url, index) => (
+                      <a
+                        key={index}
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 p-2 bg-secondary/50 rounded-lg hover:bg-secondary/80 transition-colors group"
+                      >
+                        <FileText className="h-4 w-4 text-primary" />
+                        <span className="text-sm flex-1 truncate">{getFileNameFromUrl(url)}</span>
+                        <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Status Control */}
               <div className="space-y-4 pt-4 border-t border-border">
@@ -366,20 +502,36 @@ export default function AdminBriefings() {
                   <Label>Notas Internas</Label>
                   <Textarea 
                     placeholder="Adicione notas internas sobre este briefing..."
-                    defaultValue={selectedBriefing.notas_internas || ''}
+                    value={internalNotes}
+                    onChange={(e) => setInternalNotes(e.target.value)}
                     className="min-h-20"
                   />
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleSaveNotes}
+                    className="mt-2"
+                  >
+                    Salvar Notas
+                  </Button>
                 </div>
               </div>
 
               {/* Actions */}
               <div className="flex gap-2 pt-4 border-t border-border">
-                <Button variant="outline" className="flex-1">
-                  <FileText className="h-4 w-4 mr-2" />
+                <Button 
+                  variant="outline" 
+                  className="flex-1"
+                  onClick={() => handleCreateBudget(selectedBriefing)}
+                >
+                  <Receipt className="h-4 w-4 mr-2" />
                   Criar Orçamento
                 </Button>
-                <Button className="flex-1">
-                  <FileText className="h-4 w-4 mr-2" />
+                <Button 
+                  className="flex-1"
+                  onClick={() => handleCreateProposal(selectedBriefing)}
+                >
+                  <FileSignature className="h-4 w-4 mr-2" />
                   Criar Proposta
                 </Button>
               </div>
