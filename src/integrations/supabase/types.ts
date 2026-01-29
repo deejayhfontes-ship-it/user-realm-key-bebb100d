@@ -788,6 +788,87 @@ export type Database = {
         }
         Relationships: []
       }
+      invoices: {
+        Row: {
+          bill_to_address: string | null
+          bill_to_company: string | null
+          bill_to_email: string | null
+          bill_to_name: string
+          created_at: string | null
+          created_by: string | null
+          date: string | null
+          discount: number | null
+          due_date: string | null
+          id: string
+          invoice_number: string
+          items: Json | null
+          notes: string | null
+          pix_config: Json | null
+          ship_to_email: string | null
+          ship_to_event: string | null
+          ship_to_location: string | null
+          ship_to_name: string
+          ship_to_phone: string | null
+          status: string | null
+          tax_rate: number | null
+          total: number
+          updated_at: string | null
+          wise_config: Json | null
+        }
+        Insert: {
+          bill_to_address?: string | null
+          bill_to_company?: string | null
+          bill_to_email?: string | null
+          bill_to_name: string
+          created_at?: string | null
+          created_by?: string | null
+          date?: string | null
+          discount?: number | null
+          due_date?: string | null
+          id?: string
+          invoice_number: string
+          items?: Json | null
+          notes?: string | null
+          pix_config?: Json | null
+          ship_to_email?: string | null
+          ship_to_event?: string | null
+          ship_to_location?: string | null
+          ship_to_name: string
+          ship_to_phone?: string | null
+          status?: string | null
+          tax_rate?: number | null
+          total: number
+          updated_at?: string | null
+          wise_config?: Json | null
+        }
+        Update: {
+          bill_to_address?: string | null
+          bill_to_company?: string | null
+          bill_to_email?: string | null
+          bill_to_name?: string
+          created_at?: string | null
+          created_by?: string | null
+          date?: string | null
+          discount?: number | null
+          due_date?: string | null
+          id?: string
+          invoice_number?: string
+          items?: Json | null
+          notes?: string | null
+          pix_config?: Json | null
+          ship_to_email?: string | null
+          ship_to_event?: string | null
+          ship_to_location?: string | null
+          ship_to_name?: string
+          ship_to_phone?: string | null
+          status?: string | null
+          tax_rate?: number | null
+          total?: number
+          updated_at?: string | null
+          wise_config?: Json | null
+        }
+        Relationships: []
+      }
       packages: {
         Row: {
           active: boolean | null
@@ -1242,6 +1323,7 @@ export type Database = {
     }
     Functions: {
       check_package_expiration: { Args: never; Returns: undefined }
+      generate_invoice_number: { Args: never; Returns: string }
       generate_proposal_number: { Args: never; Returns: string }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
     }
