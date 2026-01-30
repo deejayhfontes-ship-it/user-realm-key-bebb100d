@@ -4,7 +4,7 @@ import { useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import heroPortrait from "@/assets/hero-portrait.jpg";
 
-// Shader para efeito cromático intenso no estilo Magnetto
+// Shader estilo Magnetto - speed lines horizontais
 const vertexShader = `
   varying vec2 vUv;
   void main() {
@@ -18,78 +18,71 @@ const fragmentShader = `
   uniform vec2 uMouse;
   uniform float uHover;
   uniform float uTime;
+  uniform vec2 uResolution;
   varying vec2 vUv;
 
   void main() {
     vec2 uv = vUv;
     
-    // Calcular distância do mouse para efeito localizado
+    // Mouse position normalizado
     vec2 mousePos = uMouse * 0.5 + 0.5;
     float dist = distance(uv, mousePos);
     
-    // Raio de influência maior e mais suave
-    float influence = smoothstep(0.7, 0.0, dist) * uHover;
+    // Influência baseada na proximidade do mouse
+    float influence = smoothstep(0.8, 0.0, dist) * uHover;
     
-    // Chromatic Aberration forte - estilo glitch horizontal
-    float aberration = influence * 0.04;
-    vec2 direction = normalize(uv - mousePos + 0.001);
+    // Speed lines horizontais - efeito Magnetto
+    float speedIntensity = influence * 0.08;
     
-    // Offset horizontal dominante para efeito "speed lines"
-    vec2 horizontalDir = vec2(direction.x * 1.5, direction.y * 0.3);
+    // Offset horizontal dominante para criar "rastros"
+    float horizontalSmear = speedIntensity * (1.0 + sin(uv.y * 50.0 + uTime) * 0.3);
     
-    // Múltiplas camadas de separação cromática
-    vec2 redOffset = uv + horizontalDir * aberration * 1.5;
-    vec2 greenOffset = uv;
-    vec2 blueOffset = uv - horizontalDir * aberration * 1.2;
+    // RGB split com direção horizontal
+    vec2 redOffset = uv + vec2(horizontalSmear * 1.5, 0.0);
+    vec2 greenOffset = uv + vec2(horizontalSmear * 0.2, 0.0);
+    vec2 blueOffset = uv - vec2(horizontalSmear * 1.2, 0.0);
     
-    // Efeito de "smear" / rastro horizontal intenso
-    float smear = influence * 0.025;
-    
-    // Samplear com offset para efeito de rastro RGB
-    float r = texture2D(uTexture, redOffset + vec2(smear, 0.0)).r;
+    // Samplear canais separados
+    float r = texture2D(uTexture, redOffset).r;
     float g = texture2D(uTexture, greenOffset).g;
-    float b = texture2D(uTexture, blueOffset - vec2(smear * 0.5, 0.0)).b;
+    float b = texture2D(uTexture, blueOffset).b;
+    float a = texture2D(uTexture, uv).a;
     
-    // Efeito de linhas de velocidade nas bordas
-    float speedLines = smoothstep(0.2, 0.5, dist) * smoothstep(0.8, 0.4, dist) * influence;
+    // Adicionar cyan/magenta tint nas bordas do efeito
+    float edgeTint = smoothstep(0.0, 0.5, influence) * 0.15;
+    vec3 tint = vec3(
+      edgeTint * 0.3,
+      edgeTint * 0.8,
+      edgeTint * 1.0
+    );
     
-    // Tint cyan/magenta nas bordas do efeito
-    vec3 glitchTint = vec3(
-      0.05 + sin(uTime * 0.8 + uv.x * 5.0) * 0.03,
-      0.1 + sin(uTime * 0.5 + uv.y * 3.0) * 0.05,
-      0.15 + cos(uTime * 0.6 + uv.x * 4.0) * 0.05
-    ) * speedLines;
+    vec3 finalColor = vec3(r, g, b) + tint;
     
-    vec3 finalColor = vec3(r, g, b) + glitchTint;
-    
-    gl_FragColor = vec4(finalColor, 1.0);
+    gl_FragColor = vec4(finalColor, a);
   }
 `;
 
 // Componente interno que usa os hooks do Three.js
 function ChromaPlaneInner({ texture }: { texture: THREE.Texture }) {
   const meshRef = useRef<THREE.Mesh>(null);
-  const { viewport } = useThree();
+  const { viewport, size } = useThree();
   
-  // Criar uniforms
   const uniforms = useRef({
     uTexture: { value: texture },
     uMouse: { value: new THREE.Vector2(0, 0) },
     uHover: { value: 0 },
     uTime: { value: 0 },
+    uResolution: { value: new THREE.Vector2(size.width, size.height) },
   });
 
-  // Atualizar time para animação
   useFrame((state) => {
     uniforms.current.uTime.value = state.clock.elapsedTime;
   });
 
-  // Atualizar textura quando mudar
   useEffect(() => {
     uniforms.current.uTexture.value = texture;
   }, [texture]);
 
-  // Mouse tracking com hover detection
   useEffect(() => {
     let targetX = 0;
     let targetY = 0;
@@ -108,12 +101,11 @@ function ChromaPlaneInner({ texture }: { texture: THREE.Texture }) {
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
     document.addEventListener('mouseleave', handleMouseLeave);
     
-    // Animação contínua para interpolar
     let animationId: number;
     const animate = () => {
-      uniforms.current.uMouse.value.x += (targetX - uniforms.current.uMouse.value.x) * 0.06;
-      uniforms.current.uMouse.value.y += (targetY - uniforms.current.uMouse.value.y) * 0.06;
-      uniforms.current.uHover.value += (isHovering - uniforms.current.uHover.value) * 0.08;
+      uniforms.current.uMouse.value.x += (targetX - uniforms.current.uMouse.value.x) * 0.05;
+      uniforms.current.uMouse.value.y += (targetY - uniforms.current.uMouse.value.y) * 0.05;
+      uniforms.current.uHover.value += (isHovering - uniforms.current.uHover.value) * 0.06;
       animationId = requestAnimationFrame(animate);
     };
     animate();
@@ -125,61 +117,34 @@ function ChromaPlaneInner({ texture }: { texture: THREE.Texture }) {
     };
   }, []);
 
-  // Calcular aspect ratio - CONTAIN: figura completa sempre visível
-  const img = texture.image as HTMLImageElement | undefined;
-  const imageAspect = img?.width && img?.height ? img.width / img.height : 0.75;
-  
-  // A imagem deve ocupar no máximo 85% do espaço disponível no canvas
-  const maxWidth = viewport.width * 0.85;
-  const maxHeight = viewport.height * 0.85;
-  
-  let scaleX: number;
-  let scaleY: number;
-  
-  // Calcular dimensões mantendo proporção (contain)
-  const widthFromHeight = maxHeight * imageAspect;
-  const heightFromWidth = maxWidth / imageAspect;
-  
-  if (widthFromHeight <= maxWidth) {
-    // Limitado pela altura
-    scaleX = widthFromHeight;
-    scaleY = maxHeight;
-  } else {
-    // Limitado pela largura
-    scaleX = maxWidth;
-    scaleY = heightFromWidth;
-  }
+  // Escala para ocupar todo o viewport (fullscreen)
+  const scaleX = viewport.width;
+  const scaleY = viewport.height;
 
   return (
-    <mesh ref={meshRef} scale={[scaleX, scaleY, 1]} position={[0, 0, 0]}>
+    <mesh ref={meshRef} scale={[scaleX, scaleY, 1]}>
       <planeGeometry args={[1, 1, 1, 1]} />
       <shaderMaterial
         vertexShader={vertexShader}
         fragmentShader={fragmentShader}
         uniforms={uniforms.current}
+        transparent={true}
       />
     </mesh>
   );
 }
 
-// Componente que carrega a textura
 function ChromaPlane({ imageUrl }: { imageUrl: string }) {
   const texture = useTexture(imageUrl);
   return <ChromaPlaneInner texture={texture} />;
 }
 
-// Fallback para quando WebGL falhar
 function FallbackImage({ imageUrl }: { imageUrl: string }) {
   return (
     <div 
-      className="w-full h-full flex items-center justify-center"
-    >
-      <img 
-        src={imageUrl} 
-        alt="Hero" 
-        className="max-h-[90%] max-w-full object-contain"
-      />
-    </div>
+      className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+      style={{ backgroundImage: `url(${imageUrl})` }}
+    />
   );
 }
 
@@ -187,22 +152,36 @@ export default function ChromaHero() {
   const [hasError, setHasError] = useState(false);
 
   return (
-    <div className="absolute inset-0 z-0 bg-[#3a3a3a]">
-      {/* Gradient vignette overlay */}
-      <div 
-        className="absolute inset-0 pointer-events-none z-[1]"
-        style={{
-          background: 'radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.4) 100%)'
-        }}
-      />
+    <div className="absolute inset-0 z-0" style={{ backgroundColor: '#b8b8b8' }}>
+      {/* Canvas WebGL fullscreen - imagem integrada ao fundo */}
+      <div className="absolute inset-0">
+        {!hasError ? (
+          <Canvas
+            dpr={[1, 1.5]}
+            camera={{ position: [0, 0, 1] }}
+            gl={{
+              antialias: false,
+              alpha: true,
+              powerPreference: "high-performance",
+              failIfMajorPerformanceCaveat: false,
+            }}
+            onError={() => setHasError(true)}
+            style={{ background: 'transparent' }}
+          >
+            <Suspense fallback={null}>
+              <ChromaPlane imageUrl={heroPortrait} />
+            </Suspense>
+          </Canvas>
+        ) : (
+          <FallbackImage imageUrl={heroPortrait} />
+        )}
+      </div>
       
-      {/* Layout principal: 30% | 40% | 30% */}
-      <div className="absolute inset-0 flex items-center">
-        
-        {/* Coluna Esquerda - 30% - Título */}
-        <div className="w-[30%] h-full flex flex-col justify-center pl-8 md:pl-12 lg:pl-20 z-10">
+      {/* Overlay de texto - à esquerda */}
+      <div className="absolute inset-0 flex items-center pointer-events-none z-10">
+        <div className="pl-8 md:pl-16 lg:pl-24 xl:pl-32">
           <h1 
-            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight text-black leading-[0.9] text-left"
+            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tight text-black leading-[0.9] text-left"
             style={{ 
               fontFamily: "'Space Grotesk', sans-serif",
             }}
@@ -212,48 +191,16 @@ export default function ChromaHero() {
             GRAPHICS
           </h1>
           
-          {/* Badge verde neon com subtítulo */}
-          <div className="mt-4 md:mt-6">
-            <span 
-              className="inline-block px-3 py-1.5 md:px-4 md:py-2 rounded-full text-[10px] sm:text-xs md:text-sm font-medium tracking-wider uppercase"
-              style={{
-                backgroundColor: '#a3e635',
-                color: '#000000',
-                fontFamily: "'Space Grotesk', sans-serif",
-              }}
-            >
-              AQUI, VOCÊ CRIA O FUTURO VISUAL
-            </span>
-          </div>
+          {/* Subtítulo discreto */}
+          <p 
+            className="mt-4 md:mt-6 text-xs md:text-sm tracking-[0.15em] uppercase text-zinc-700 font-medium"
+            style={{ 
+              fontFamily: "'Space Grotesk', sans-serif",
+            }}
+          >
+            AQUI, VOCÊ CRIA O FUTURO VISUAL
+          </p>
         </div>
-        
-        {/* Coluna Central - 40% - Imagem com efeito */}
-        <div className="w-[40%] h-full relative">
-          {!hasError ? (
-            <Canvas
-              dpr={[1, 1.5]}
-              camera={{ position: [0, 0, 1] }}
-              gl={{
-                antialias: false,
-                alpha: true,
-                powerPreference: "high-performance",
-                failIfMajorPerformanceCaveat: false,
-              }}
-              onError={() => setHasError(true)}
-              style={{ background: 'transparent' }}
-            >
-              <Suspense fallback={null}>
-                <ChromaPlane imageUrl={heroPortrait} />
-              </Suspense>
-            </Canvas>
-          ) : (
-            <FallbackImage imageUrl={heroPortrait} />
-          )}
-        </div>
-        
-        {/* Coluna Direita - 30% - Limpa para equilíbrio */}
-        <div className="w-[30%] h-full" />
-        
       </div>
     </div>
   );
