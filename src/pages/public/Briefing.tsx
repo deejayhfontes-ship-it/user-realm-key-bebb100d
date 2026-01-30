@@ -134,12 +134,7 @@ export default function PublicBriefing() {
           Conte-nos sobre seu projeto em detalhes
         </p>
         <button
-          onClick={() => {
-            const protocolo = prompt("Digite o número do protocolo:");
-            if (protocolo?.trim()) {
-              navigate(`/pedido/${protocolo.trim()}`);
-            }
-          }}
+          onClick={() => navigate("/consultar")}
           className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-[#c4ff0d]/50 text-[#c4ff0d] hover:bg-[#c4ff0d]/10 transition-all duration-300 text-sm font-medium"
         >
           <Search className="w-4 h-4" />
