@@ -44,7 +44,7 @@ export const landingContent = {
   },
 
   about: {
-    sectionLabel: "ABOUT US",
+    sectionLabel: "SOBRE NÓS",
     title: "CRIANDO MARCAS QUE CONECTAM",
     description: "Somos um estúdio de design focado em criar experiências visuais memoráveis. Combinamos criatividade, estratégia e tecnologia para transformar ideias em resultados tangíveis.",
     philosophy: {
@@ -64,8 +64,8 @@ export const landingContent = {
   },
 
   services: {
-    sectionTitle: "SERVICES",
-    milestonesTitle: "MILESTONES",
+    sectionTitle: "SERVIÇOS",
+    milestonesTitle: "CONQUISTAS",
     description: "Criamos experiências digitais que elevam marcas e engajam audiências. Nossos serviços combinam criatividade com estratégia, garantindo resultados visuais impactantes.",
     placeholderServices: [
       {
