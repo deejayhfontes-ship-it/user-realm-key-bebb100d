@@ -164,10 +164,12 @@ export function ProjectsSection() {
                 </h3>
 
                 {/* Button */}
-                <span className="px-6 py-3 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white text-sm font-pixel tracking-wider flex items-center gap-2 group-hover:bg-black/60 transition-all">
-                  <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 absolute">Ver Projetos</span>
-                  <span className="group-hover:opacity-0 transition-opacity duration-300">EXPLORAR +</span>
-                  <FolderOpen className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <span className="relative px-6 py-3 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white text-sm font-pixel tracking-wider group-hover:bg-black/60 transition-all">
+                  <span className="opacity-100 group-hover:opacity-0 transition-opacity duration-300">EXPLORAR +</span>
+                  <span className="absolute inset-0 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    Ver Projetos
+                    <FolderOpen className="w-4 h-4" />
+                  </span>
                 </span>
               </div>
             </div>
@@ -201,10 +203,12 @@ export function ProjectsSection() {
                 </h3>
 
                 {/* Button */}
-                <span className="px-6 py-3 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white text-sm font-pixel tracking-wider flex items-center gap-2 group-hover:bg-black/60 transition-all">
-                  <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 absolute">Iniciar Briefing</span>
-                  <span className="group-hover:opacity-0 transition-opacity duration-300">SOLICITAR +</span>
-                  <Briefcase className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <span className="relative px-6 py-3 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white text-sm font-pixel tracking-wider group-hover:bg-black/60 transition-all">
+                  <span className="opacity-100 group-hover:opacity-0 transition-opacity duration-300">SOLICITAR +</span>
+                  <span className="absolute inset-0 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    Iniciar Briefing
+                    <Briefcase className="w-4 h-4" />
+                  </span>
                 </span>
               </div>
             </div>
