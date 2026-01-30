@@ -156,7 +156,7 @@ export default function ClientLogin() {
           </form>
 
           {/* Signup link */}
-          <div className="text-center mb-6">
+          <div className="text-center mt-6 mb-6">
             <p className="text-sm">
               <span className="text-[#1a1a1a]">Ainda não tem conta?</span>{' '}
               <Link to="/registro" className="text-[#1a1a1a] hover:text-primary hover:underline">
