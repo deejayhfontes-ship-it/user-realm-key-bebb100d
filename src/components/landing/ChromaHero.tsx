@@ -67,6 +67,23 @@ function ChromaPlaneInner({ texture }: { texture: THREE.Texture }) {
   const meshRef = useRef<THREE.Mesh>(null);
   const { viewport, size } = useThree();
   
+  // Calcula aspect ratio da imagem
+  const img = texture.image as HTMLImageElement | undefined;
+  const imageAspect = img ? img.width / img.height : 1;
+  const viewportAspect = viewport.width / viewport.height;
+  
+  // Escala para cobrir viewport mantendo aspect ratio (object-fit: cover)
+  let scaleX: number, scaleY: number;
+  if (viewportAspect > imageAspect) {
+    // Viewport mais largo que imagem - ajusta pela largura
+    scaleX = viewport.width;
+    scaleY = viewport.width / imageAspect;
+  } else {
+    // Viewport mais alto que imagem - ajusta pela altura
+    scaleY = viewport.height;
+    scaleX = viewport.height * imageAspect;
+  }
+  
   const uniforms = useRef({
     uTexture: { value: texture },
     uMouse: { value: new THREE.Vector2(0, 0) },
@@ -116,10 +133,6 @@ function ChromaPlaneInner({ texture }: { texture: THREE.Texture }) {
       cancelAnimationFrame(animationId);
     };
   }, []);
-
-  // Escala para ocupar todo o viewport (fullscreen)
-  const scaleX = viewport.width;
-  const scaleY = viewport.height;
 
   return (
     <mesh ref={meshRef} scale={[scaleX, scaleY, 1]}>
