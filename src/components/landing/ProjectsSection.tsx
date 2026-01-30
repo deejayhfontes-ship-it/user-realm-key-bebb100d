@@ -113,21 +113,27 @@ export function ProjectsSection() {
             {/* Dark background with subtle green ambient glow */}
             <div className="absolute inset-0 bg-[#1a1a1a]" />
             <div 
-              className="absolute inset-0 opacity-70"
+              className="absolute inset-0"
               style={{
-                background: 'radial-gradient(ellipse 90% 70% at 90% 15%, hsl(78 80% 45% / 0.5) 0%, transparent 55%)'
+                background: 'radial-gradient(ellipse 100% 80% at 95% 10%, hsl(78 100% 55% / 0.45) 0%, transparent 50%)'
               }}
             />
             <div 
-              className="absolute inset-0 opacity-50"
+              className="absolute inset-0"
               style={{
-                background: 'radial-gradient(ellipse 60% 50% at 75% 85%, hsl(78 70% 40% / 0.4) 0%, transparent 45%)'
+                background: 'radial-gradient(ellipse 70% 60% at 80% 90%, hsl(78 90% 50% / 0.35) 0%, transparent 45%)'
               }}
             />
             <div 
-              className="absolute inset-0 opacity-30"
+              className="absolute inset-0"
               style={{
-                background: 'radial-gradient(ellipse 40% 30% at 20% 60%, hsl(78 60% 35% / 0.3) 0%, transparent 40%)'
+                background: 'radial-gradient(ellipse 50% 40% at 15% 50%, hsl(78 80% 45% / 0.25) 0%, transparent 40%)'
+              }}
+            />
+            <div 
+              className="absolute inset-0"
+              style={{
+                background: 'radial-gradient(ellipse 60% 50% at 50% 40%, hsl(78 70% 40% / 0.15) 0%, transparent 50%)'
               }}
             />
 
