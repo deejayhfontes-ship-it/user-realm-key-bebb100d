@@ -32,6 +32,7 @@ import Platform from "@/pages/Platform";
 import Terms from "@/pages/public/Terms";
 import Privacy from "@/pages/public/Privacy";
 import Home from "@/pages/Home";
+import PublicBriefing from "@/pages/public/Briefing";
 import Portfolio from "@/pages/public/Portfolio";
 
 // Client Pages
@@ -71,6 +72,7 @@ const App = () => (
             <Route path="/plans" element={<ClientPlans />} />
             <Route path="/platform" element={<Platform />} />
             <Route path="/portfolio" element={<Portfolio />} />
+            <Route path="/briefing" element={<PublicBriefing />} />
             <Route path="/termos" element={<Terms />} />
             <Route path="/privacidade" element={<Privacy />} />
             
