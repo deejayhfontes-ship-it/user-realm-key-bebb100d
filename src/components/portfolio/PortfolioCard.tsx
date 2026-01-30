@@ -1,6 +1,4 @@
-import { useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Star, ExternalLink } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import type { PortfolioCase } from "@/hooks/usePortfolio";
 
@@ -14,9 +12,30 @@ interface PortfolioCardProps {
 export function PortfolioCard({ project, index, isClientProject, onClick }: PortfolioCardProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
 
-  // Vary card heights for masonry effect
-  const heightClass = index % 4 === 0 
+  // Lazy loading with Intersection Observer
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "100px" }
+    );
+
+    if (cardRef.current) {
+      observer.observe(cardRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  // Vary aspect ratios for masonry effect
+  const aspectRatio = index % 4 === 0 
     ? "aspect-[3/4]" 
     : index % 4 === 1 
     ? "aspect-square" 
@@ -26,16 +45,16 @@ export function PortfolioCard({ project, index, isClientProject, onClick }: Port
 
   return (
     <div
+      ref={cardRef}
       onClick={onClick}
       className={cn(
-        "group relative overflow-hidden rounded-[24px] cursor-pointer break-inside-avoid mb-6",
-        "bg-white/[0.03] border border-white/10 backdrop-blur-sm",
-        "transition-all duration-500 hover:border-white/20 hover:scale-[1.02]",
-        heightClass
+        "group relative overflow-hidden rounded-[16px] cursor-pointer break-inside-avoid mb-6",
+        "transition-transform duration-300 ease-out hover:scale-[1.02]",
+        aspectRatio
       )}
     >
       {/* Image with lazy loading */}
-      {!imageError && project.thumbnail_url ? (
+      {isVisible && !imageError && project.thumbnail_url ? (
         <>
           {!imageLoaded && (
             <div className="absolute inset-0 bg-white/5 animate-pulse" />
@@ -43,66 +62,47 @@ export function PortfolioCard({ project, index, isClientProject, onClick }: Port
           <img
             src={project.thumbnail_url}
             alt={project.title}
-            loading="lazy"
             onLoad={() => setImageLoaded(true)}
             onError={() => setImageError(true)}
             className={cn(
-              "absolute inset-0 w-full h-full object-cover transition-all duration-700",
-              "group-hover:scale-110",
+              "absolute inset-0 w-full h-full object-cover transition-opacity duration-300",
               imageLoaded ? "opacity-100" : "opacity-0"
             )}
           />
         </>
       ) : (
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-          <span className="text-4xl font-display text-white/20">{project.title[0]}</span>
+        <div className="absolute inset-0 bg-gradient-to-br from-[#c4ff0d]/20 to-[#c4ff0d]/5 flex items-center justify-center">
+          <span className="text-4xl font-bold text-white/20">{project.title[0]}</span>
         </div>
       )}
 
-      {/* Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-500" />
+      {/* Hover Overlay */}
+      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/70 transition-all duration-300 flex items-center justify-center">
+        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-center px-6">
+          {/* Category */}
+          <span className="text-[#c4ff0d] text-xs uppercase tracking-wider mb-2 block">
+            {project.category}
+          </span>
+          
+          {/* Title */}
+          <h3 className="text-white text-2xl font-semibold mb-4">
+            {project.title}
+          </h3>
+          
+          {/* View Button */}
+          <button className="px-6 py-2 border border-white text-white text-sm rounded-full hover:bg-[#c4ff0d] hover:border-[#c4ff0d] hover:text-[#1a1a1a] transition-all duration-300">
+            Ver Projeto
+          </button>
 
-      {/* Badges */}
-      <div className="absolute top-4 left-4 flex flex-wrap gap-2 z-10">
-        {project.featured && (
-          <Badge className="bg-primary/90 text-black font-pixel text-xs px-3 py-1 flex items-center gap-1">
-            <Star className="w-3 h-3 fill-current" />
-            DESTAQUE
-          </Badge>
-        )}
-        {isClientProject && (
-          <Badge className="bg-emerald-500/90 text-white font-pixel text-xs px-3 py-1">
-            SEU PROJETO
-          </Badge>
-        )}
-      </div>
-
-      {/* Category Badge */}
-      <div className="absolute top-4 right-4 z-10">
-        <Badge variant="outline" className="bg-black/40 border-white/20 text-white/80 font-pixel text-xs">
-          {project.category}
-        </Badge>
-      </div>
-
-      {/* Content */}
-      <div className="absolute bottom-0 left-0 right-0 p-6 z-10 translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-        <h3 className="font-display text-xl md:text-2xl text-white mb-2 line-clamp-2">
-          {project.title}
-        </h3>
-        <p className="text-sm text-white/60 line-clamp-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-100">
-          {project.description}
-        </p>
-        
-        {/* View CTA */}
-        <div className="flex items-center gap-2 mt-4 opacity-0 group-hover:opacity-100 transition-all duration-300 delay-150">
-          <span className="text-sm font-pixel text-primary">VER PROJETO</span>
-          <ExternalLink className="w-4 h-4 text-primary" />
+          {/* Client Project Badge */}
+          {isClientProject && (
+            <div className="mt-4">
+              <span className="inline-block px-3 py-1 bg-emerald-500/90 text-white text-xs rounded-full">
+                SEU PROJETO
+              </span>
+            </div>
+          )}
         </div>
-      </div>
-
-      {/* Hover Glow */}
-      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-t from-primary/10 to-transparent" />
       </div>
     </div>
   );
