@@ -123,26 +123,41 @@ function ChromaPlaneInner({ texture }: { texture: THREE.Texture }) {
     };
   }, []);
 
-  // Calcular aspect ratio - manter proporção e não cortar a cabeça
+  // Calcular aspect ratio - CONTAIN: nunca cortar a figura
   const img = texture.image as HTMLImageElement | undefined;
-  const imageAspect = img?.width && img?.height ? img.width / img.height : 0.8;
+  const imageAspect = img?.width && img?.height ? img.width / img.height : 0.75;
   const viewportAspect = viewport.width / viewport.height;
   
-  // Usar contain ao invés de cover para não cortar
-  let scaleX = viewport.width;
-  let scaleY = viewport.height;
+  // Contain logic: figura completa sempre visível
+  // Deixar espaço à direita para o texto (60% da largura para imagem)
+  const maxWidthPercent = 0.6;
+  const availableWidth = viewport.width * maxWidthPercent;
+  const availableHeight = viewport.height * 0.95; // Margem vertical
   
-  if (imageAspect > viewportAspect) {
-    // Imagem mais larga que viewport - ajustar pela largura
-    scaleY = viewport.width / imageAspect;
+  let scaleX: number;
+  let scaleY: number;
+  
+  const fitByWidth = availableWidth;
+  const fitByWidthHeight = fitByWidth / imageAspect;
+  
+  const fitByHeight = availableHeight;
+  const fitByHeightWidth = fitByHeight * imageAspect;
+  
+  if (fitByWidthHeight <= availableHeight) {
+    // Cabe pela largura
+    scaleX = fitByWidth;
+    scaleY = fitByWidthHeight;
   } else {
-    // Imagem mais alta que viewport - ajustar pela altura com margem
-    scaleX = viewport.height * imageAspect * 0.95; // 5% margem
-    scaleY = viewport.height * 0.95;
+    // Cabe pela altura
+    scaleX = fitByHeightWidth;
+    scaleY = fitByHeight;
   }
 
+  // Posicionar à esquerda do viewport
+  const offsetX = -viewport.width * 0.2;
+
   return (
-    <mesh ref={meshRef} scale={[scaleX, scaleY, 1]}>
+    <mesh ref={meshRef} scale={[scaleX, scaleY, 1]} position={[offsetX, 0, 0]}>
       <planeGeometry args={[1, 1, 1, 1]} />
       <shaderMaterial
         vertexShader={vertexShader}
@@ -195,15 +210,18 @@ export default function ChromaHero() {
         <FallbackImage imageUrl={heroPortrait} />
       )}
       
-      {/* Overlay com título e subtítulo - posicionado à direita */}
-      <div className="absolute inset-0 flex items-center justify-end pointer-events-none">
-        <div className="pr-8 md:pr-16 lg:pr-24 xl:pr-32 text-right">
-          {/* Título principal */}
+      {/* Overlay com título e subtítulo - posicionado à direita, sem sobreposição */}
+      <div className="absolute inset-0 flex items-center pointer-events-none">
+        {/* Área esquerda reservada para imagem */}
+        <div className="w-[55%] md:w-[60%]" />
+        
+        {/* Área direita para texto */}
+        <div className="w-[45%] md:w-[40%] flex flex-col justify-center pr-6 md:pr-12 lg:pr-20">
+          {/* Título principal - único */}
           <h1 
-            className="text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tight text-zinc-900 mb-3"
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight text-black leading-none"
             style={{ 
               fontFamily: "'Space Grotesk', sans-serif",
-              textShadow: '0 2px 20px rgba(255,255,255,0.3)'
             }}
           >
             FONTES
@@ -213,12 +231,12 @@ export default function ChromaHero() {
           
           {/* Subtítulo */}
           <p 
-            className="text-sm md:text-base lg:text-lg text-zinc-800 tracking-widest uppercase"
+            className="mt-3 md:mt-4 text-xs sm:text-sm md:text-base text-zinc-900 tracking-[0.2em] uppercase font-medium"
             style={{ 
               fontFamily: "'Space Grotesk', sans-serif",
             }}
           >
-            Aqui, você cria o futuro visual
+            AQUI, VOCÊ CRIA O FUTURO VISUAL
           </p>
         </div>
       </div>
