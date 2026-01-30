@@ -1,257 +1,208 @@
-import { Link } from 'react-router-dom';
-import { 
-  Wand2, 
-  Image as ImageIcon, 
-  Smartphone, 
-  Sparkles, 
-  Images,
-  ArrowRight,
-  CheckCircle,
-  Loader2
-} from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Skeleton } from '@/components/ui/skeleton';
-import { CreditDisplay } from '@/components/client/CreditDisplay';
 import { useClientData } from '@/hooks/useClientData';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
-const iconMap: Record<string, React.ElementType> = {
-  Smartphone: Smartphone,
-  Sparkles: Sparkles,
-  Images: Images,
-  stories: Smartphone,
-  derivations: Sparkles,
-  carousel: Images,
-};
+// Dashboard components
+import { DashboardHeader } from '@/components/client/dashboard/DashboardHeader';
+import { ActiveOrderCard } from '@/components/client/dashboard/ActiveOrderCard';
+import { RecentOrdersCard } from '@/components/client/dashboard/RecentOrdersCard';
+import { GeneratorsCard } from '@/components/client/dashboard/GeneratorsCard';
+import { FilesCard } from '@/components/client/dashboard/FilesCard';
+import { ChatWidget } from '@/components/client/dashboard/ChatWidget';
+import { NotificationsCard } from '@/components/client/dashboard/NotificationsCard';
+import { QuickActionsCard } from '@/components/client/dashboard/QuickActionsCard';
+import { PlanCard } from '@/components/client/dashboard/PlanCard';
+import { MobileChatFAB } from '@/components/client/dashboard/MobileChatFAB';
 
 export default function ClientDashboard() {
-  const { 
-    client, 
-    generators, 
-    recentGenerations, 
-    totalGenerations, 
-    creditsInfo,
-    isLoading 
-  } = useClientData();
+  const { profile } = useAuth();
+  const { client, generators, creditsInfo, isLoading } = useClientData();
+  const [chatOpen, setChatOpen] = useState(true);
 
-  if (isLoading) {
+  // Fetch client's orders (pedidos)
+  const { data: pedidos, isLoading: isLoadingPedidos } = useQuery({
+    queryKey: ['client-pedidos', profile?.client_id],
+    queryFn: async () => {
+      if (!profile?.client_id) return [];
+      
+      const { data, error } = await supabase
+        .from('pedidos')
+        .select('*')
+        .eq('client_id', profile.client_id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!profile?.client_id,
+  });
+
+  // Get active order (not delivered or cancelled)
+  const activeOrder = pedidos?.find(p => 
+    !['entregue', 'cancelado'].includes(p.status || '')
+  );
+
+  // Format active order for component
+  const formattedActiveOrder = activeOrder ? {
+    id: activeOrder.id,
+    protocolo: activeOrder.protocolo,
+    servico: activeOrder.descricao,
+    valor: activeOrder.valor_orcado || 0,
+    status: activeOrder.status || 'pendente',
+    prazo_final: activeOrder.prazo_final,
+    created_at: activeOrder.created_at || '',
+  } : null;
+
+  // Format orders for recent list
+  const formattedOrders = pedidos?.map(p => ({
+    id: p.id,
+    protocolo: p.protocolo,
+    descricao: p.descricao,
+    status: p.status || 'pendente',
+    created_at: p.created_at || '',
+    data_entrega: p.data_entrega,
+  })) || [];
+
+  // Mock notifications (replace with real data)
+  const notifications = [
+    {
+      id: '1',
+      tipo: 'pedido' as const,
+      titulo: 'Pedido atualizado',
+      descricao: 'Status alterado para "Em Confecção"',
+      tempo: 'há 2 horas',
+      lida: false,
+      link: '/client/pedidos',
+    },
+    {
+      id: '2',
+      tipo: 'mensagem' as const,
+      titulo: 'Nova mensagem',
+      descricao: 'Você recebeu uma resposta do suporte',
+      tempo: 'há 5 horas',
+      lida: true,
+      link: '/client/suporte',
+    },
+  ];
+
+  // Mock plan info (replace with real data)
+  const planInfo = client?.type === 'package' ? {
+    nome: 'Plano Profissional',
+    ativo: true,
+    renovacao: client.access_expires_at,
+    beneficios: [
+      `${client.package_credits || 0} créditos de geração`,
+      'Suporte prioritário',
+      'Revisões ilimitadas',
+    ],
+  } : null;
+
+  // Mock files (replace with real data)
+  const files: any[] = [];
+
+  const unreadNotifications = notifications.filter(n => !n.lida).length;
+  const activeOrdersCount = pedidos?.filter(p => 
+    !['entregue', 'cancelado'].includes(p.status || '')
+  ).length || 0;
+
+  if (isLoading || isLoadingPedidos) {
     return (
-      <div className="p-6 md:p-8 space-y-8">
-        <div className="space-y-2">
-          <Skeleton className="h-8 w-64" />
-          <Skeleton className="h-4 w-48" />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-32" />
-          ))}
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-40" />
-          ))}
+      <div className="p-6 md:p-8 max-w-[1400px] mx-auto">
+        <Skeleton className="h-40 w-full rounded-3xl mb-8" />
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6">
+          <div className="space-y-6">
+            <Skeleton className="h-64" />
+            <Skeleton className="h-48" />
+            <Skeleton className="h-64" />
+          </div>
+          <div className="space-y-6">
+            <Skeleton className="h-[400px]" />
+            <Skeleton className="h-48" />
+          </div>
         </div>
       </div>
     );
   }
 
-  const clientName = client?.name?.split(' ')[0] || 'Usuário';
-
   return (
-    <div className="p-6 md:p-8 space-y-8">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground">
-          Bem-vindo, {clientName}! 👋
-        </h1>
-        <p className="text-muted-foreground mt-1">
-          Gerencie seus geradores e acompanhe suas criações
-        </p>
-      </div>
+    <div className="p-6 md:p-8 bg-muted/30 min-h-screen">
+      <div className="max-w-[1400px] mx-auto">
+        {/* Personalized Header */}
+        <DashboardHeader 
+          client={client} 
+          activeOrdersCount={activeOrdersCount} 
+        />
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Créditos Disponíveis */}
-        <Card className="border-none shadow-sm bg-card">
-          <CardContent className="p-6">
-            <CreditDisplay
-              used={creditsInfo.used}
-              total={creditsInfo.total}
-              resetDate={client?.access_expires_at}
-              type={client?.type || 'package'}
+        {/* Main Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6">
+          {/* Left Column - Main Content */}
+          <div className="space-y-6">
+            {/* Active Order or CTA */}
+            <ActiveOrderCard 
+              order={formattedActiveOrder} 
+              onOpenChat={() => setChatOpen(true)}
             />
-          </CardContent>
-        </Card>
 
-        {/* Geradores Liberados */}
-        <Card className="border-none shadow-sm bg-card">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Wand2 className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Geradores Liberados</p>
-                <p className="text-2xl font-bold text-foreground">{generators?.length || 0}</p>
-              </div>
-            </div>
-            <div className="flex gap-1 mt-4">
-              {generators?.slice(0, 5).map((gen) => {
-                const Icon = iconMap[gen.generator?.type] || Wand2;
-                return (
-                  <div 
-                    key={gen.id} 
-                    className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center"
-                    title={gen.generator?.name}
-                  >
-                    <Icon className="w-4 h-4 text-muted-foreground" />
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
+            {/* Recent Orders */}
+            <RecentOrdersCard orders={formattedOrders} />
 
-        {/* Artes Geradas */}
-        <Card className="border-none shadow-sm bg-card">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
-                <ImageIcon className="w-5 h-5 text-secondary-foreground" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Artes Geradas</p>
-                <p className="text-2xl font-bold text-foreground">{totalGenerations || 0}</p>
-              </div>
-            </div>
-            <p className="text-xs text-muted-foreground mt-4">Total de gerações</p>
-          </CardContent>
-        </Card>
+            {/* AI Generators */}
+            <GeneratorsCard 
+              generators={generators || []}
+              creditsUsed={creditsInfo.used}
+              creditsTotal={creditsInfo.total}
+            />
 
-        {/* Status */}
-        <Card className="border-none shadow-sm bg-card">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                <CheckCircle className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Status da Conta</p>
-                <Badge 
-                  className={
-                    client?.status === 'active' 
-                      ? 'bg-primary/15 text-primary hover:bg-primary/20 mt-1'
-                      : 'bg-destructive/15 text-destructive hover:bg-destructive/20 mt-1'
-                  }
-                >
-                  {client?.status === 'active' ? 'Ativo' : client?.status === 'blocked' ? 'Bloqueado' : 'Expirado'}
-                </Badge>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Meus Geradores */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-foreground">Meus Geradores</h2>
-          <Link to="/client/geradores">
-            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
-              Ver todos <ArrowRight className="w-4 h-4 ml-1" />
-            </Button>
-          </Link>
-        </div>
-        
-        {generators && generators.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {generators.map((gen) => {
-              const Icon = iconMap[gen.generator?.type] || Wand2;
-              return (
-                <Card key={gen.id} className="border-none shadow-sm bg-card hover:shadow-md transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <Icon className="w-6 h-6 text-primary" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-foreground truncate">{gen.generator?.name}</h3>
-                        <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
-                          {gen.generator?.description || 'Gerador de artes'}
-                        </p>
-                      </div>
-                    </div>
-                    <Link to={`/client/gerador/${gen.generator?.slug}`}>
-                      <Button className="w-full mt-4" size="sm">
-                        Usar Agora
-                      </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
-              );
-            })}
+            {/* Files & Downloads */}
+            <FilesCard files={files} />
           </div>
-        ) : (
-          <Card className="border-none shadow-sm bg-card">
-            <CardContent className="p-8 text-center">
-              <div className="w-12 h-12 rounded-full bg-muted mx-auto mb-4 flex items-center justify-center">
-                <Wand2 className="w-6 h-6 text-muted-foreground" />
-              </div>
-              <h3 className="font-semibold text-foreground mb-2">Nenhum gerador disponível</h3>
-              <p className="text-sm text-muted-foreground">
-                Entre em contato com o administrador para liberar geradores.
-              </p>
-            </CardContent>
-          </Card>
-        )}
-      </div>
 
-      {/* Últimas Criações */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-foreground">Últimas Criações</h2>
-          <Link to="/client/historico">
-            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
-              Ver histórico <ArrowRight className="w-4 h-4 ml-1" />
-            </Button>
-          </Link>
-        </div>
-        
-        {recentGenerations && recentGenerations.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {recentGenerations.slice(0, 4).map((gen) => (
-              <Card key={gen.id} className="border-none shadow-sm bg-card overflow-hidden group cursor-pointer hover:shadow-md transition-shadow">
-                <div className="aspect-square bg-muted flex items-center justify-center relative">
-                  <ImageIcon className="w-12 h-12 text-muted-foreground/30" />
-                  <div className="absolute inset-0 bg-foreground/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <Button variant="secondary" size="sm">Ver</Button>
-                  </div>
-                </div>
-                <CardContent className="p-3">
-                  <p className="text-sm font-medium text-foreground truncate">
-                    {gen.generator_name || 'Geração'}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {new Date(gen.created_at).toLocaleDateString('pt-BR')}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <Card className="border-none shadow-sm bg-card">
-            <CardContent className="p-8 text-center">
-              <div className="w-12 h-12 rounded-full bg-muted mx-auto mb-4 flex items-center justify-center">
-                <ImageIcon className="w-6 h-6 text-muted-foreground" />
+          {/* Right Column - Sidebar Widgets */}
+          <div className="space-y-6">
+            {/* Chat Widget - Desktop only */}
+            <div className="hidden lg:block sticky top-6">
+              <ChatWidget 
+                isOpen={chatOpen}
+                onClose={() => setChatOpen(false)}
+              />
+              
+              {/* Notifications */}
+              <div className="mt-6">
+                <NotificationsCard 
+                  notifications={notifications}
+                  unreadCount={unreadNotifications}
+                />
               </div>
-              <h3 className="font-semibold text-foreground mb-2">Nenhuma arte gerada</h3>
-              <p className="text-sm text-muted-foreground">
-                Comece usando um dos geradores disponíveis.
-              </p>
-            </CardContent>
-          </Card>
-        )}
+
+              {/* Quick Actions */}
+              <div className="mt-6">
+                <QuickActionsCard />
+              </div>
+
+              {/* Plan Info */}
+              <div className="mt-6">
+                <PlanCard plan={planInfo} />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile widgets below main content */}
+        <div className="lg:hidden mt-6 space-y-6">
+          <NotificationsCard 
+            notifications={notifications}
+            unreadCount={unreadNotifications}
+          />
+          <QuickActionsCard />
+          <PlanCard plan={planInfo} />
+        </div>
+
+        {/* Mobile Chat FAB */}
+        <MobileChatFAB unreadCount={2} />
       </div>
     </div>
   );
