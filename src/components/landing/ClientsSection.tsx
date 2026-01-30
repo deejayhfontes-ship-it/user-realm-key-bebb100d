@@ -1,3 +1,5 @@
+import { landingContent } from "@/data/landingContent";
+
 const placeholderClients = [
   { name: "Client 1", logo: null },
   { name: "Client 2", logo: null },
@@ -7,13 +9,15 @@ const placeholderClients = [
 ];
 
 export function ClientsSection() {
+  const content = landingContent.clients;
+
   return (
     <section className="section-padding bg-[#0a0a0a]">
       <div className="container mx-auto px-4">
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-8 mb-16">
           <h2 className="magnetto-title text-5xl md:text-7xl lg:text-8xl text-white">
-            CLIENTS
+            {content.title}
           </h2>
           <p className="text-zinc-400 max-w-md text-lg lg:text-right">
             Colaboramos com marcas visionárias, startups inovadoras e líderes de 

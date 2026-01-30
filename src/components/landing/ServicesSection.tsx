@@ -1,40 +1,14 @@
 import { useServices } from "@/hooks/useServices";
 import { icons } from "lucide-react";
+import { landingContent } from "@/data/landingContent";
 
 export function ServicesSection() {
   const { services } = useServices();
-
-  // Placeholder services if none exist
-  const placeholderServices = [
-    {
-      id: "1",
-      title: "Identidade Visual",
-      short_description: "Criamos identidades visuais memoráveis que comunicam a essência da sua marca.",
-      icon: "Palette",
-    },
-    {
-      id: "2",
-      title: "Web Design",
-      short_description: "Sites e landing pages que convertem visitantes em clientes.",
-      icon: "Monitor",
-    },
-    {
-      id: "3",
-      title: "Social Media",
-      short_description: "Conteúdo estratégico para suas redes sociais com identidade consistente.",
-      icon: "Instagram",
-    },
-    {
-      id: "4",
-      title: "Motion Graphics",
-      short_description: "Animações e vídeos que dão vida às suas ideias.",
-      icon: "Play",
-    },
-  ];
+  const content = landingContent.services;
 
   const displayServices = services.length > 0 
     ? services.filter(s => s.is_active).slice(0, 4) 
-    : placeholderServices;
+    : content.placeholderServices;
 
   const getIcon = (iconName: string) => {
     const IconComponent = icons[iconName as keyof typeof icons];
@@ -48,7 +22,7 @@ export function ServicesSection() {
           {/* Left Column - Title & Services */}
           <div>
             <h2 className="magnetto-title text-5xl md:text-7xl text-white mb-12">
-              SERVICES
+              {content.sectionTitle}
             </h2>
 
             {/* Services Cards */}
@@ -85,24 +59,23 @@ export function ServicesSection() {
 
             {/* Description */}
             <p className="text-zinc-400 mt-8 text-center lg:text-left">
-              Criamos experiências digitais que elevam marcas e engajam audiências. 
-              Nossos serviços combinam criatividade com estratégia, garantindo resultados visuais impactantes.
+              {content.description}
             </p>
           </div>
 
           {/* Right Column - Milestones */}
           <div className="flex flex-col justify-center">
             <h3 className="magnetto-title text-4xl md:text-5xl text-white mb-12 text-center lg:text-left">
-              MILESTONES
+              {content.milestonesTitle}
             </h3>
 
             <div className="space-y-12">
               <div className="text-center lg:text-left">
                 <p className="stat-number text-white">
-                  7<span className="text-primary">+</span>
+                  {content.milestones.years.value}<span className="text-primary">{content.milestones.years.suffix}</span>
                 </p>
                 <p className="text-zinc-400 font-pixel text-sm tracking-wider">
-                  Anos de Experiência
+                  {content.milestones.years.label}
                 </p>
               </div>
 
@@ -110,10 +83,10 @@ export function ServicesSection() {
 
               <div className="text-center lg:text-left">
                 <p className="stat-number text-white">
-                  50<span className="text-primary">+</span>
+                  {content.milestones.projects.value}<span className="text-primary">{content.milestones.projects.suffix}</span>
                 </p>
                 <p className="text-zinc-400 font-pixel text-sm tracking-wider">
-                  Projetos Entregues
+                  {content.milestones.projects.label}
                 </p>
               </div>
 
@@ -121,10 +94,10 @@ export function ServicesSection() {
 
               <div className="text-center lg:text-left">
                 <p className="stat-number text-white">
-                  30<span className="text-primary">+</span>
+                  {content.milestones.clients.value}<span className="text-primary">{content.milestones.clients.suffix}</span>
                 </p>
                 <p className="text-zinc-400 font-pixel text-sm tracking-wider">
-                  Clientes Satisfeitos
+                  {content.milestones.clients.label}
                 </p>
               </div>
             </div>
