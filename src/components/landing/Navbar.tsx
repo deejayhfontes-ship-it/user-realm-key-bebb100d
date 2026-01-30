@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect, useCallback } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Menu, X, User, LogOut, LayoutDashboard } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -16,43 +16,141 @@ import {
 import { toast } from "sonner";
 
 const navItems = [
-  { label: "HOME", href: "#hero", isRoute: false },
-  { label: "SOBRE", href: "#about", isRoute: false },
-  { label: "PORTFÓLIO", href: "/portfolio", isRoute: true },
-  { label: "SERVIÇOS", href: "#services", isRoute: false },
-  { label: "ORÇAMENTO", href: "/briefing", isRoute: true },
-  { label: "CONTATO", href: "#contact", isRoute: false },
+  { label: "HOME", href: "/", isRoute: true, anchor: "#hero" },
+  { label: "SOBRE", href: "/#about", isRoute: false, anchor: "#about" },
+  { label: "PORTFÓLIO", href: "/portfolio", isRoute: true, anchor: null },
+  { label: "SERVIÇOS", href: "/#services", isRoute: false, anchor: "#services" },
+  { label: "ORÇAMENTO", href: "/briefing", isRoute: true, anchor: null },
+  { label: "CONTATO", href: "/#contact", isRoute: false, anchor: "#contact" },
 ];
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState<string>("");
   const { user, signOut, profile } = useAuth();
   const { client } = useClientData();
   const navigate = useNavigate();
+  const location = useLocation();
 
+  // Handle scroll effects
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
-  const handleNavClick = (item: typeof navItems[0]) => {
+      // Update active section based on scroll position (only on home page)
+      if (location.pathname === "/") {
+        const sections = ["hero", "about", "services", "contact"];
+        const scrollPosition = window.scrollY + 100;
+
+        for (const section of sections.reverse()) {
+          const element = document.getElementById(section);
+          if (element && element.offsetTop <= scrollPosition) {
+            setActiveSection(`#${section}`);
+            break;
+          }
+        }
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    handleScroll(); // Initial check
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [location.pathname]);
+
+  // Handle ESC key to close mobile menu
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isMobileMenuOpen) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [isMobileMenuOpen]);
+
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isMobileMenuOpen]);
+
+  const handleNavClick = useCallback((item: typeof navItems[0]) => {
     setIsMobileMenuOpen(false);
-    if (item.isRoute) {
+
+    // If it's a route (like /portfolio or /briefing)
+    if (item.isRoute && !item.anchor) {
       navigate(item.href);
-    } else if (item.href.startsWith("#")) {
-      const element = document.querySelector(item.href);
-      element?.scrollIntoView({ behavior: "smooth" });
+      return;
+    }
+
+    // If it's the home route
+    if (item.href === "/" && location.pathname === "/") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
+    // If we're on home page and it's an anchor
+    if (location.pathname === "/" && item.anchor) {
+      const element = document.querySelector(item.anchor);
+      if (element) {
+        const offset = 80;
+        const elementPosition = element.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - offset;
+        window.scrollTo({ top: offsetPosition, behavior: "smooth" });
+      }
+      return;
+    }
+
+    // If we're on another page and need to go to home + anchor
+    if (location.pathname !== "/" && item.anchor) {
+      navigate("/");
+      // Wait for navigation then scroll
+      setTimeout(() => {
+        const element = document.querySelector(item.anchor!);
+        if (element) {
+          const offset = 80;
+          const elementPosition = element.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - offset;
+          window.scrollTo({ top: offsetPosition, behavior: "smooth" });
+        }
+      }, 100);
+      return;
+    }
+
+    // Fallback: just navigate
+    if (item.href !== location.pathname) {
+      navigate(item.href);
+    }
+  }, [location.pathname, navigate]);
+
+  const handleLogoClick = () => {
+    setIsMobileMenuOpen(false);
+    if (location.pathname === "/") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      navigate("/");
     }
   };
 
   const handleLogout = async () => {
+    setIsMobileMenuOpen(false);
     await signOut();
     toast.success("Logout realizado com sucesso");
     navigate("/");
+  };
+
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      setIsMobileMenuOpen(false);
+    }
   };
 
   const getInitials = (name: string | null | undefined) => {
@@ -63,6 +161,22 @@ export function Navbar() {
       .join("")
       .toUpperCase()
       .slice(0, 2);
+  };
+
+  const isActive = (item: typeof navItems[0]) => {
+    // For route-based items
+    if (item.isRoute && !item.anchor) {
+      return location.pathname === item.href;
+    }
+    // For home
+    if (item.href === "/" && location.pathname === "/") {
+      return activeSection === "#hero" || (!activeSection && window.scrollY < 100);
+    }
+    // For anchor-based items on home page
+    if (location.pathname === "/" && item.anchor) {
+      return activeSection === item.anchor;
+    }
+    return false;
   };
 
   const isAuthenticated = !!user && profile?.role === "client";
@@ -79,9 +193,12 @@ export function Navbar() {
         )}
       >
         {/* Logo/Avatar */}
-        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center overflow-hidden mr-2">
+        <button
+          onClick={handleLogoClick}
+          className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center overflow-hidden mr-2 hover:scale-105 transition-transform cursor-pointer"
+        >
           <span className="font-display text-sm text-white">FG</span>
-        </div>
+        </button>
 
         {/* Nav Items */}
         <div className="flex items-center gap-1">
@@ -89,7 +206,12 @@ export function Navbar() {
             <button
               key={item.label}
               onClick={() => handleNavClick(item)}
-              className="px-4 py-2 text-sm font-pixel text-zinc-400 hover:text-white transition-colors"
+              className={cn(
+                "px-4 py-2 text-sm font-medium transition-colors duration-200",
+                isActive(item)
+                  ? "text-primary font-semibold"
+                  : "text-white/80 hover:text-primary"
+              )}
             >
               {item.label}
             </button>
@@ -137,23 +259,27 @@ export function Navbar() {
         ) : (
           <Link
             to="/client/login"
-            className="ml-2 px-6 py-2.5 rounded-full bg-white text-black font-pixel text-sm hover:bg-zinc-200 transition-colors flex items-center gap-2"
+            className="ml-2 px-6 py-2.5 rounded-full bg-white text-black font-medium text-sm hover:bg-zinc-200 transition-colors flex items-center gap-2"
           >
             LOGIN <span className="text-lg">+</span>
           </Link>
         )}
       </nav>
 
-      {/* Mobile Navbar */}
+      {/* Mobile Header Bar */}
       <nav
         className={cn(
           "fixed top-4 left-4 right-4 z-50 flex md:hidden items-center justify-between px-4 py-3 transition-all duration-300",
           "rounded-full bg-black/40 backdrop-blur-xl border border-white/10"
         )}
       >
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center">
+        {/* Logo */}
+        <button
+          onClick={handleLogoClick}
+          className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center hover:scale-105 transition-transform"
+        >
           <span className="font-display text-xs text-white">FG</span>
-        </div>
+        </button>
 
         <div className="flex items-center gap-2">
           {isAuthenticated && (
@@ -164,60 +290,99 @@ export function Navbar() {
               </AvatarFallback>
             </Avatar>
           )}
+          
+          {/* Hamburger Button */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="text-white p-2"
+            className={cn(
+              "w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200",
+              "bg-white/10 backdrop-blur-sm hover:bg-primary/20",
+              isMobileMenuOpen && "bg-primary/20"
+            )}
+            aria-label={isMobileMenuOpen ? "Fechar menu" : "Abrir menu"}
           >
-            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            {isMobileMenuOpen ? (
+              <X size={24} className="text-white" />
+            ) : (
+              <Menu size={24} className="text-white" />
+            )}
           </button>
         </div>
       </nav>
 
       {/* Mobile Menu Overlay */}
-      {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-40 bg-black/95 md:hidden flex flex-col items-center justify-center gap-8">
-          {navItems.map((item) => (
-            <button
-              key={item.label}
-              onClick={() => handleNavClick(item)}
-              className="text-2xl font-display text-white hover:text-primary transition-colors"
-            >
-              {item.label}
-            </button>
-          ))}
-          
-          {isAuthenticated ? (
-            <>
-              <Link
-                to="/client/dashboard"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="mt-4 px-8 py-3 rounded-full bg-primary text-black font-pixel text-lg flex items-center gap-2"
-              >
-                <LayoutDashboard className="w-5 h-5" />
-                Minha Área
-              </Link>
-              <button
-                onClick={() => {
-                  setIsMobileMenuOpen(false);
-                  handleLogout();
-                }}
-                className="px-8 py-3 rounded-full bg-white/10 text-white font-pixel text-lg flex items-center gap-2"
-              >
-                <LogOut className="w-5 h-5" />
-                Sair
-              </button>
-            </>
-          ) : (
-            <Link
-              to="/client/login"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="mt-4 px-8 py-3 rounded-full bg-primary text-black font-pixel text-lg"
-            >
-              LOGIN
-            </Link>
+      <div
+        className={cn(
+          "fixed inset-0 z-40 md:hidden transition-all duration-300",
+          isMobileMenuOpen
+            ? "opacity-100 pointer-events-auto"
+            : "opacity-0 pointer-events-none"
+        )}
+        onClick={handleBackdropClick}
+      >
+        {/* Backdrop */}
+        <div className="absolute inset-0 bg-black/98 backdrop-blur-xl" />
+
+        {/* Menu Content */}
+        <div
+          className={cn(
+            "relative h-full flex flex-col items-center justify-center px-8 py-32 transition-transform duration-300 ease-out",
+            isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
           )}
+        >
+          {/* Nav Items */}
+          <div className="flex flex-col items-center w-full max-w-sm">
+            {navItems.map((item, index) => (
+              <button
+                key={item.label}
+                onClick={() => handleNavClick(item)}
+                className={cn(
+                  "w-full py-5 text-center text-2xl font-semibold transition-colors duration-200 border-b border-white/10",
+                  isActive(item)
+                    ? "text-primary"
+                    : "text-white hover:text-primary"
+                )}
+                style={{
+                  animationDelay: `${index * 50}ms`,
+                }}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Auth Section */}
+          <div className="mt-10 flex flex-col items-center gap-4">
+            {isAuthenticated ? (
+              <>
+                <Link
+                  to="/client/dashboard"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="px-10 py-4 rounded-full bg-primary text-black font-semibold text-lg flex items-center gap-3 hover:bg-primary/90 transition-colors"
+                >
+                  <LayoutDashboard className="w-5 h-5" />
+                  Minha Área
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="px-10 py-4 rounded-full bg-white/10 text-white font-semibold text-lg flex items-center gap-3 hover:bg-white/20 transition-colors"
+                >
+                  <LogOut className="w-5 h-5" />
+                  Sair
+                </button>
+              </>
+            ) : (
+              <Link
+                to="/client/login"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="px-10 py-4 rounded-full bg-primary text-black font-semibold text-lg hover:bg-primary/90 transition-colors"
+              >
+                LOGIN
+              </Link>
+            )}
+          </div>
         </div>
-      )}
+      </div>
     </>
   );
 }
