@@ -278,4 +278,104 @@
   .btn-pill-dark {
     @apply btn-pill bg-secondary text-secondary-foreground hover:bg-secondary/90;
   }
+
+  /* ===== MAGNETTO LANDING PAGE STYLES ===== */
+  
+  /* Pixelated display font */
+  .font-display {
+    font-family: 'Space Grotesk', monospace;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .font-pixel {
+    font-family: 'Space Grotesk', monospace;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* Magnetto hero title */
+  .magnetto-title {
+    font-family: 'Space Grotesk', monospace;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    line-height: 0.9;
+  }
+
+  /* Magnetto card - extreme radius */
+  .magnetto-card {
+    @apply rounded-[32px] overflow-hidden;
+    background: hsl(0 0% 10%);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .magnetto-card:hover {
+    transform: scale(1.02);
+    box-shadow: 0 0 60px hsl(78 100% 65% / 0.15);
+  }
+
+  /* Magnetto glass card */
+  .magnetto-glass {
+    @apply backdrop-blur-xl rounded-[24px];
+    background: hsl(0 0% 100% / 0.08);
+    border: 1px solid hsl(0 0% 100% / 0.12);
+  }
+
+  /* Floating navbar pill */
+  .navbar-pill {
+    @apply backdrop-blur-xl rounded-full;
+    background: hsl(0 0% 8% / 0.9);
+    border: 1px solid hsl(0 0% 100% / 0.1);
+  }
+
+  /* Client card - Magnetto style */
+  .client-card {
+    @apply rounded-[32px];
+    background: hsl(0 0% 12%);
+    transition: all 0.3s ease;
+  }
+
+  .client-card:hover {
+    background: hsl(0 0% 16%);
+  }
+
+  /* Section padding */
+  .section-padding {
+    @apply py-20 md:py-32;
+  }
+
+  /* Fade up animation */
+  .fade-up {
+    animation: fadeUp 0.8s ease-out forwards;
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  @keyframes fadeUp {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Glow effect on hover */
+  .glow-lime {
+    transition: box-shadow 0.3s ease;
+  }
+
+  .glow-lime:hover {
+    box-shadow: 0 0 40px hsl(78 100% 65% / 0.3);
+  }
+
+  /* Stats counter style */
+  .stat-number {
+    font-family: 'Space Grotesk', monospace;
+    font-weight: 700;
+    font-size: clamp(4rem, 10vw, 8rem);
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
 }
