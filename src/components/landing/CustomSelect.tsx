@@ -8,14 +8,19 @@ import {
   Play, 
   Layers, 
   MoreHorizontal,
+  Package,
+  Megaphone,
+  FileText,
+  PenTool,
+  Camera,
   LucideIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-interface SelectOption {
+export interface SelectOption {
   value: string;
   label: string;
-  icon: LucideIcon;
+  icon?: LucideIcon | string;
 }
 
 interface CustomSelectProps {
@@ -25,8 +30,30 @@ interface CustomSelectProps {
   options: SelectOption[];
   error?: boolean;
   errorMessage?: string;
+  loading?: boolean;
 }
 
+// Icon mapping for dynamic icons from database
+const ICON_MAP: Record<string, LucideIcon> = {
+  Palette,
+  Monitor,
+  Instagram,
+  Play,
+  Layers,
+  MoreHorizontal,
+  Package,
+  Megaphone,
+  FileText,
+  PenTool,
+  Camera,
+};
+
+export const getIconByName = (iconName: string | undefined | null): LucideIcon => {
+  if (!iconName) return MoreHorizontal;
+  return ICON_MAP[iconName] || MoreHorizontal;
+};
+
+// Legacy static options (fallback)
 export const projectTypeOptions: SelectOption[] = [
   { value: "Identidade Visual", label: "Identidade Visual", icon: Palette },
   { value: "Web Design", label: "Web Design", icon: Monitor },
@@ -43,6 +70,7 @@ export function CustomSelect({
   options,
   error = false,
   errorMessage,
+  loading = false,
 }: CustomSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
@@ -128,6 +156,7 @@ export function CustomSelect({
       <button
         type="button"
         onClick={toggleOpen}
+        disabled={loading}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         aria-label="Tipo de Projeto"
@@ -139,14 +168,22 @@ export function CustomSelect({
           "flex items-center justify-between gap-3",
           "focus:outline-none focus:border-primary",
           "hover:bg-white/[0.08] hover:border-primary/50",
+          "disabled:opacity-50 disabled:cursor-not-allowed",
           error && "border-red-500",
           selectedOption ? "text-white" : "text-white/40"
         )}
       >
         <span className="flex items-center gap-3 truncate">
-          {selectedOption ? (
+          {loading ? (
+            "Carregando..."
+          ) : selectedOption ? (
             <>
-              <selectedOption.icon className="w-[18px] h-[18px] text-primary flex-shrink-0" />
+              {(() => {
+                const IconComponent = typeof selectedOption.icon === 'string' 
+                  ? getIconByName(selectedOption.icon) 
+                  : selectedOption.icon || MoreHorizontal;
+                return <IconComponent className="w-[18px] h-[18px] text-primary flex-shrink-0" />;
+              })()}
               <span>{selectedOption.label}</span>
             </>
           ) : (
@@ -191,7 +228,9 @@ export function CustomSelect({
           {options.map((option, index) => {
             const isSelected = option.value === value;
             const isHighlighted = index === highlightedIndex;
-            const Icon = option.icon;
+            const Icon = typeof option.icon === 'string' 
+              ? getIconByName(option.icon) 
+              : option.icon || MoreHorizontal;
 
             return (
               <li

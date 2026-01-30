@@ -759,6 +759,7 @@ export type Database = {
           message: string
           name: string
           phone: string | null
+          project_type_id: string | null
           read_at: string | null
           status: string | null
           subject: string | null
@@ -772,6 +773,7 @@ export type Database = {
           message: string
           name: string
           phone?: string | null
+          project_type_id?: string | null
           read_at?: string | null
           status?: string | null
           subject?: string | null
@@ -785,12 +787,21 @@ export type Database = {
           message?: string
           name?: string
           phone?: string | null
+          project_type_id?: string | null
           read_at?: string | null
           status?: string | null
           subject?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "contact_messages_project_type_id_fkey"
+            columns: ["project_type_id"]
+            isOneToOne: false
+            referencedRelation: "project_types"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       generations: {
         Row: {
@@ -1885,6 +1896,39 @@ export type Database = {
           thumbnail_url?: string
           title?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      project_types: {
+        Row: {
+          created_at: string
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          sort_order: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          sort_order?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          sort_order?: number
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
