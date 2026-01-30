@@ -83,7 +83,7 @@ export default function ClientLogin() {
             <h2 className="text-2xl md:text-3xl font-semibold text-foreground tracking-tight">
               Bem-vindo de volta
             </h2>
-            <p className="text-muted-foreground mt-2 font-light">
+            <p className="text-[#666666] mt-2 font-light leading-relaxed">
               Acesse sua conta para gerenciar seus projetos
             </p>
           </div>
@@ -91,7 +91,7 @@ export default function ClientLogin() {
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-foreground font-medium">
+              <Label htmlFor="email" className="text-[#333333] font-medium">
                 Email
               </Label>
               <div className="relative">
@@ -109,7 +109,7 @@ export default function ClientLogin() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-foreground font-medium">
+              <Label htmlFor="password" className="text-[#333333] font-medium">
                 Senha
               </Label>
               <div className="relative">
@@ -157,8 +157,8 @@ export default function ClientLogin() {
 
           {/* Signup link */}
           <div className="text-center mb-6">
-            <p className="text-muted-foreground text-sm">
-              Ainda não tem conta?{' '}
+            <p className="text-sm">
+              <span className="text-[#666666]">Ainda não tem conta?</span>{' '}
               <Link to="/registro" className="text-primary hover:underline font-medium">
                 Criar conta grátis
               </Link>
@@ -171,7 +171,7 @@ export default function ClientLogin() {
               <div className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center">
-              <span className="bg-background px-4 text-sm text-muted-foreground">ou</span>
+              <span className="bg-background px-4 text-sm text-[#999999]">ou</span>
             </div>
           </div>
 
@@ -198,7 +198,7 @@ export default function ClientLogin() {
           </div>
 
           {/* Admin link */}
-          <p className="text-center text-muted-foreground text-xs mt-8">
+          <p className="text-center text-[#888888] text-xs mt-8">
             É administrador?{' '}
             <Link to="/login" className="text-primary hover:underline">
               Acessar painel admin
@@ -224,7 +224,7 @@ export default function ClientLogin() {
             <h2 className="text-4xl md:text-5xl font-bold text-secondary-foreground tracking-tight leading-tight mb-4">
               Transforme suas ideias em arte
             </h2>
-            <p className="text-xl text-secondary-foreground/60 font-light">
+            <p className="text-xl text-[#cccccc] font-light leading-relaxed">
               Acesse geradores exclusivos e crie materiais profissionais em segundos.
             </p>
           </div>
@@ -238,7 +238,7 @@ export default function ClientLogin() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-secondary-foreground">{feature.title}</h3>
-                  <p className="text-secondary-foreground/50 font-light">{feature.description}</p>
+                  <p className="text-[#b3b3b3] font-light leading-relaxed">{feature.description}</p>
                 </div>
               </div>
             ))}
@@ -248,15 +248,15 @@ export default function ClientLogin() {
           <div className="mt-12 flex gap-8">
             <div>
               <div className="text-3xl font-bold text-primary">500+</div>
-              <div className="text-sm text-secondary-foreground/50">Clientes ativos</div>
+              <div className="text-sm text-[#b3b3b3]">Clientes ativos</div>
             </div>
             <div>
               <div className="text-3xl font-bold text-primary">10k+</div>
-              <div className="text-sm text-secondary-foreground/50">Artes geradas</div>
+              <div className="text-sm text-[#b3b3b3]">Artes geradas</div>
             </div>
             <div>
               <div className="text-3xl font-bold text-primary">98%</div>
-              <div className="text-sm text-secondary-foreground/50">Satisfação</div>
+              <div className="text-sm text-[#b3b3b3]">Satisfação</div>
             </div>
           </div>
         </div>
