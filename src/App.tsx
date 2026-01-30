@@ -32,6 +32,7 @@ import Platform from "@/pages/Platform";
 import Terms from "@/pages/public/Terms";
 import Privacy from "@/pages/public/Privacy";
 import Home from "@/pages/Home";
+import Portfolio from "@/pages/public/Portfolio";
 
 // Client Pages
 import ClientLogin from "@/pages/client/Login";
@@ -69,6 +70,7 @@ const App = () => (
             <Route path="/nova-senha" element={<ClientResetPassword />} />
             <Route path="/plans" element={<ClientPlans />} />
             <Route path="/platform" element={<Platform />} />
+            <Route path="/portfolio" element={<Portfolio />} />
             <Route path="/termos" element={<Terms />} />
             <Route path="/privacidade" element={<Privacy />} />
             

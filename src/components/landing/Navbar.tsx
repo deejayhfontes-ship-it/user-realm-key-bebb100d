@@ -16,11 +16,11 @@ import {
 import { toast } from "sonner";
 
 const navItems = [
-  { label: "HOME", href: "#hero" },
-  { label: "ABOUT", href: "#about" },
-  { label: "PROJECTS", href: "#projects" },
-  { label: "SERVICES", href: "#services" },
-  { label: "CONTACT", href: "#contact" },
+  { label: "HOME", href: "#hero", isRoute: false },
+  { label: "ABOUT", href: "#about", isRoute: false },
+  { label: "PROJECTS", href: "/portfolio", isRoute: true },
+  { label: "SERVICES", href: "#services", isRoute: false },
+  { label: "CONTACT", href: "#contact", isRoute: false },
 ];
 
 export function Navbar() {
@@ -38,10 +38,12 @@ export function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleNavClick = (href: string) => {
+  const handleNavClick = (item: typeof navItems[0]) => {
     setIsMobileMenuOpen(false);
-    if (href.startsWith("#")) {
-      const element = document.querySelector(href);
+    if (item.isRoute) {
+      navigate(item.href);
+    } else if (item.href.startsWith("#")) {
+      const element = document.querySelector(item.href);
       element?.scrollIntoView({ behavior: "smooth" });
     }
   };
@@ -85,7 +87,7 @@ export function Navbar() {
           {navItems.map((item) => (
             <button
               key={item.label}
-              onClick={() => handleNavClick(item.href)}
+              onClick={() => handleNavClick(item)}
               className="px-4 py-2 text-sm font-pixel text-zinc-400 hover:text-white transition-colors"
             >
               {item.label}
@@ -176,7 +178,7 @@ export function Navbar() {
           {navItems.map((item) => (
             <button
               key={item.label}
-              onClick={() => handleNavClick(item.href)}
+              onClick={() => handleNavClick(item)}
               className="text-2xl font-display text-white hover:text-primary transition-colors"
             >
               {item.label}
