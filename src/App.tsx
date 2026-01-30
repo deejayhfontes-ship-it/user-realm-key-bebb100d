@@ -36,6 +36,7 @@ import Home from "@/pages/Home";
 import PublicBriefing from "@/pages/public/Briefing";
 import PedidoAcompanhamento from "@/pages/public/PedidoAcompanhamento";
 import Portfolio from "@/pages/public/Portfolio";
+import Consultar from "@/pages/public/Consultar";
 
 // Client Pages
 import ClientLogin from "@/pages/client/Login";
@@ -76,6 +77,7 @@ const App = () => (
             <Route path="/portfolio" element={<Portfolio />} />
             <Route path="/briefing" element={<PublicBriefing />} />
             <Route path="/pedido/:protocolo" element={<PedidoAcompanhamento />} />
+            <Route path="/consultar" element={<Consultar />} />
             <Route path="/termos" element={<Terms />} />
             <Route path="/privacidade" element={<Privacy />} />
             
