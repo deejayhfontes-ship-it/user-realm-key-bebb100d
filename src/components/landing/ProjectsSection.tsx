@@ -1,16 +1,21 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { usePublicPortfolio } from "@/hooks/usePortfolio";
-import { ArrowRight, X } from "lucide-react";
+import { ArrowRight, X, CheckCircle2, LogIn } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { landingContent } from "@/data/landingContent";
+import { useAuth } from "@/hooks/useAuth";
+import { useClientData } from "@/hooks/useClientData";
 import cardClientLoginBg from "@/assets/card-client-login-bg.jpg";
 import cardServicesBg from "@/assets/card-services-bg.jpg";
 
 export function ProjectsSection() {
   const { cases, isLoading } = usePublicPortfolio();
   const [selectedProject, setSelectedProject] = useState<typeof cases[0] | null>(null);
+  const { user, profile } = useAuth();
+  const { client } = useClientData();
+  const navigate = useNavigate();
 
   const content = landingContent.projects;
 
@@ -68,6 +73,18 @@ export function ProjectsSection() {
     element?.scrollIntoView({ behavior: "smooth" });
   };
 
+  // Auth state for client card
+  const isAuthenticated = !!user && profile?.role === "client";
+  const clientName = client?.name || profile?.email?.split("@")[0] || "Usuário";
+
+  const handleClientCardClick = () => {
+    if (isAuthenticated) {
+      navigate("/client/dashboard");
+    } else {
+      navigate("/client/login");
+    }
+  };
+
   return (
     <section id="projects" className="section-padding bg-[#0a0a0a]">
       <div className="container mx-auto px-4">
@@ -75,20 +92,28 @@ export function ProjectsSection() {
 
         {/* Projects Grid - CTA Cards First, then Portfolio */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* CTA Card 1 - Client Login */}
-          <Link
-            to={ctaCards.clientLogin.link}
-            className="group relative aspect-[3/4] rounded-[40px] overflow-hidden cursor-pointer magnetto-card bg-primary"
+          {/* CTA Card 1 - Client Login/Dashboard */}
+          <div
+            onClick={handleClientCardClick}
+            className="group relative aspect-[3/4] rounded-[40px] overflow-hidden cursor-pointer magnetto-card bg-primary active:scale-[0.98] transition-transform duration-200"
           >
             {/* Solid lime background - no image */}
             <div className="absolute inset-0 bg-primary transition-transform duration-700 group-hover:scale-105" />
+
+            {/* Connected Badge - Only shows when authenticated */}
+            {isAuthenticated && (
+              <div className="absolute top-6 right-6 z-10 flex items-center gap-2 px-4 py-2 rounded-full bg-black/60 backdrop-blur-md border border-white/20 animate-fade-in">
+                <CheckCircle2 className="w-4 h-4 text-primary" />
+                <span className="text-xs font-pixel text-white tracking-wider">CONECTADO</span>
+              </div>
+            )}
 
             {/* Central Glass Card - glassmorphism preserved */}
             <div className="absolute inset-0 flex items-center justify-center p-6 md:p-8">
               <div className="bg-black/40 backdrop-blur-xl rounded-[32px] border border-white/10 p-6 md:p-8 flex flex-col items-center justify-center w-[75%] aspect-square max-w-[280px]">
                 {/* Category Tag */}
                 <p className="font-pixel text-xs text-white/80 tracking-[0.3em] uppercase mb-4">
-                  {ctaCards.clientLogin.tag}
+                  {isAuthenticated ? `Olá, ${clientName.split(" ")[0]}` : ctaCards.clientLogin.tag}
                 </p>
 
                 {/* Title */}
@@ -96,13 +121,24 @@ export function ProjectsSection() {
                   {ctaCards.clientLogin.title}
                 </h3>
 
-                {/* Button */}
+                {/* Button - Different states */}
                 <span className="px-6 py-3 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white text-sm font-pixel tracking-wider flex items-center gap-2 group-hover:bg-black/60 transition-all">
-                  {ctaCards.clientLogin.button}
+                  {isAuthenticated ? (
+                    <>
+                      <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 absolute">Acessar Área</span>
+                      <span className="group-hover:opacity-0 transition-opacity duration-300">Minha Área</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 absolute">Fazer Login</span>
+                      <span className="group-hover:opacity-0 transition-opacity duration-300">{ctaCards.clientLogin.button}</span>
+                      <LogIn className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </>
+                  )}
                 </span>
               </div>
             </div>
-          </Link>
+          </div>
 
           {/* CTA Card 2 - Services */}
           <a
