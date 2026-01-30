@@ -71,15 +71,7 @@ export function ProjectsSection() {
   return (
     <section id="projects" className="section-padding bg-[#0a0a0a]">
       <div className="container mx-auto px-4">
-        {/* Section Header */}
-        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-16">
-          <h2 className="magnetto-title text-5xl md:text-7xl lg:text-8xl text-white">
-            {content.sectionTitle}
-          </h2>
-          <p className="text-zinc-400 max-w-md text-lg">
-            Explore nossos projetos mais recentes. Cada trabalho conta uma história única de criatividade e estratégia.
-          </p>
-        </div>
+        {/* Cards only - no header */}
 
         {/* Projects Grid - CTA Cards First, then Portfolio */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
