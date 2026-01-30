@@ -84,9 +84,9 @@ export function ProjectsSection() {
               {/* Subtle gradient overlay */}
               <div className="absolute inset-0 bg-black/10" />
 
-              {/* Central Glass Card */}
-              <div className="absolute inset-0 flex items-center justify-center p-8">
-                <div className="bg-black/40 backdrop-blur-xl rounded-[32px] border border-white/10 p-8 md:p-10 flex flex-col items-center justify-center min-w-[70%] max-w-[85%]">
+              {/* Central Glass Card - Fixed size */}
+              <div className="absolute inset-0 flex items-center justify-center p-6 md:p-8">
+                <div className="bg-black/40 backdrop-blur-xl rounded-[32px] border border-white/10 p-6 md:p-8 flex flex-col items-center justify-center w-[75%] aspect-square max-w-[280px]">
                   {/* Category Tag */}
                   <p className="font-pixel text-xs text-white/80 tracking-[0.3em] uppercase mb-4">
                     {project.category}
