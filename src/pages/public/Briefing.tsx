@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/landing/Navbar";
 import { Footer } from "@/components/landing/Footer";
 import { usePublicServices } from "@/hooks/usePublicServices";
-import { useBriefings } from "@/hooks/useBriefings";
+import { useCreatePedido } from "@/hooks/usePedidos";
 import { BriefingStepIndicator } from "@/components/briefing/BriefingStepIndicator";
 import { BriefingStep1 } from "@/components/briefing/BriefingStep1";
 import { BriefingStep2 } from "@/components/briefing/BriefingStep2";
@@ -44,11 +44,12 @@ const initialFormData: BriefingFormData = {
 export default function PublicBriefing() {
   const navigate = useNavigate();
   const { services, isLoading: loadingServices } = usePublicServices();
-  const { createBriefing, isCreating } = useBriefings();
+  const createPedido = useCreatePedido();
   
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<BriefingFormData>(initialFormData);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [protocolo, setProtocolo] = useState<string | null>(null);
 
   const updateFormData = (updates: Partial<BriefingFormData>) => {
     setFormData(prev => ({ ...prev, ...updates }));
@@ -82,20 +83,21 @@ export default function PublicBriefing() {
   };
 
   const handleSubmit = () => {
-    createBriefing(
+    createPedido.mutate(
       {
         nome: formData.nome,
         email: formData.email,
         telefone: formData.telefone || undefined,
         empresa: formData.empresa || undefined,
-        tipo_projeto: formData.serviceName,
         descricao: formData.descricao,
+        prazo_solicitado: formData.prazo || undefined,
         referencias: formData.referencias || undefined,
-        prazo: formData.prazo || undefined,
         arquivo_urls: formData.arquivoUrls,
+        service_id: formData.serviceId || undefined,
       },
       {
-        onSuccess: () => {
+        onSuccess: (pedido) => {
+          setProtocolo(pedido.protocolo);
           setIsSubmitted(true);
         },
         onError: () => {
@@ -109,7 +111,7 @@ export default function PublicBriefing() {
     return (
       <div className="min-h-screen bg-[#1a1a1a] text-white">
         <Navbar />
-        <BriefingSuccess />
+        <BriefingSuccess protocolo={protocolo} />
         <Footer />
       </div>
     );
@@ -182,7 +184,7 @@ export default function PublicBriefing() {
               services={services}
               onSubmit={handleSubmit}
               onPrev={handlePrev}
-              isSubmitting={isCreating}
+              isSubmitting={createPedido.isPending}
             />
           )}
         </div>

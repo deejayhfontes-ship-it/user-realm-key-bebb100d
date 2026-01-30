@@ -16,7 +16,8 @@ import {
   Briefcase,
   FileCheck,
   Layers,
-  MessageSquare
+  MessageSquare,
+  ShoppingBag
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -48,6 +49,11 @@ const navItems = [
     title: 'Pagamentos', 
     href: '/admin/payments', 
     icon: CreditCard 
+  },
+  { 
+    title: 'Pedidos', 
+    href: '/admin/pedidos', 
+    icon: ShoppingBag 
   },
   { 
     title: 'Briefings', 
