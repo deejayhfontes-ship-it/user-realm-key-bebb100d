@@ -82,25 +82,27 @@ export function ProjectsSection() {
               />
               
               {/* Subtle gradient overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-black/10" />
 
-              {/* Content - Spread vertically */}
-              <div className="absolute inset-0 p-8 flex flex-col items-center justify-center">
-                {/* Category Tag - Top position */}
-                <p className="font-pixel text-xs text-white/80 tracking-[0.3em] uppercase mb-4">
-                  {project.category}
-                </p>
+              {/* Central Glass Card */}
+              <div className="absolute inset-0 flex items-center justify-center p-8">
+                <div className="bg-black/40 backdrop-blur-xl rounded-[32px] border border-white/10 p-8 md:p-10 flex flex-col items-center justify-center min-w-[70%] max-w-[85%]">
+                  {/* Category Tag */}
+                  <p className="font-pixel text-xs text-white/80 tracking-[0.3em] uppercase mb-4">
+                    {project.category}
+                  </p>
 
-                {/* Title - Center */}
-                <h3 className="magnetto-title text-3xl md:text-4xl lg:text-5xl text-white text-center mb-6 tracking-[0.1em]">
-                  {project.title}
-                </h3>
+                  {/* Title */}
+                  <h3 className="magnetto-title text-2xl md:text-3xl lg:text-4xl text-white text-center mb-6 tracking-[0.1em] leading-tight">
+                    {project.title}
+                  </h3>
 
-                {/* Explore More Button - Glassmorphism pill */}
-                <button className="px-6 py-3 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white text-sm font-pixel tracking-wider opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 flex items-center gap-2 hover:bg-black/60">
-                  Explore More
-                  <span className="text-lg">+</span>
-                </button>
+                  {/* Explore More Button */}
+                  <button className="px-6 py-3 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white text-sm font-pixel tracking-wider flex items-center gap-2 hover:bg-black/60 transition-all">
+                    Explore More
+                    <span className="text-lg">+</span>
+                  </button>
+                </div>
               </div>
             </div>
           ))}
