@@ -17,7 +17,8 @@ import {
   FileCheck,
   Layers,
   MessageSquare,
-  ShoppingBag
+  ShoppingBag,
+  MessageCircle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -69,6 +70,11 @@ const navItems = [
     title: 'Atendimento', 
     href: '/admin/atendimento', 
     icon: MessageSquare 
+  },
+  { 
+    title: 'Chat ao Vivo', 
+    href: '/admin/chat', 
+    icon: MessageCircle 
   },
   { 
     title: 'Orçamentos', 
