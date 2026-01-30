@@ -7,12 +7,14 @@ import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { landingContent } from "@/data/landingContent";
 import { useAuth } from "@/hooks/useAuth";
 import { useClientData } from "@/hooks/useClientData";
+import { PackagesModal } from "./PackagesModal";
 import cardClientLoginBg from "@/assets/card-client-login-bg.jpg";
 import cardServicesBg from "@/assets/card-services-bg.jpg";
 
 export function ProjectsSection() {
   const { cases, isLoading } = usePublicPortfolio();
   const [selectedProject, setSelectedProject] = useState<typeof cases[0] | null>(null);
+  const [packagesModalOpen, setPackagesModalOpen] = useState(false);
   const { user, profile } = useAuth();
   const { client } = useClientData();
   const navigate = useNavigate();
@@ -140,11 +142,10 @@ export function ProjectsSection() {
             </div>
           </div>
 
-          {/* CTA Card 2 - Services */}
-          <a
-            href="#services"
-            onClick={handleScrollToServices}
-            className="group relative aspect-[3/4] rounded-[40px] overflow-hidden cursor-pointer magnetto-card bg-[#1a1a1a]"
+          {/* CTA Card 2 - Packages (was Services) */}
+          <div
+            onClick={() => setPackagesModalOpen(true)}
+            className="group relative aspect-[3/4] rounded-[40px] overflow-hidden cursor-pointer magnetto-card bg-[#1a1a1a] active:scale-[0.98] transition-transform duration-200"
           >
             {/* Dark background with subtle green ambient glow */}
             <div className="absolute inset-0 bg-[#1a1a1a]" />
@@ -188,11 +189,12 @@ export function ProjectsSection() {
 
                 {/* Button */}
                 <span className="px-6 py-3 rounded-full bg-primary/20 backdrop-blur-md border border-primary/30 text-primary text-sm font-pixel tracking-wider flex items-center gap-2 group-hover:bg-primary/30 transition-all">
-                  {ctaCards.services.button}
+                  <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 absolute">Ver Planos</span>
+                  <span className="group-hover:opacity-0 transition-opacity duration-300">{ctaCards.services.button}</span>
                 </span>
               </div>
             </div>
-          </a>
+          </div>
 
           {/* Portfolio Project Cards */}
           {displayProjects.slice(0, 4).map((project) => (
@@ -292,6 +294,9 @@ export function ProjectsSection() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Packages Modal */}
+      <PackagesModal open={packagesModalOpen} onOpenChange={setPackagesModalOpen} />
     </section>
   );
 }
