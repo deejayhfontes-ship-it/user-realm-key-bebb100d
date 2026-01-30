@@ -501,6 +501,161 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_config: {
+        Row: {
+          atalhos: Json | null
+          ativo: boolean | null
+          cor: string | null
+          created_at: string | null
+          delay_boas_vindas: number | null
+          dias_atendimento: string[] | null
+          horario_fim: string | null
+          horario_inicio: string | null
+          id: string
+          mensagem_boas_vindas: string | null
+          posicao: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          atalhos?: Json | null
+          ativo?: boolean | null
+          cor?: string | null
+          created_at?: string | null
+          delay_boas_vindas?: number | null
+          dias_atendimento?: string[] | null
+          horario_fim?: string | null
+          horario_inicio?: string | null
+          id?: string
+          mensagem_boas_vindas?: string | null
+          posicao?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          atalhos?: Json | null
+          ativo?: boolean | null
+          cor?: string | null
+          created_at?: string | null
+          delay_boas_vindas?: number | null
+          dias_atendimento?: string[] | null
+          horario_fim?: string | null
+          horario_inicio?: string | null
+          id?: string
+          mensagem_boas_vindas?: string | null
+          posicao?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      chat_mensagens: {
+        Row: {
+          anexo_url: string | null
+          enviada_em: string | null
+          id: string
+          lida: boolean | null
+          mensagem: string
+          remetente_id: string | null
+          remetente_tipo: string
+          sessao_id: string
+        }
+        Insert: {
+          anexo_url?: string | null
+          enviada_em?: string | null
+          id?: string
+          lida?: boolean | null
+          mensagem: string
+          remetente_id?: string | null
+          remetente_tipo: string
+          sessao_id: string
+        }
+        Update: {
+          anexo_url?: string | null
+          enviada_em?: string | null
+          id?: string
+          lida?: boolean | null
+          mensagem?: string
+          remetente_id?: string | null
+          remetente_tipo?: string
+          sessao_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_mensagens_sessao_id_fkey"
+            columns: ["sessao_id"]
+            isOneToOne: false
+            referencedRelation: "chat_sessoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_sessoes: {
+        Row: {
+          atendente_id: string | null
+          client_id: string | null
+          created_at: string | null
+          encerrado_em: string | null
+          id: string
+          iniciado_em: string | null
+          ip_visitante: string | null
+          pagina_origem: string | null
+          session_id: string
+          status: string | null
+          updated_at: string | null
+          user_agent: string | null
+          visitor_email: string | null
+          visitor_name: string | null
+        }
+        Insert: {
+          atendente_id?: string | null
+          client_id?: string | null
+          created_at?: string | null
+          encerrado_em?: string | null
+          id?: string
+          iniciado_em?: string | null
+          ip_visitante?: string | null
+          pagina_origem?: string | null
+          session_id: string
+          status?: string | null
+          updated_at?: string | null
+          user_agent?: string | null
+          visitor_email?: string | null
+          visitor_name?: string | null
+        }
+        Update: {
+          atendente_id?: string | null
+          client_id?: string | null
+          created_at?: string | null
+          encerrado_em?: string | null
+          id?: string
+          iniciado_em?: string | null
+          ip_visitante?: string | null
+          pagina_origem?: string | null
+          session_id?: string
+          status?: string | null
+          updated_at?: string | null
+          user_agent?: string | null
+          visitor_email?: string | null
+          visitor_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_sessoes_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "client_stats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_sessoes_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_generators: {
         Row: {
           allowed_weekdays: number[] | null

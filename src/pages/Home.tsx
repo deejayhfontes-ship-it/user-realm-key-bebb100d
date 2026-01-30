@@ -7,6 +7,7 @@ import { ClientsSection } from "@/components/landing/ClientsSection";
 import { ServicesSection } from "@/components/landing/ServicesSection";
 import { ContactSection } from "@/components/landing/ContactSection";
 import { Footer } from "@/components/landing/Footer";
+import { LiveChatWidget } from "@/components/landing/LiveChatWidget";
 
 export default function Home() {
   return (
@@ -22,6 +23,7 @@ export default function Home() {
         <ContactSection />
       </main>
       <Footer />
+      <LiveChatWidget />
     </div>
   );
 }
