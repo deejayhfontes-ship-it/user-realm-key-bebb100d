@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/landing/Navbar";
 import { Footer } from "@/components/landing/Footer";
@@ -129,9 +130,21 @@ export default function PublicBriefing() {
         <h1 className="text-[40px] font-bold text-white text-center mb-3">
           Novo Orçamento
         </h1>
-        <p className="text-lg text-white/70 text-center">
+        <p className="text-lg text-white/70 text-center mb-6">
           Conte-nos sobre seu projeto em detalhes
         </p>
+        <button
+          onClick={() => {
+            const protocolo = prompt("Digite o número do protocolo:");
+            if (protocolo?.trim()) {
+              navigate(`/pedido/${protocolo.trim()}`);
+            }
+          }}
+          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-[#c4ff0d]/50 text-[#c4ff0d] hover:bg-[#c4ff0d]/10 transition-all duration-300 text-sm font-medium"
+        >
+          <Search className="w-4 h-4" />
+          Consultar Pedido
+        </button>
       </section>
 
       {/* Form Container */}
