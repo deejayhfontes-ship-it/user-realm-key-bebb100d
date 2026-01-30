@@ -21,7 +21,7 @@ export function AboutSection() {
               {content.sectionLabel}
             </p>
             <h2 className="magnetto-title text-5xl md:text-7xl text-white mb-6">
-              ABOUT
+              SOBRE
             </h2>
             <div className="w-20 h-1 bg-primary mb-6" />
           </div>
