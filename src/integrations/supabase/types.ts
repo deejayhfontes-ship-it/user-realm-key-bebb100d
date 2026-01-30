@@ -1584,6 +1584,154 @@ export type Database = {
           },
         ]
       }
+      pedidos: {
+        Row: {
+          arquivo_urls: Json | null
+          arquivos_entregues: Json | null
+          avaliacao_comentario: string | null
+          avaliacao_nota: number | null
+          client_id: string | null
+          comprovante_url: string | null
+          condicao_pagamento: string | null
+          created_at: string | null
+          data_aprovacao: string | null
+          data_briefing: string | null
+          data_emissao_nf: string | null
+          data_entrega: string | null
+          data_inicio_confeccao: string | null
+          data_orcamento: string | null
+          data_pagamento: string | null
+          data_pagamento_final: string | null
+          descricao: string
+          email: string
+          empresa: string | null
+          id: string
+          mensagem_entrega: string | null
+          motivo_recusa: string | null
+          nome: string
+          nota_fiscal_emitida: boolean | null
+          numero_nota_fiscal: string | null
+          observacoes_admin: string | null
+          prazo_final: string | null
+          prazo_orcado: number | null
+          prazo_solicitado: string | null
+          protocolo: string
+          referencias: string | null
+          requer_pagamento_antecipado: boolean | null
+          service_id: string | null
+          status: string | null
+          telefone: string | null
+          tipo_pagamento: string | null
+          updated_at: string | null
+          valor_entrada: number | null
+          valor_orcado: number | null
+        }
+        Insert: {
+          arquivo_urls?: Json | null
+          arquivos_entregues?: Json | null
+          avaliacao_comentario?: string | null
+          avaliacao_nota?: number | null
+          client_id?: string | null
+          comprovante_url?: string | null
+          condicao_pagamento?: string | null
+          created_at?: string | null
+          data_aprovacao?: string | null
+          data_briefing?: string | null
+          data_emissao_nf?: string | null
+          data_entrega?: string | null
+          data_inicio_confeccao?: string | null
+          data_orcamento?: string | null
+          data_pagamento?: string | null
+          data_pagamento_final?: string | null
+          descricao: string
+          email: string
+          empresa?: string | null
+          id?: string
+          mensagem_entrega?: string | null
+          motivo_recusa?: string | null
+          nome: string
+          nota_fiscal_emitida?: boolean | null
+          numero_nota_fiscal?: string | null
+          observacoes_admin?: string | null
+          prazo_final?: string | null
+          prazo_orcado?: number | null
+          prazo_solicitado?: string | null
+          protocolo: string
+          referencias?: string | null
+          requer_pagamento_antecipado?: boolean | null
+          service_id?: string | null
+          status?: string | null
+          telefone?: string | null
+          tipo_pagamento?: string | null
+          updated_at?: string | null
+          valor_entrada?: number | null
+          valor_orcado?: number | null
+        }
+        Update: {
+          arquivo_urls?: Json | null
+          arquivos_entregues?: Json | null
+          avaliacao_comentario?: string | null
+          avaliacao_nota?: number | null
+          client_id?: string | null
+          comprovante_url?: string | null
+          condicao_pagamento?: string | null
+          created_at?: string | null
+          data_aprovacao?: string | null
+          data_briefing?: string | null
+          data_emissao_nf?: string | null
+          data_entrega?: string | null
+          data_inicio_confeccao?: string | null
+          data_orcamento?: string | null
+          data_pagamento?: string | null
+          data_pagamento_final?: string | null
+          descricao?: string
+          email?: string
+          empresa?: string | null
+          id?: string
+          mensagem_entrega?: string | null
+          motivo_recusa?: string | null
+          nome?: string
+          nota_fiscal_emitida?: boolean | null
+          numero_nota_fiscal?: string | null
+          observacoes_admin?: string | null
+          prazo_final?: string | null
+          prazo_orcado?: number | null
+          prazo_solicitado?: string | null
+          protocolo?: string
+          referencias?: string | null
+          requer_pagamento_antecipado?: boolean | null
+          service_id?: string | null
+          status?: string | null
+          telefone?: string | null
+          tipo_pagamento?: string | null
+          updated_at?: string | null
+          valor_entrada?: number | null
+          valor_orcado?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pedidos_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "client_stats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pedidos_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pedidos_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pix_configs: {
         Row: {
           created_at: string | null

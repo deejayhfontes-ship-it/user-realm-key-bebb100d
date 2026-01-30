@@ -25,6 +25,7 @@ import AdminPortfolio from "@/pages/admin/Portfolio";
 import AdminNotasFiscais from "@/pages/admin/NotasFiscais";
 import AdminServices from "@/pages/admin/Services";
 import AdminAtendimento from "@/pages/admin/Atendimento";
+import AdminPedidos from "@/pages/admin/Pedidos";
 import NotFound from "@/pages/NotFound";
 import Platform from "@/pages/Platform";
 
@@ -33,6 +34,7 @@ import Terms from "@/pages/public/Terms";
 import Privacy from "@/pages/public/Privacy";
 import Home from "@/pages/Home";
 import PublicBriefing from "@/pages/public/Briefing";
+import PedidoAcompanhamento from "@/pages/public/PedidoAcompanhamento";
 import Portfolio from "@/pages/public/Portfolio";
 
 // Client Pages
@@ -73,6 +75,7 @@ const App = () => (
             <Route path="/platform" element={<Platform />} />
             <Route path="/portfolio" element={<Portfolio />} />
             <Route path="/briefing" element={<PublicBriefing />} />
+            <Route path="/pedido/:protocolo" element={<PedidoAcompanhamento />} />
             <Route path="/termos" element={<Terms />} />
             <Route path="/privacidade" element={<Privacy />} />
             
@@ -94,6 +97,7 @@ const App = () => (
               <Route path="generators" element={<AdminGenerators />} />
               <Route path="ai-providers" element={<AdminAIProviders />} />
               <Route path="payments" element={<AdminPayments />} />
+              <Route path="pedidos" element={<AdminPedidos />} />
               <Route path="briefings" element={<AdminBriefings />} />
               <Route path="servicos" element={<AdminServices />} />
               <Route path="atendimento" element={<AdminAtendimento />} />

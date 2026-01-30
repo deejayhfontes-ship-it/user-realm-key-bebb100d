@@ -1,7 +1,22 @@
-import { CheckCircle, ArrowRight, Home } from "lucide-react";
+import { CheckCircle, ArrowRight, Home, Copy, Check } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useState } from "react";
 
-export function BriefingSuccess() {
+interface BriefingSuccessProps {
+  protocolo?: string | null;
+}
+
+export function BriefingSuccess({ protocolo }: BriefingSuccessProps) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    if (protocolo) {
+      navigator.clipboard.writeText(protocolo);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
   return (
     <section 
       className="min-h-[calc(100vh-200px)] flex flex-col items-center justify-center px-6 pt-24"
@@ -17,8 +32,27 @@ export function BriefingSuccess() {
 
         {/* Title */}
         <h1 className="text-4xl font-bold text-white mb-4">
-          Briefing Enviado!
+          Pedido Enviado!
         </h1>
+
+        {/* Protocol */}
+        {protocolo && (
+          <div className="mb-6">
+            <p className="text-sm text-white/50 mb-2">Seu protocolo de acompanhamento:</p>
+            <button
+              onClick={handleCopy}
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#c4ff0d]/20 border border-[#c4ff0d]/30 hover:bg-[#c4ff0d]/30 transition-all"
+            >
+              <span className="font-mono text-xl font-bold text-[#c4ff0d]">{protocolo}</span>
+              {copied ? (
+                <Check className="w-5 h-5 text-[#c4ff0d]" />
+              ) : (
+                <Copy className="w-5 h-5 text-[#c4ff0d]" />
+              )}
+            </button>
+            <p className="text-xs text-white/40 mt-2">Clique para copiar</p>
+          </div>
+        )}
 
         {/* Description */}
         <p className="text-lg text-white/70 mb-8">
@@ -47,7 +81,7 @@ export function BriefingSuccess() {
               <div className="w-6 h-6 rounded-full bg-[#c4ff0d]/30 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
                 3
               </div>
-              <p className="text-sm text-white/80">Reunião para alinhamento (se necessário)</p>
+              <p className="text-sm text-white/80">Aprovação e início do projeto</p>
             </div>
           </div>
         </div>
@@ -61,13 +95,15 @@ export function BriefingSuccess() {
             <Home className="w-5 h-5" />
             Voltar ao Início
           </Link>
-          <Link
-            to="/portfolio"
-            className="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-[24px] font-semibold bg-[#c4ff0d] text-[#1a1a1a] hover:opacity-90 transition-all duration-300"
-          >
-            Ver Portfólio
-            <ArrowRight className="w-5 h-5" />
-          </Link>
+          {protocolo && (
+            <Link
+              to={`/pedido/${protocolo}`}
+              className="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-[24px] font-semibold bg-[#c4ff0d] text-[#1a1a1a] hover:opacity-90 transition-all duration-300"
+            >
+              Acompanhar Pedido
+              <ArrowRight className="w-5 h-5" />
+            </Link>
+          )}
         </div>
       </div>
     </section>
