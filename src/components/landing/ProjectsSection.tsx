@@ -108,16 +108,22 @@ export function ProjectsSection() {
           <a
             href="#services"
             onClick={handleScrollToServices}
-            className="group relative aspect-[3/4] rounded-[40px] overflow-hidden cursor-pointer magnetto-card"
+            className="group relative aspect-[3/4] rounded-[40px] overflow-hidden cursor-pointer magnetto-card bg-[#1a1a1a]"
           >
-            {/* Background Image */}
-            <div
-              className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
-              style={{ backgroundImage: `url(${cardServicesBg})` }}
+            {/* Dark background with subtle green ambient glow */}
+            <div className="absolute inset-0 bg-[#1a1a1a]" />
+            <div 
+              className="absolute inset-0 opacity-40"
+              style={{
+                background: 'radial-gradient(ellipse 80% 60% at 85% 20%, hsl(78 40% 25% / 0.6) 0%, transparent 60%)'
+              }}
             />
-            
-            {/* Subtle gradient overlay */}
-            <div className="absolute inset-0 bg-black/30" />
+            <div 
+              className="absolute inset-0 opacity-30"
+              style={{
+                background: 'radial-gradient(ellipse 50% 40% at 70% 80%, hsl(78 30% 20% / 0.4) 0%, transparent 50%)'
+              }}
+            />
 
             {/* Central Glass Card - Fixed size */}
             <div className="absolute inset-0 flex items-center justify-center p-6 md:p-8">
