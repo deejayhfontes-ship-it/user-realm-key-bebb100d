@@ -105,11 +105,10 @@ export function ContactSection() {
 
           {/* Right - Form */}
           <div className="magnetto-glass p-8 md:p-10">
-            <div className="flex items-center gap-2 mb-8">
+            <div className="mb-8">
               <span className="font-pixel text-xs text-zinc-400 tracking-[0.2em]">
                 {content.sectionLabel}
               </span>
-              <span className="font-pixel text-xs text-primary">.25</span>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
