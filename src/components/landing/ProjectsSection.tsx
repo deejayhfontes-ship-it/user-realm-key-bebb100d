@@ -78,32 +78,26 @@ export function ProjectsSection() {
           {/* CTA Card 1 - Client Login */}
           <Link
             to={ctaCards.clientLogin.link}
-            className="group relative aspect-[3/4] rounded-[40px] overflow-hidden cursor-pointer magnetto-card"
+            className="group relative aspect-[3/4] rounded-[40px] overflow-hidden cursor-pointer magnetto-card bg-primary"
           >
-            {/* Background Image */}
-            <div
-              className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
-              style={{ backgroundImage: `url(${cardClientLoginBg})` }}
-            />
-            
-            {/* Subtle gradient overlay */}
-            <div className="absolute inset-0 bg-black/30" />
+            {/* Solid lime background - no image */}
+            <div className="absolute inset-0 bg-primary transition-transform duration-700 group-hover:scale-105" />
 
-            {/* Central Glass Card - Fixed size - Lime accent */}
+            {/* Central Glass Card - glassmorphism preserved */}
             <div className="absolute inset-0 flex items-center justify-center p-6 md:p-8">
-              <div className="bg-primary/90 backdrop-blur-xl rounded-[32px] border border-primary/20 p-6 md:p-8 flex flex-col items-center justify-center w-[75%] aspect-square max-w-[280px]">
+              <div className="bg-black/40 backdrop-blur-xl rounded-[32px] border border-white/10 p-6 md:p-8 flex flex-col items-center justify-center w-[75%] aspect-square max-w-[280px]">
                 {/* Category Tag */}
-                <p className="font-pixel text-xs text-primary-foreground/80 tracking-[0.3em] uppercase mb-4">
+                <p className="font-pixel text-xs text-white/80 tracking-[0.3em] uppercase mb-4">
                   {ctaCards.clientLogin.tag}
                 </p>
 
                 {/* Title */}
-                <h3 className="magnetto-title text-2xl md:text-3xl lg:text-4xl text-primary-foreground text-center mb-6 tracking-[0.1em] leading-tight">
+                <h3 className="magnetto-title text-2xl md:text-3xl lg:text-4xl text-white text-center mb-6 tracking-[0.1em] leading-tight">
                   {ctaCards.clientLogin.title}
                 </h3>
 
                 {/* Button */}
-                <span className="px-6 py-3 rounded-full bg-primary-foreground/20 backdrop-blur-md border border-primary-foreground/20 text-primary-foreground text-sm font-pixel tracking-wider flex items-center gap-2 group-hover:bg-primary-foreground/30 transition-all">
+                <span className="px-6 py-3 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white text-sm font-pixel tracking-wider flex items-center gap-2 group-hover:bg-black/60 transition-all">
                   {ctaCards.clientLogin.button}
                 </span>
               </div>
