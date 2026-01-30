@@ -134,8 +134,8 @@ function ChromaPlaneInner({ texture }: { texture: THREE.Texture }) {
     };
   }, []);
 
-  // Offset vertical apenas para desktop (>=1280px), não tablet
-  const verticalOffset = size.width >= 1280 ? -viewport.height * 0.1 : 0;
+  // Offset vertical apenas para desktop (>=1280px) - valor maior para mostrar cabeça
+  const verticalOffset = size.width >= 1280 ? -viewport.height * 0.18 : 0;
 
   return (
     <mesh ref={meshRef} scale={[scaleX, scaleY, 1]} position={[0, verticalOffset, 0]}>
