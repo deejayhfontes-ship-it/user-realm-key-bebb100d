@@ -17,10 +17,10 @@ import { toast } from "sonner";
 
 const navItems = [
   { label: "HOME", href: "#hero", isRoute: false },
-  { label: "ABOUT", href: "#about", isRoute: false },
-  { label: "PROJECTS", href: "/portfolio", isRoute: true },
-  { label: "SERVICES", href: "#services", isRoute: false },
-  { label: "CONTACT", href: "#contact", isRoute: false },
+  { label: "SOBRE", href: "#about", isRoute: false },
+  { label: "PORTFÓLIO", href: "/portfolio", isRoute: true },
+  { label: "SERVIÇOS", href: "#services", isRoute: false },
+  { label: "CONTATO", href: "#contact", isRoute: false },
 ];
 
 export function Navbar() {
