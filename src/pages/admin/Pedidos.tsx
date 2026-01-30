@@ -60,7 +60,7 @@ export default function AdminPedidos() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 lg:p-8 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
