@@ -5,10 +5,19 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Trash2, Eye } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { Service, ServiceFormData, defaultServiceFormData } from '@/types/service';
+import type { Service, ServiceFormData } from '@/types/service';
 import { ServicePreview } from './ServicePreview';
+
+const availableIcons = [
+  'Palette', 'Video', 'Camera', 'Megaphone', 'PenTool', 'Layout', 'Monitor', 
+  'Smartphone', 'Globe', 'ShoppingCart', 'Mail', 'FileText', 'Image', 'Film',
+  'Music', 'Mic', 'Headphones', 'Tv', 'Play', 'Brush', 'Scissors', 'Layers',
+  'Box', 'Package', 'Gift', 'Star', 'Heart', 'Zap', 'Target', 'Award'
+];
 
 interface ServiceFormModalProps {
   open: boolean;
@@ -152,13 +161,36 @@ export function ServiceFormModal({ open, onOpenChange, service, onSubmit }: Serv
             {/* Ícone e Título */}
             <div className="grid grid-cols-4 gap-4">
               <div className="space-y-2">
-                <Label>Ícone (Lucide)</Label>
-                <Input
+                <Label>Ícone</Label>
+                <Select
                   value={formData.icon}
-                  onChange={(e) => setFormData(prev => ({ ...prev, icon: e.target.value }))}
-                  placeholder="Palette"
-                />
-                <p className="text-xs text-muted-foreground">Nome do ícone Lucide</p>
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, icon: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue>
+                      <div className="flex items-center gap-2">
+                        {(() => {
+                          const IconComponent = (LucideIcons as any)[formData.icon];
+                          return IconComponent ? <IconComponent className="w-4 h-4" /> : null;
+                        })()}
+                        <span>{formData.icon}</span>
+                      </div>
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60">
+                    {availableIcons.map(icon => {
+                      const IconComponent = (LucideIcons as any)[icon];
+                      return (
+                        <SelectItem key={icon} value={icon}>
+                          <div className="flex items-center gap-2">
+                            {IconComponent && <IconComponent className="w-4 h-4" />}
+                            <span>{icon}</span>
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="col-span-3 space-y-2">
                 <Label>Nome do Serviço *</Label>

@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Plus, Package, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,6 +24,11 @@ export default function AdminServices() {
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState<Service | null>(null);
+  const [showActiveOnly, setShowActiveOnly] = useState(false);
+
+  const filteredServices = showActiveOnly 
+    ? services.filter(s => s.is_active)
+    : services;
 
   const handleNew = () => {
     setSelectedService(null);
@@ -69,10 +76,22 @@ export default function AdminServices() {
             Gerencie os serviços oferecidos pela agência
           </p>
         </div>
-        <Button onClick={handleNew}>
-          <Plus className="w-4 h-4 mr-2" />
-          Novo Serviço
-        </Button>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 bg-muted/50 px-3 py-2 rounded-lg">
+            <Switch
+              id="active-filter"
+              checked={showActiveOnly}
+              onCheckedChange={setShowActiveOnly}
+            />
+            <Label htmlFor="active-filter" className="text-sm cursor-pointer">
+              Só Ativos
+            </Label>
+          </div>
+          <Button onClick={handleNew}>
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Serviço
+          </Button>
+        </div>
       </div>
 
       {/* Content */}
@@ -80,23 +99,29 @@ export default function AdminServices() {
         <div className="flex items-center justify-center py-12">
           <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
         </div>
-      ) : services.length === 0 ? (
+      ) : filteredServices.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
             <Package className="w-8 h-8 text-muted-foreground" />
           </div>
-          <h3 className="font-medium mb-1">Nenhum serviço cadastrado</h3>
+          <h3 className="font-medium mb-1">
+            {showActiveOnly ? 'Nenhum serviço ativo' : 'Nenhum serviço cadastrado'}
+          </h3>
           <p className="text-sm text-muted-foreground mb-4">
-            Comece adicionando os serviços que sua agência oferece
+            {showActiveOnly 
+              ? 'Desative o filtro para ver todos os serviços'
+              : 'Comece adicionando os serviços que sua agência oferece'}
           </p>
-          <Button onClick={handleNew}>
-            <Plus className="w-4 h-4 mr-2" />
-            Adicionar Serviço
-          </Button>
+          {!showActiveOnly && (
+            <Button onClick={handleNew}>
+              <Plus className="w-4 h-4 mr-2" />
+              Adicionar Serviço
+            </Button>
+          )}
         </div>
       ) : (
         <div className="grid gap-4">
-          {services.map((service) => (
+          {filteredServices.map((service) => (
             <ServiceCard
               key={service.id}
               service={service}
