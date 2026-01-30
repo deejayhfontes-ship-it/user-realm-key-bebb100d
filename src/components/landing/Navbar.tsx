@@ -37,7 +37,7 @@ export function Navbar() {
       <nav
         className={cn(
           "fixed bottom-8 left-1/2 -translate-x-1/2 z-50 hidden md:flex items-center gap-2 px-3 py-3 transition-all duration-300",
-          "navbar-pill"
+          "rounded-full bg-black/40 backdrop-blur-xl border border-white/10"
         )}
       >
         {/* Logo/Avatar */}
@@ -71,7 +71,7 @@ export function Navbar() {
       <nav
         className={cn(
           "fixed top-4 left-4 right-4 z-50 flex md:hidden items-center justify-between px-4 py-3 transition-all duration-300",
-          "navbar-pill"
+          "rounded-full bg-black/40 backdrop-blur-xl border border-white/10"
         )}
       >
         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center">
