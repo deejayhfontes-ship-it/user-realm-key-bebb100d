@@ -1,206 +1,142 @@
-import { useEffect, useState } from 'react';
-import { AdminHeader } from '@/components/admin/AdminHeader';
-import { StatCard } from '@/components/admin/StatCard';
-import { supabase } from '@/integrations/supabase/client';
-import { Users, UserCheck, Zap, CreditCard } from 'lucide-react';
+import { Bell } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from '@/components/ui/chart';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid } from 'recharts';
-
-interface DashboardStats {
-  totalClients: number;
-  activeClients: number;
-  generationsToday: number;
-  creditsUsed: number;
-}
-
-interface ChartData {
-  date: string;
-  generations: number;
-}
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Badge } from '@/components/ui/badge';
+import { useAuth } from '@/hooks/useAuth';
+import { AgendaCard } from '@/components/admin/dashboard/AgendaCard';
+import { TrelloCard } from '@/components/admin/dashboard/TrelloCard';
+import { CobrancasCard } from '@/components/admin/dashboard/CobrancasCard';
+import { FaturamentoCard } from '@/components/admin/dashboard/FaturamentoCard';
+import { MetaCard } from '@/components/admin/dashboard/MetaCard';
+import { EntregasCard } from '@/components/admin/dashboard/EntregasCard';
+import { DashboardFAB } from '@/components/admin/dashboard/DashboardFAB';
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState<DashboardStats>({
-    totalClients: 0,
-    activeClients: 0,
-    generationsToday: 0,
-    creditsUsed: 0,
-  });
-  const [chartData, setChartData] = useState<ChartData[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { user, signOut } = useAuth();
+  const notificationCount = 3; // Mock - replace with real count
 
-  useEffect(() => {
-    fetchStats();
-    fetchChartData();
-  }, []);
-
-  const fetchStats = async () => {
-    try {
-      // Total clients
-      const { count: totalClients } = await supabase
-        .from('clients')
-        .select('*', { count: 'exact', head: true });
-
-      // Active clients
-      const { count: activeClients } = await supabase
-        .from('clients')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'active');
-
-      // Generations today
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      const { count: generationsToday } = await supabase
-        .from('generations')
-        .select('*', { count: 'exact', head: true })
-        .gte('created_at', today.toISOString());
-
-      // Credits used (sum of package_credits_used)
-      const { data: creditsData } = await supabase
-        .from('clients')
-        .select('package_credits_used');
-      
-      const creditsUsed = creditsData?.reduce(
-        (sum, client) => sum + (client.package_credits_used || 0), 
-        0
-      ) || 0;
-
-      setStats({
-        totalClients: totalClients || 0,
-        activeClients: activeClients || 0,
-        generationsToday: generationsToday || 0,
-        creditsUsed,
-      });
-    } catch (error) {
-      console.error('Error fetching stats:', error);
-    } finally {
-      setLoading(false);
-    }
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Bom dia';
+    if (hour < 18) return 'Boa tarde';
+    return 'Boa noite';
   };
 
-  const fetchChartData = async () => {
-    try {
-      const days = 7;
-      const data: ChartData[] = [];
-
-      for (let i = days - 1; i >= 0; i--) {
-        const date = new Date();
-        date.setDate(date.getDate() - i);
-        const startOfDay = new Date(date);
-        startOfDay.setHours(0, 0, 0, 0);
-        const endOfDay = new Date(date);
-        endOfDay.setHours(23, 59, 59, 999);
-
-        const { count } = await supabase
-          .from('generations')
-          .select('*', { count: 'exact', head: true })
-          .gte('created_at', startOfDay.toISOString())
-          .lte('created_at', endOfDay.toISOString());
-
-        data.push({
-          date: date.toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric' }),
-          generations: count || 0,
-        });
-      }
-
-      setChartData(data);
-    } catch (error) {
-      console.error('Error fetching chart data:', error);
-    }
-  };
-
-  // Accent color: warm amber
-  const chartConfig = {
-    generations: {
-      label: 'Gerações',
-      color: 'hsl(25 65% 50%)',
-    },
-  };
+  const userName = user?.email?.split('@')[0] || 'Admin';
 
   return (
-    <div className="flex flex-col h-full">
-      <AdminHeader 
-        title="Dashboard" 
-        subtitle="Gestão Inteligente de Conteúdo Visual"
-      />
+    <div className="flex flex-col min-h-full bg-muted/30">
+      {/* Header */}
+      <header className="sticky top-0 z-40 bg-card border-b border-border shadow-sm">
+        <div className="max-w-[1600px] mx-auto px-6 lg:px-8 py-5">
+          <div className="flex items-center justify-between">
+            {/* Left side - Greeting */}
+            <div>
+              <h1 className="text-2xl font-semibold text-foreground">
+                {getGreeting()}, {userName}
+              </h1>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                Aqui está um resumo do seu negócio hoje
+              </p>
+            </div>
 
-      <div className="flex-1 p-6 space-y-6">
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard
-            title="Total de Clientes"
-            value={loading ? '...' : stats.totalClients}
-            icon={Users}
-            variant="primary"
-          />
-          <StatCard
-            title="Clientes Ativos"
-            value={loading ? '...' : stats.activeClients}
-            icon={UserCheck}
-            variant="success"
-            trend={{ value: 12, isPositive: true }}
-          />
-          <StatCard
-            title="Gerações Hoje"
-            value={loading ? '...' : stats.generationsToday}
-            icon={Zap}
-            variant="warning"
-          />
-          <StatCard
-            title="Créditos Usados"
-            value={loading ? '...' : stats.creditsUsed.toLocaleString()}
-            icon={CreditCard}
-            variant="default"
-          />
-        </div>
+            {/* Right side - Notifications & Avatar */}
+            <div className="flex items-center gap-3">
+              {/* Notifications */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="relative">
+                    <Bell className="w-5 h-5" />
+                    {notificationCount > 0 && (
+                      <Badge 
+                        variant="destructive" 
+                        className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs"
+                      >
+                        {notificationCount}
+                      </Badge>
+                    )}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-80">
+                  <DropdownMenuLabel>Notificações</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="flex flex-col items-start gap-1 py-3">
+                    <span className="font-medium">Novo briefing recebido</span>
+                    <span className="text-xs text-muted-foreground">há 5 minutos</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="flex flex-col items-start gap-1 py-3">
+                    <span className="font-medium">Pagamento confirmado</span>
+                    <span className="text-xs text-muted-foreground">há 1 hora</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="flex flex-col items-start gap-1 py-3">
+                    <span className="font-medium">Prazo de entrega próximo</span>
+                    <span className="text-xs text-muted-foreground">há 2 horas</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="text-center justify-center text-primary">
+                    Ver todas as notificações
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
-        {/* Chart */}
-        <div className="glass-card p-6">
-          <h2 className="text-lg font-medium text-foreground mb-4 tracking-tight">
-            Gerações - Últimos 7 dias
-          </h2>
-          <ChartContainer config={chartConfig} className="h-[300px] w-full">
-            <AreaChart data={chartData}>
-              <defs>
-                <linearGradient id="colorGenerations" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(25 65% 50%)" stopOpacity={0.25} />
-                  <stop offset="95%" stopColor="hsl(25 65% 50%)" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(20 15% 18%)" strokeOpacity={0.5} />
-              <XAxis 
-                dataKey="date" 
-                stroke="hsl(25 10% 50%)"
-                fontSize={12}
-                tickLine={false}
-                axisLine={false}
-              />
-              <YAxis 
-                stroke="hsl(25 10% 50%)"
-                fontSize={12}
-                tickLine={false}
-                axisLine={false}
-              />
-              <ChartTooltip 
-                content={<ChartTooltipContent />}
-                cursor={{ stroke: 'hsl(25 65% 50%)', strokeWidth: 1, strokeDasharray: '4 4' }}
-              />
-              <Area
-                type="monotone"
-                dataKey="generations"
-                stroke="hsl(25 65% 50%)"
-                strokeWidth={1.5}
-                fillOpacity={1}
-                fill="url(#colorGenerations)"
-              />
-            </AreaChart>
-          </ChartContainer>
+              {/* Avatar & Menu */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src="" alt={userName} />
+                      <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                        {userName.slice(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium">{userName}</p>
+                      <p className="text-xs text-muted-foreground">{user?.email}</p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem>Perfil</DropdownMenuItem>
+                  <DropdownMenuItem>Configurações</DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => signOut()} className="text-destructive">
+                    Sair
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
         </div>
-      </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="flex-1 p-6 lg:p-8">
+        <div className="max-w-[1600px] mx-auto">
+          {/* Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <AgendaCard />
+            <TrelloCard />
+            <CobrancasCard />
+            <FaturamentoCard />
+            <MetaCard />
+            <EntregasCard />
+          </div>
+        </div>
+      </main>
+
+      {/* Floating Action Button */}
+      <DashboardFAB />
     </div>
   );
 }
