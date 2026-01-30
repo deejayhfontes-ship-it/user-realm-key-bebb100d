@@ -81,28 +81,20 @@ export function ProjectsSection() {
                 style={{ backgroundImage: `url(${project.thumbnail_url})` }}
               />
               
-              {/* Subtle gradient overlay */}
-              <div className="absolute inset-0 bg-black/10" />
+              {/* Gradient overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
-              {/* Central Glass Card - Fixed size */}
-              <div className="absolute inset-0 flex items-center justify-center p-6 md:p-8">
-                <div className="bg-black/40 backdrop-blur-xl rounded-[32px] border border-white/10 p-6 md:p-8 flex flex-col items-center justify-center w-[75%] aspect-square max-w-[280px]">
-                  {/* Category Tag */}
-                  <p className="font-pixel text-xs text-white/80 tracking-[0.3em] uppercase mb-4">
-                    {project.category}
-                  </p>
+              {/* Content at bottom */}
+              <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
+                {/* Category Tag */}
+                <p className="font-pixel text-xs text-white/70 tracking-[0.3em] uppercase mb-2">
+                  {project.category}
+                </p>
 
-                  {/* Title */}
-                  <h3 className="magnetto-title text-2xl md:text-3xl lg:text-4xl text-white text-center mb-6 tracking-[0.1em] leading-tight">
-                    {project.title}
-                  </h3>
-
-                  {/* Explore More Button */}
-                  <button className="px-6 py-3 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white text-sm font-pixel tracking-wider flex items-center gap-2 hover:bg-black/60 transition-all">
-                    Explore More
-                    <span className="text-lg">+</span>
-                  </button>
-                </div>
+                {/* Title */}
+                <h3 className="magnetto-title text-2xl md:text-3xl text-white tracking-[0.05em] leading-tight">
+                  {project.title}
+                </h3>
               </div>
             </div>
           ))}
