@@ -8,7 +8,6 @@ import {
   Eye, 
   EyeOff,
   Image,
-  ExternalLink,
   GripVertical
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -52,6 +51,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Switch } from '@/components/ui/switch';
 import { usePortfolio, PortfolioCase, PortfolioCaseInsert } from '@/hooks/usePortfolio';
+import { ImageUploader, UploadedImage } from '@/components/admin/portfolio/ImageUploader';
 
 const CATEGORIES = [
   'Social Media',
@@ -70,7 +70,12 @@ const STATUS_OPTIONS = [
   { value: 'archived', label: 'Arquivado', color: 'bg-orange-500/20 text-orange-400' },
 ];
 
-const emptyCase: PortfolioCaseInsert = {
+interface FormData extends PortfolioCaseInsert {
+  thumbnail_original_name?: string;
+  file_size_kb?: number;
+}
+
+const emptyCase: FormData = {
   title: '',
   client_name: '',
   category: 'Social Media',
@@ -87,7 +92,7 @@ export default function Portfolio() {
   const { cases, isLoading, createCase, updateCase, deleteCase, toggleFeatured } = usePortfolio();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCase, setEditingCase] = useState<PortfolioCase | null>(null);
-  const [formData, setFormData] = useState<PortfolioCaseInsert>(emptyCase);
+  const [formData, setFormData] = useState<FormData>(emptyCase);
   const [galleryInput, setGalleryInput] = useState('');
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -156,6 +161,24 @@ export default function Portfolio() {
     await updateCase.mutateAsync({ id, data: { status: newStatus as 'draft' | 'published' } });
   };
 
+  const handleImageUpload = (result: UploadedImage) => {
+    setFormData({
+      ...formData,
+      thumbnail_url: result.url,
+      thumbnail_original_name: result.originalName,
+      file_size_kb: result.fileSizeKb,
+    });
+  };
+
+  const handleImageRemove = () => {
+    setFormData({
+      ...formData,
+      thumbnail_url: '',
+      thumbnail_original_name: undefined,
+      file_size_kb: undefined,
+    });
+  };
+
   const getStatusBadge = (status: string) => {
     const option = STATUS_OPTIONS.find(s => s.value === status);
     return option ? (
@@ -169,7 +192,7 @@ export default function Portfolio() {
   const draftCount = cases.filter(c => c.status === 'draft').length;
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
@@ -183,7 +206,7 @@ export default function Portfolio() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Total</CardTitle>
@@ -197,7 +220,7 @@ export default function Portfolio() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Publicados</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-green-500">{publishedCount}</p>
+            <p className="text-2xl font-bold text-primary">{publishedCount}</p>
           </CardContent>
         </Card>
         <Card>
@@ -205,7 +228,7 @@ export default function Portfolio() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Destaques</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-yellow-500">{featuredCount}</p>
+            <p className="text-2xl font-bold text-accent-foreground">{featuredCount}</p>
           </CardContent>
         </Card>
         <Card>
@@ -241,13 +264,13 @@ export default function Portfolio() {
             <TableHeader>
               <TableRow>
                 <TableHead className="w-12"></TableHead>
-                <TableHead>Thumbnail</TableHead>
+                <TableHead className="w-20">Thumb</TableHead>
                 <TableHead>Título</TableHead>
                 <TableHead>Cliente</TableHead>
                 <TableHead>Categoria</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Destaque</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
+                <TableHead className="w-16">Destaque</TableHead>
+                <TableHead className="text-right w-32">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -275,6 +298,7 @@ export default function Portfolio() {
                           src={portfolioCase.thumbnail_url} 
                           alt={portfolioCase.title}
                           className="w-16 h-12 object-cover rounded-md"
+                          loading="lazy"
                         />
                       ) : (
                         <div className="w-16 h-12 bg-muted rounded-md flex items-center justify-center">
@@ -282,8 +306,12 @@ export default function Portfolio() {
                         </div>
                       )}
                     </TableCell>
-                    <TableCell className="font-medium">{portfolioCase.title}</TableCell>
-                    <TableCell>{portfolioCase.client_name}</TableCell>
+                    <TableCell className="font-medium max-w-[200px] truncate">
+                      {portfolioCase.title}
+                    </TableCell>
+                    <TableCell className="max-w-[150px] truncate">
+                      {portfolioCase.client_name}
+                    </TableCell>
                     <TableCell>
                       <Badge variant="outline">{portfolioCase.category}</Badge>
                     </TableCell>
@@ -295,7 +323,7 @@ export default function Portfolio() {
                         onClick={() => handleToggleFeatured(portfolioCase.id, portfolioCase.featured)}
                       >
                         {portfolioCase.featured ? (
-                          <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                          <Star className="w-4 h-4 text-primary fill-primary" />
                         ) : (
                           <StarOff className="w-4 h-4 text-muted-foreground" />
                         )}
@@ -350,7 +378,18 @@ export default function Portfolio() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="grid gap-4 py-4">
+          <div className="grid gap-6 py-4">
+            {/* Thumbnail Upload */}
+            <div className="space-y-2">
+              <Label>Imagem Principal *</Label>
+              <ImageUploader
+                value={formData.thumbnail_url}
+                onUpload={handleImageUpload}
+                onRemove={handleImageRemove}
+                folder="thumbnails"
+              />
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="title">Título do Projeto *</Label>
@@ -419,30 +458,14 @@ export default function Portfolio() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="thumbnail_url">URL da Thumbnail *</Label>
-              <Input
-                id="thumbnail_url"
-                value={formData.thumbnail_url}
-                onChange={(e) => setFormData({ ...formData, thumbnail_url: e.target.value })}
-                placeholder="https://..."
-              />
-              {formData.thumbnail_url && (
-                <img 
-                  src={formData.thumbnail_url} 
-                  alt="Preview" 
-                  className="w-32 h-24 object-cover rounded-md mt-2"
-                />
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="gallery">Galeria de Imagens (uma URL por linha)</Label>
+              <Label htmlFor="gallery">Galeria de Imagens (URLs, uma por linha)</Label>
               <Textarea
                 id="gallery"
                 value={galleryInput}
                 onChange={(e) => setGalleryInput(e.target.value)}
                 placeholder="https://imagem1.jpg&#10;https://imagem2.jpg&#10;https://imagem3.jpg"
                 rows={3}
+                className="font-mono text-sm"
               />
             </div>
 
@@ -457,14 +480,14 @@ export default function Portfolio() {
               />
             </div>
 
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between border-t pt-4">
+              <div className="flex items-center gap-3">
                 <Switch
                   id="featured"
                   checked={formData.featured}
                   onCheckedChange={(checked) => setFormData({ ...formData, featured: checked })}
                 />
-                <Label htmlFor="featured">Destacar na Home</Label>
+                <Label htmlFor="featured" className="cursor-pointer">Destacar na Home</Label>
               </div>
               <div className="flex items-center gap-2">
                 <Label htmlFor="order">Ordem:</Label>
@@ -485,9 +508,9 @@ export default function Portfolio() {
             </Button>
             <Button 
               onClick={handleSubmit}
-              disabled={!formData.title || !formData.client_name || !formData.description || !formData.thumbnail_url || createCase.isPending || updateCase.isPending}
+              disabled={!formData.title || !formData.client_name || !formData.thumbnail_url || !formData.description}
             >
-              {createCase.isPending || updateCase.isPending ? 'Salvando...' : 'Salvar'}
+              {editingCase ? 'Salvar Alterações' : 'Criar Case'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -497,9 +520,9 @@ export default function Portfolio() {
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Excluir case?</AlertDialogTitle>
+            <AlertDialogTitle>Excluir Case</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação não pode ser desfeita. O case será removido permanentemente do portfólio.
+              Tem certeza que deseja excluir este case? Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

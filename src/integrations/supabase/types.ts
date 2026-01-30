@@ -1227,11 +1227,13 @@ export type Database = {
           created_at: string | null
           description: string
           featured: boolean | null
+          file_size_kb: number | null
           gallery_urls: Json | null
           id: string
           order_index: number | null
           results: string | null
           status: string | null
+          thumbnail_original_name: string | null
           thumbnail_url: string
           title: string
           updated_at: string | null
@@ -1242,11 +1244,13 @@ export type Database = {
           created_at?: string | null
           description: string
           featured?: boolean | null
+          file_size_kb?: number | null
           gallery_urls?: Json | null
           id?: string
           order_index?: number | null
           results?: string | null
           status?: string | null
+          thumbnail_original_name?: string | null
           thumbnail_url: string
           title: string
           updated_at?: string | null
@@ -1257,11 +1261,13 @@ export type Database = {
           created_at?: string | null
           description?: string
           featured?: boolean | null
+          file_size_kb?: number | null
           gallery_urls?: Json | null
           id?: string
           order_index?: number | null
           results?: string | null
           status?: string | null
+          thumbnail_original_name?: string | null
           thumbnail_url?: string
           title?: string
           updated_at?: string | null
