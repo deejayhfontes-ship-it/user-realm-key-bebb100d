@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Loader2, Send } from "lucide-react";
 import { landingContent } from "@/data/landingContent";
-import { CustomSelect, projectTypeOptions } from "./CustomSelect";
+import { CustomSelect, projectTypeOptions, SelectOption } from "./CustomSelect";
+import { useProjectTypes } from "@/hooks/useProjectTypes";
 
 export function ContactSection() {
+  const { projectTypes, loading: loadingTypes } = useProjectTypes();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
@@ -17,6 +19,17 @@ export function ContactSection() {
   });
 
   const content = landingContent.contact;
+
+  // Convert database project types to select options, fallback to static
+  const dynamicOptions: SelectOption[] = useMemo(() => {
+    if (projectTypes.length === 0) return projectTypeOptions;
+    
+    return projectTypes.map(pt => ({
+      value: pt.name,
+      label: pt.name,
+      icon: pt.icon || 'MoreHorizontal',
+    }));
+  }, [projectTypes]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -178,8 +191,9 @@ export function ContactSection() {
                   onChange={(value) =>
                     setFormData({ ...formData, projectType: value })
                   }
-                  options={projectTypeOptions}
+                  options={dynamicOptions}
                   placeholder="Selecione..."
+                  loading={loadingTypes}
                 />
               </div>
 
