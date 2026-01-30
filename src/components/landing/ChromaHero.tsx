@@ -56,10 +56,9 @@ const fragmentShader = `
   }
 `;
 
-function ChromaPlane({ imageUrl }: { imageUrl: string }) {
+// Componente interno que usa os hooks do Three.js
+function ChromaPlaneInner({ texture }: { texture: THREE.Texture }) {
   const meshRef = useRef<THREE.Mesh>(null);
-  const materialRef = useRef<THREE.ShaderMaterial>(null);
-  const mouseRef = useRef({ x: 0, y: 0 });
   const { viewport } = useThree();
   
   // Detectar mobile
@@ -68,59 +67,69 @@ function ChromaPlane({ imageUrl }: { imageUrl: string }) {
     return window.matchMedia('(pointer: coarse)').matches;
   }, []);
 
-  // Carregar textura
-  const texture = useTexture(imageUrl);
+  // Criar uniforms uma vez
+  const uniforms = useRef({
+    uTexture: { value: texture },
+    uMouse: { value: new THREE.Vector2(0, 0) },
+    uTime: { value: 0 },
+    uIntensity: { value: isMobile ? 0.02 : 0.04 },
+  });
 
-  // Memoizar uniforms para performance
-  const uniforms = useMemo(
-    () => ({
-      uTexture: { value: texture },
-      uMouse: { value: new THREE.Vector2(0, 0) },
-      uTime: { value: 0 },
-      uIntensity: { value: isMobile ? 0.02 : 0.04 },
-    }),
-    [texture, isMobile]
-  );
+  // Atualizar textura quando mudar
+  useEffect(() => {
+    uniforms.current.uTexture.value = texture;
+  }, [texture]);
 
-  // Mouse tracking com lerp (suavização)
+  // Mouse tracking
   useEffect(() => {
     if (isMobile) return;
     
+    let targetX = 0;
+    let targetY = 0;
+    
     const handleMouseMove = (e: MouseEvent) => {
-      const x = (e.clientX / window.innerWidth) * 2 - 1;
-      const y = -(e.clientY / window.innerHeight) * 2 + 1;
-      mouseRef.current = { x, y };
+      targetX = (e.clientX / window.innerWidth) * 2 - 1;
+      targetY = -(e.clientY / window.innerHeight) * 2 + 1;
     };
 
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+    
+    // Animação contínua para interpolar mouse
+    let animationId: number;
+    const animate = () => {
+      uniforms.current.uMouse.value.x += (targetX - uniforms.current.uMouse.value.x) * 0.08;
+      uniforms.current.uMouse.value.y += (targetY - uniforms.current.uMouse.value.y) * 0.08;
+      animationId = requestAnimationFrame(animate);
+    };
+    animate();
+    
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      cancelAnimationFrame(animationId);
+    };
   }, [isMobile]);
 
-  // Animation frame
+  // Animation frame para time
   useFrame((state) => {
-    if (!materialRef.current) return;
-    
-    const material = materialRef.current;
-    material.uniforms.uTime.value = state.clock.elapsedTime;
-    
-    const targetX = mouseRef.current.x;
-    const targetY = mouseRef.current.y;
-    
-    material.uniforms.uMouse.value.x += (targetX - material.uniforms.uMouse.value.x) * 0.05;
-    material.uniforms.uMouse.value.y += (targetY - material.uniforms.uMouse.value.y) * 0.05;
+    uniforms.current.uTime.value = state.clock.elapsedTime;
   });
 
   return (
     <mesh ref={meshRef} scale={[viewport.width, viewport.height, 1]}>
       <planeGeometry args={[1, 1, 32, 32]} />
       <shaderMaterial
-        ref={materialRef}
         vertexShader={vertexShader}
         fragmentShader={fragmentShader}
-        uniforms={uniforms}
+        uniforms={uniforms.current}
       />
     </mesh>
   );
+}
+
+// Componente que carrega a textura
+function ChromaPlane({ imageUrl }: { imageUrl: string }) {
+  const texture = useTexture(imageUrl);
+  return <ChromaPlaneInner texture={texture} />;
 }
 
 // Loading component
@@ -148,22 +157,25 @@ export default function ChromaHero() {
   return (
     <div className="absolute inset-0 z-0">
       {!hasError ? (
-        <Suspense fallback={<ChromaHeroLoading />}>
-          <Canvas
-            dpr={[1, 1.5]}
-            camera={{ position: [0, 0, 1] }}
-            onError={() => setHasError(true)}
-            gl={{
-              antialias: false,
-              alpha: false,
-              powerPreference: "high-performance"
-            }}
-          >
-            <Suspense fallback={null}>
-              <ChromaPlane imageUrl={heroPortrait} />
-            </Suspense>
-          </Canvas>
-        </Suspense>
+        <Canvas
+          dpr={[1, 1.5]}
+          camera={{ position: [0, 0, 1] }}
+          onCreated={() => console.log('Canvas created')}
+          gl={{
+            antialias: false,
+            alpha: false,
+            powerPreference: "high-performance",
+            failIfMajorPerformanceCaveat: false,
+          }}
+          onError={(e) => {
+            console.error('Canvas error:', e);
+            setHasError(true);
+          }}
+        >
+          <Suspense fallback={null}>
+            <ChromaPlane imageUrl={heroPortrait} />
+          </Suspense>
+        </Canvas>
       ) : (
         <FallbackImage imageUrl={heroPortrait} />
       )}
