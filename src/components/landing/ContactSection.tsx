@@ -2,6 +2,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Loader2, Send } from "lucide-react";
+import { landingContent } from "@/data/landingContent";
 
 const projectTypes = [
   "Identidade Visual",
@@ -22,6 +23,8 @@ export function ContactSection() {
     projectType: "",
     message: "",
   });
+
+  const content = landingContent.contact;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,7 +55,7 @@ export function ContactSection() {
 
       toast({
         title: "Briefing enviado! 🎉",
-        description: "Recebemos sua mensagem. Entraremos em contato em breve.",
+        description: content.form.successMessage,
       });
 
       // Reset form
@@ -93,14 +96,10 @@ export function ContactSection() {
           {/* Left - Title */}
           <div>
             <h2 className="magnetto-title text-5xl md:text-7xl lg:text-8xl text-white leading-[0.9]">
-              GET IN
-              <br />
-              TOUCH
+              {content.title}
             </h2>
             <p className="text-zinc-400 text-lg mt-8 max-w-md">
-              Tem um projeto em mente? Seja você lançando uma marca, 
-              redesenhando um produto ou elevando sua presença digital, 
-              estamos aqui para dar vida à sua visão.
+              {content.description}
             </p>
           </div>
 
@@ -108,7 +107,7 @@ export function ContactSection() {
           <div className="magnetto-glass p-8 md:p-10">
             <div className="flex items-center gap-2 mb-8">
               <span className="font-pixel text-xs text-zinc-400 tracking-[0.2em]">
-                CONTACT US
+                {content.sectionLabel}
               </span>
               <span className="font-pixel text-xs text-primary">.25</span>
             </div>
@@ -209,7 +208,7 @@ export function ContactSection() {
                   onChange={(e) =>
                     setFormData({ ...formData, message: e.target.value })
                   }
-                  placeholder="Conte-nos sobre seu projeto..."
+                  placeholder={content.form.messagePlaceholder}
                   rows={4}
                   className="w-full px-4 py-3 rounded-xl bg-zinc-800/50 border border-zinc-700 text-white placeholder:text-zinc-600 focus:outline-none focus:border-primary transition-colors resize-none"
                 />
@@ -229,7 +228,7 @@ export function ContactSection() {
                 ) : (
                   <>
                     <Send className="w-5 h-5" />
-                    SUBMIT
+                    {content.form.submitButton}
                   </>
                 )}
               </button>

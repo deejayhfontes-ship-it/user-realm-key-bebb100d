@@ -1,7 +1,10 @@
 import { Link } from "react-router-dom";
 import { ArrowRight, Sparkles } from "lucide-react";
+import { landingContent } from "@/data/landingContent";
 
 export function HeroSection() {
+  const content = landingContent.hero;
+
   const handleScrollToBriefing = () => {
     const element = document.querySelector("#contact");
     element?.scrollIntoView({ behavior: "smooth" });
@@ -28,24 +31,23 @@ export function HeroSection() {
           {/* Main Title */}
           <div className="text-center mb-8">
             <h1 className="magnetto-title text-[12vw] md:text-[10vw] lg:text-[8vw] text-white leading-[0.85]">
-              FONTES
+              {content.title.line1}
               <br />
-              <span className="text-primary">GRAPHICS</span>
+              <span className="text-primary">{content.title.line2}</span>
             </h1>
           </div>
 
           {/* Subtitle */}
           <div className="text-center mb-12">
             <p className="font-pixel text-zinc-400 text-sm md:text-base tracking-[0.3em]">
-              DESIGN STUDIO • POÇOS DE CALDAS
+              {content.subtitle}
             </p>
           </div>
 
           {/* Description */}
           <div className="max-w-xl mx-auto text-center mb-12">
             <p className="text-zinc-400 text-lg leading-relaxed">
-              Transformamos ideias em experiências visuais impactantes. 
-              Criatividade e estratégia para marcas que querem se destacar.
+              {content.description}
             </p>
           </div>
 
@@ -56,7 +58,7 @@ export function HeroSection() {
               className="group px-8 py-4 rounded-full bg-primary text-black font-pixel text-sm flex items-center gap-3 hover:bg-lime-300 transition-all glow-lime"
             >
               <Sparkles className="w-5 h-5" />
-              INICIAR PROJETO
+              {content.cta.primary}
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </button>
             
@@ -64,7 +66,7 @@ export function HeroSection() {
               to="/client/login"
               className="px-8 py-4 rounded-full border border-zinc-700 text-white font-pixel text-sm hover:border-zinc-500 hover:bg-zinc-900 transition-all"
             >
-              ÁREA DO CLIENTE
+              {content.cta.secondary}
             </Link>
           </div>
         </div>
@@ -76,11 +78,11 @@ export function HeroSection() {
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-lime-600" />
             <div>
-              <p className="font-pixel text-xs text-zinc-400">FEATURED</p>
-              <p className="text-white text-sm font-medium">Brand Identity</p>
+              <p className="font-pixel text-xs text-zinc-400">{content.floatingCard.label}</p>
+              <p className="text-white text-sm font-medium">{content.floatingCard.title}</p>
             </div>
           </div>
-          <p className="text-zinc-500 text-xs">Projetos que transformam negócios</p>
+          <p className="text-zinc-500 text-xs">{content.floatingCard.description}</p>
         </div>
       </div>
 

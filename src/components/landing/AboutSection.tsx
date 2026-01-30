@@ -1,4 +1,8 @@
+import { landingContent } from "@/data/landingContent";
+
 export function AboutSection() {
+  const content = landingContent.about;
+
   return (
     <section id="about" className="relative section-padding overflow-hidden">
       {/* Background with gradient */}
@@ -14,7 +18,7 @@ export function AboutSection() {
           {/* Left - Glassmorphism Card */}
           <div className="magnetto-glass p-8 md:p-12">
             <p className="font-pixel text-xs text-zinc-400 tracking-[0.2em] mb-4">
-              ABOUT US.25
+              {content.sectionLabel}
             </p>
             <h2 className="magnetto-title text-5xl md:text-7xl text-white mb-6">
               ABOUT
@@ -25,9 +29,7 @@ export function AboutSection() {
           {/* Right - Description */}
           <div>
             <p className="text-zinc-300 text-lg md:text-xl leading-relaxed mb-8">
-              Na Fontes Graphics, criamos designs que não apenas impressionam visualmente 
-              — eles geram impacto. Combinamos criatividade com estratégia, transformando 
-              ideias ousadas em experiências digitais imersivas que cativam, engajam e convertem.
+              {content.description}
             </p>
             <div className="flex flex-wrap gap-4">
               <div className="px-6 py-3 rounded-full bg-zinc-800/50 border border-zinc-700">

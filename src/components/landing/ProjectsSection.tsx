@@ -3,10 +3,13 @@ import { usePublicPortfolio } from "@/hooks/usePortfolio";
 import { ArrowRight, X } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { landingContent } from "@/data/landingContent";
 
 export function ProjectsSection() {
   const { cases, isLoading } = usePublicPortfolio();
   const [selectedProject, setSelectedProject] = useState<typeof cases[0] | null>(null);
+
+  const content = landingContent.projects;
 
   // Placeholder data if no projects exist
   const placeholderProjects = [
@@ -60,7 +63,7 @@ export function ProjectsSection() {
         {/* Section Header */}
         <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-16">
           <h2 className="magnetto-title text-5xl md:text-7xl lg:text-8xl text-white">
-            PROJECTS
+            {content.sectionTitle}
           </h2>
           <p className="text-zinc-400 max-w-md text-lg">
             Explore nossos projetos mais recentes. Cada trabalho conta uma história única de criatividade e estratégia.
@@ -99,8 +102,7 @@ export function ProjectsSection() {
 
                   {/* Explore More Button */}
                   <button className="px-6 py-3 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white text-sm font-pixel tracking-wider flex items-center gap-2 hover:bg-black/60 transition-all">
-                    Explore More
-                    <span className="text-lg">+</span>
+                    {content.exploreButton}
                   </button>
                 </div>
               </div>
