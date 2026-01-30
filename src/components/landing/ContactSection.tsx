@@ -3,15 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Loader2, Send } from "lucide-react";
 import { landingContent } from "@/data/landingContent";
-
-const projectTypes = [
-  "Identidade Visual",
-  "Web Design",
-  "Social Media",
-  "Motion Graphics",
-  "Branding Completo",
-  "Outro",
-];
+import { CustomSelect, projectTypeOptions } from "./CustomSelect";
 
 export function ContactSection() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -181,20 +173,14 @@ export function ContactSection() {
                 <label className="block text-zinc-400 text-sm mb-2">
                   Tipo de Projeto
                 </label>
-                <select
+                <CustomSelect
                   value={formData.projectType}
-                  onChange={(e) =>
-                    setFormData({ ...formData, projectType: e.target.value })
+                  onChange={(value) =>
+                    setFormData({ ...formData, projectType: value })
                   }
-                  className="w-full px-4 py-3 rounded-xl bg-zinc-800/50 border border-zinc-700 text-white focus:outline-none focus:border-primary transition-colors appearance-none"
-                >
-                  <option value="" className="bg-zinc-900">Selecione...</option>
-                  {projectTypes.map((type) => (
-                    <option key={type} value={type} className="bg-zinc-900">
-                      {type}
-                    </option>
-                  ))}
-                </select>
+                  options={projectTypeOptions}
+                  placeholder="Selecione..."
+                />
               </div>
 
               {/* Message */}
