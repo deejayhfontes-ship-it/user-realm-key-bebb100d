@@ -1,5 +1,7 @@
-import CursorDistortion from "./CursorDistortion";
-import heroPortrait from "@/assets/hero-portrait.jpg";
+import { lazy, Suspense } from "react";
+
+// Lazy load para melhor performance
+const ChromaHero = lazy(() => import("./ChromaHero"));
 
 export function HeroSection() {
   return (
@@ -7,11 +9,13 @@ export function HeroSection() {
       id="hero"
       className="relative min-h-screen flex items-center justify-center bg-[#0a0a0a] overflow-hidden"
     >
-      {/* WebGL Cursor Distortion Effect */}
-      <CursorDistortion imageSrc={heroPortrait} />
+      {/* WebGL Chromatic Aberration Effect */}
+      <Suspense fallback={<div className="absolute inset-0 bg-[#0a0a0a]" />}>
+        <ChromaHero />
+      </Suspense>
       
-      {/* Gradient overlay for better text readability if needed */}
-      <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent pointer-events-none" />
+      {/* Gradient overlay for better text readability */}
+      <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent pointer-events-none z-[1]" />
     </section>
   );
 }
