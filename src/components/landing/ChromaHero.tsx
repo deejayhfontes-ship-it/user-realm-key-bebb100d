@@ -1,10 +1,10 @@
-import { useRef, useMemo, useEffect, useState, Suspense } from 'react';
+import { useRef, useEffect, useState, Suspense } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import heroPortrait from "@/assets/hero-portrait.jpg";
 
-// Shader personalizado para Chromatic Aberration + Glass Distortion
+// Shader para efeito cromático sutil (apenas separação de cores, sem distorção)
 const vertexShader = `
   varying vec2 vUv;
   void main() {
@@ -16,43 +16,39 @@ const vertexShader = `
 const fragmentShader = `
   uniform sampler2D uTexture;
   uniform vec2 uMouse;
-  uniform float uTime;
-  uniform float uIntensity;
+  uniform float uHover;
   varying vec2 vUv;
 
   void main() {
     vec2 uv = vUv;
     
-    // Calcular distância do mouse para efeito localizado (0 a 1)
-    float mouseInfluence = length(uMouse) * uIntensity;
+    // Calcular distância do mouse para efeito localizado
+    vec2 mousePos = uMouse * 0.5 + 0.5; // Converter de -1,1 para 0,1
+    float dist = distance(uv, mousePos);
+    float influence = smoothstep(0.5, 0.0, dist) * uHover;
     
-    // Efeito de distorção líquida/glass (ripple)
-    float ripple = sin(uv.y * 20.0 + uTime * 2.0) * cos(uv.x * 20.0 + uTime) * 0.002;
-    float ripple2 = sin(length(uv - 0.5) * 30.0 - uTime * 3.0) * 0.003;
+    // Chromatic Aberration sutil - apenas separação de cores RGB
+    float aberration = influence * 0.008; // Intensidade bem sutil
+    vec2 direction = normalize(uv - mousePos + 0.001);
     
-    // Aplicar distorção baseada na posição do mouse
-    vec2 distortion = vec2(
-      ripple * uMouse.x + ripple2 * uMouse.y,
-      ripple * uMouse.y + ripple2 * uMouse.x
-    );
-    
-    uv += distortion * mouseInfluence;
-    
-    // Chromatic Aberration - separar canais RGB
-    vec2 direction = normalize(uMouse + 0.001); // evitar divisão por zero
-    vec2 redOffset = uv - direction * (mouseInfluence * 0.015);
-    vec2 blueOffset = uv + direction * (mouseInfluence * 0.015);
+    vec2 redOffset = uv + direction * aberration;
     vec2 greenOffset = uv;
+    vec2 blueOffset = uv - direction * aberration;
     
-    // Samplear textura com offsets diferentes
+    // Samplear textura com offsets diferentes para cada canal
     float r = texture2D(uTexture, redOffset).r;
     float g = texture2D(uTexture, greenOffset).g;
     float b = texture2D(uTexture, blueOffset).b;
     
-    // Adicionar leve glow nos bordos baseado no mouse
-    float vignette = 1.0 - length(vUv - 0.5) * 0.8;
+    // Adicionar leve brilho prisma nas bordas do efeito
+    float prismGlow = influence * 0.15;
+    vec3 prismColor = vec3(
+      r + prismGlow * 0.3,
+      g + prismGlow * 0.1,
+      b + prismGlow * 0.4
+    );
     
-    gl_FragColor = vec4(r, g, b, 1.0) * vignette;
+    gl_FragColor = vec4(prismColor, 1.0);
   }
 `;
 
@@ -61,18 +57,11 @@ function ChromaPlaneInner({ texture }: { texture: THREE.Texture }) {
   const meshRef = useRef<THREE.Mesh>(null);
   const { viewport } = useThree();
   
-  // Detectar mobile
-  const isMobile = useMemo(() => {
-    if (typeof window === 'undefined') return false;
-    return window.matchMedia('(pointer: coarse)').matches;
-  }, []);
-
-  // Criar uniforms uma vez
+  // Criar uniforms
   const uniforms = useRef({
     uTexture: { value: texture },
     uMouse: { value: new THREE.Vector2(0, 0) },
-    uTime: { value: 0 },
-    uIntensity: { value: isMobile ? 0.02 : 0.04 },
+    uHover: { value: 0 },
   });
 
   // Atualizar textura quando mudar
@@ -80,43 +69,59 @@ function ChromaPlaneInner({ texture }: { texture: THREE.Texture }) {
     uniforms.current.uTexture.value = texture;
   }, [texture]);
 
-  // Mouse tracking
+  // Mouse tracking com hover detection
   useEffect(() => {
-    if (isMobile) return;
-    
     let targetX = 0;
     let targetY = 0;
+    let isHovering = 0;
     
     const handleMouseMove = (e: MouseEvent) => {
       targetX = (e.clientX / window.innerWidth) * 2 - 1;
       targetY = -(e.clientY / window.innerHeight) * 2 + 1;
+      isHovering = 1;
+    };
+
+    const handleMouseLeave = () => {
+      isHovering = 0;
     };
 
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    document.addEventListener('mouseleave', handleMouseLeave);
     
-    // Animação contínua para interpolar mouse
+    // Animação contínua para interpolar
     let animationId: number;
     const animate = () => {
       uniforms.current.uMouse.value.x += (targetX - uniforms.current.uMouse.value.x) * 0.08;
       uniforms.current.uMouse.value.y += (targetY - uniforms.current.uMouse.value.y) * 0.08;
+      uniforms.current.uHover.value += (isHovering - uniforms.current.uHover.value) * 0.1;
       animationId = requestAnimationFrame(animate);
     };
     animate();
     
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseleave', handleMouseLeave);
       cancelAnimationFrame(animationId);
     };
-  }, [isMobile]);
+  }, []);
 
-  // Animation frame para time
-  useFrame((state) => {
-    uniforms.current.uTime.value = state.clock.elapsedTime;
-  });
+  // Calcular aspect ratio para manter proporção da imagem
+  const img = texture.image as HTMLImageElement | undefined;
+  const imageAspect = img?.width && img?.height ? img.width / img.height : 0.8;
+  const viewportAspect = viewport.width / viewport.height;
+  
+  let scaleX = viewport.width;
+  let scaleY = viewport.height;
+  
+  if (imageAspect > viewportAspect) {
+    scaleX = viewport.height * imageAspect;
+  } else {
+    scaleY = viewport.width / imageAspect;
+  }
 
   return (
-    <mesh ref={meshRef} scale={[viewport.width, viewport.height, 1]}>
-      <planeGeometry args={[1, 1, 32, 32]} />
+    <mesh ref={meshRef} scale={[scaleX, scaleY, 1]}>
+      <planeGeometry args={[1, 1, 1, 1]} />
       <shaderMaterial
         vertexShader={vertexShader}
         fragmentShader={fragmentShader}
@@ -130,15 +135,6 @@ function ChromaPlaneInner({ texture }: { texture: THREE.Texture }) {
 function ChromaPlane({ imageUrl }: { imageUrl: string }) {
   const texture = useTexture(imageUrl);
   return <ChromaPlaneInner texture={texture} />;
-}
-
-// Loading component
-function ChromaHeroLoading() {
-  return (
-    <div className="absolute inset-0 bg-[#0a0a0a] flex items-center justify-center">
-      <div className="w-12 h-12 border-4 border-white/20 border-t-white rounded-full animate-spin" />
-    </div>
-  );
 }
 
 // Fallback para quando WebGL falhar
@@ -156,21 +152,18 @@ export default function ChromaHero() {
 
   return (
     <div className="absolute inset-0 z-0">
+      {/* WebGL Canvas com efeito cromático */}
       {!hasError ? (
         <Canvas
           dpr={[1, 1.5]}
           camera={{ position: [0, 0, 1] }}
-          onCreated={() => console.log('Canvas created')}
           gl={{
             antialias: false,
             alpha: false,
             powerPreference: "high-performance",
             failIfMajorPerformanceCaveat: false,
           }}
-          onError={(e) => {
-            console.error('Canvas error:', e);
-            setHasError(true);
-          }}
+          onError={() => setHasError(true)}
         >
           <Suspense fallback={null}>
             <ChromaPlane imageUrl={heroPortrait} />
@@ -179,6 +172,37 @@ export default function ChromaHero() {
       ) : (
         <FallbackImage imageUrl={heroPortrait} />
       )}
+      
+      {/* Overlay com título e subtítulo */}
+      <div className="absolute inset-0 flex flex-col justify-center pointer-events-none">
+        <div className="container mx-auto px-6 lg:px-12">
+          <div className="max-w-xl">
+            {/* Título principal */}
+            <h1 
+              className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight text-white mb-4"
+              style={{ 
+                fontFamily: "'Space Grotesk', sans-serif",
+                textShadow: '0 4px 30px rgba(0,0,0,0.5)'
+              }}
+            >
+              FONTES
+              <br />
+              GRAPHICS
+            </h1>
+            
+            {/* Subtítulo */}
+            <p 
+              className="text-lg md:text-xl text-white/80 tracking-widest uppercase"
+              style={{ 
+                fontFamily: "'Space Grotesk', sans-serif",
+                textShadow: '0 2px 20px rgba(0,0,0,0.5)'
+              }}
+            >
+              Aqui, você cria o futuro visual
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
