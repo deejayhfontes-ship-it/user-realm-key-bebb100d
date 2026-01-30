@@ -17,38 +17,50 @@ const fragmentShader = `
   uniform sampler2D uTexture;
   uniform vec2 uMouse;
   uniform float uHover;
+  uniform float uTime;
   varying vec2 vUv;
 
   void main() {
     vec2 uv = vUv;
     
     // Calcular distância do mouse para efeito localizado
-    vec2 mousePos = uMouse * 0.5 + 0.5; // Converter de -1,1 para 0,1
+    vec2 mousePos = uMouse * 0.5 + 0.5;
     float dist = distance(uv, mousePos);
-    float influence = smoothstep(0.5, 0.0, dist) * uHover;
     
-    // Chromatic Aberration sutil - apenas separação de cores RGB
-    float aberration = influence * 0.008; // Intensidade bem sutil
+    // Raio de influência maior e mais suave
+    float influence = smoothstep(0.6, 0.0, dist) * uHover;
+    
+    // Chromatic Aberration mais forte e interessante
+    float aberration = influence * 0.025;
     vec2 direction = normalize(uv - mousePos + 0.001);
     
-    vec2 redOffset = uv + direction * aberration;
-    vec2 greenOffset = uv;
-    vec2 blueOffset = uv - direction * aberration;
+    // Múltiplas camadas de separação cromática
+    vec2 redOffset = uv + direction * aberration * 1.2;
+    vec2 greenOffset = uv + direction * aberration * 0.3;
+    vec2 blueOffset = uv - direction * aberration * 1.0;
     
-    // Samplear textura com offsets diferentes para cada canal
-    float r = texture2D(uTexture, redOffset).r;
+    // Efeito de "smear" / rastro prisma
+    float smear = influence * 0.015;
+    vec2 smearDir = vec2(direction.x * 0.8, direction.y * 0.5);
+    
+    // Samplear com offset adicional para efeito de rastro
+    float r = texture2D(uTexture, redOffset + smearDir * smear).r;
     float g = texture2D(uTexture, greenOffset).g;
-    float b = texture2D(uTexture, blueOffset).b;
+    float b = texture2D(uTexture, blueOffset - smearDir * smear * 0.5).b;
     
-    // Adicionar leve brilho prisma nas bordas do efeito
-    float prismGlow = influence * 0.15;
-    vec3 prismColor = vec3(
-      r + prismGlow * 0.3,
-      g + prismGlow * 0.1,
-      b + prismGlow * 0.4
-    );
+    // Brilho prisma dinâmico nas bordas
+    float prismEdge = smoothstep(0.0, 0.4, dist) * smoothstep(0.6, 0.3, dist) * influence;
     
-    gl_FragColor = vec4(prismColor, 1.0);
+    // Cores do prisma (arco-íris sutil)
+    vec3 prismTint = vec3(
+      0.1 + sin(uTime * 0.5 + uv.x * 3.0) * 0.05,
+      0.05 + sin(uTime * 0.7 + uv.y * 2.0) * 0.03,
+      0.15 + cos(uTime * 0.6 + uv.x * 2.5) * 0.05
+    ) * prismEdge * 0.8;
+    
+    vec3 finalColor = vec3(r, g, b) + prismTint;
+    
+    gl_FragColor = vec4(finalColor, 1.0);
   }
 `;
 
@@ -62,6 +74,12 @@ function ChromaPlaneInner({ texture }: { texture: THREE.Texture }) {
     uTexture: { value: texture },
     uMouse: { value: new THREE.Vector2(0, 0) },
     uHover: { value: 0 },
+    uTime: { value: 0 },
+  });
+
+  // Atualizar time para animação
+  useFrame((state) => {
+    uniforms.current.uTime.value = state.clock.elapsedTime;
   });
 
   // Atualizar textura quando mudar
@@ -105,18 +123,22 @@ function ChromaPlaneInner({ texture }: { texture: THREE.Texture }) {
     };
   }, []);
 
-  // Calcular aspect ratio para manter proporção da imagem
+  // Calcular aspect ratio - manter proporção e não cortar a cabeça
   const img = texture.image as HTMLImageElement | undefined;
   const imageAspect = img?.width && img?.height ? img.width / img.height : 0.8;
   const viewportAspect = viewport.width / viewport.height;
   
+  // Usar contain ao invés de cover para não cortar
   let scaleX = viewport.width;
   let scaleY = viewport.height;
   
   if (imageAspect > viewportAspect) {
-    scaleX = viewport.height * imageAspect;
-  } else {
+    // Imagem mais larga que viewport - ajustar pela largura
     scaleY = viewport.width / imageAspect;
+  } else {
+    // Imagem mais alta que viewport - ajustar pela altura com margem
+    scaleX = viewport.height * imageAspect * 0.95; // 5% margem
+    scaleY = viewport.height * 0.95;
   }
 
   return (
@@ -173,34 +195,31 @@ export default function ChromaHero() {
         <FallbackImage imageUrl={heroPortrait} />
       )}
       
-      {/* Overlay com título e subtítulo */}
-      <div className="absolute inset-0 flex flex-col justify-center pointer-events-none">
-        <div className="container mx-auto px-6 lg:px-12">
-          <div className="max-w-xl">
-            {/* Título principal */}
-            <h1 
-              className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight text-white mb-4"
-              style={{ 
-                fontFamily: "'Space Grotesk', sans-serif",
-                textShadow: '0 4px 30px rgba(0,0,0,0.5)'
-              }}
-            >
-              FONTES
-              <br />
-              GRAPHICS
-            </h1>
-            
-            {/* Subtítulo */}
-            <p 
-              className="text-lg md:text-xl text-white/80 tracking-widest uppercase"
-              style={{ 
-                fontFamily: "'Space Grotesk', sans-serif",
-                textShadow: '0 2px 20px rgba(0,0,0,0.5)'
-              }}
-            >
-              Aqui, você cria o futuro visual
-            </p>
-          </div>
+      {/* Overlay com título e subtítulo - posicionado à direita */}
+      <div className="absolute inset-0 flex items-center justify-end pointer-events-none">
+        <div className="pr-8 md:pr-16 lg:pr-24 xl:pr-32 text-right">
+          {/* Título principal */}
+          <h1 
+            className="text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tight text-zinc-900 mb-3"
+            style={{ 
+              fontFamily: "'Space Grotesk', sans-serif",
+              textShadow: '0 2px 20px rgba(255,255,255,0.3)'
+            }}
+          >
+            FONTES
+            <br />
+            GRAPHICS
+          </h1>
+          
+          {/* Subtítulo */}
+          <p 
+            className="text-sm md:text-base lg:text-lg text-zinc-800 tracking-widest uppercase"
+            style={{ 
+              fontFamily: "'Space Grotesk', sans-serif",
+            }}
+          >
+            Aqui, você cria o futuro visual
+          </p>
         </div>
       </div>
     </div>
