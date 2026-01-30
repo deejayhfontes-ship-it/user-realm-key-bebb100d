@@ -31,16 +31,16 @@ const fragmentShader = `
     // Influência baseada na proximidade do mouse
     float influence = smoothstep(0.8, 0.0, dist) * uHover;
     
-    // Speed lines horizontais - efeito Magnetto
-    float speedIntensity = influence * 0.08;
+    // Speed lines horizontais - efeito Magnetto (mais sutil)
+    float speedIntensity = influence * 0.035;
     
     // Offset horizontal dominante para criar "rastros"
-    float horizontalSmear = speedIntensity * (1.0 + sin(uv.y * 50.0 + uTime) * 0.3);
+    float horizontalSmear = speedIntensity * (1.0 + sin(uv.y * 40.0 + uTime) * 0.2);
     
-    // RGB split com direção horizontal
-    vec2 redOffset = uv + vec2(horizontalSmear * 1.5, 0.0);
-    vec2 greenOffset = uv + vec2(horizontalSmear * 0.2, 0.0);
-    vec2 blueOffset = uv - vec2(horizontalSmear * 1.2, 0.0);
+    // RGB split com direção horizontal (mais suave)
+    vec2 redOffset = uv + vec2(horizontalSmear * 1.0, 0.0);
+    vec2 greenOffset = uv + vec2(horizontalSmear * 0.1, 0.0);
+    vec2 blueOffset = uv - vec2(horizontalSmear * 0.8, 0.0);
     
     // Samplear canais separados
     float r = texture2D(uTexture, redOffset).r;
@@ -48,12 +48,12 @@ const fragmentShader = `
     float b = texture2D(uTexture, blueOffset).b;
     float a = texture2D(uTexture, uv).a;
     
-    // Adicionar cyan/magenta tint nas bordas do efeito
-    float edgeTint = smoothstep(0.0, 0.5, influence) * 0.15;
+    // Adicionar cyan/magenta tint nas bordas do efeito (mais sutil)
+    float edgeTint = smoothstep(0.0, 0.5, influence) * 0.08;
     vec3 tint = vec3(
-      edgeTint * 0.3,
-      edgeTint * 0.8,
-      edgeTint * 1.0
+      edgeTint * 0.2,
+      edgeTint * 0.5,
+      edgeTint * 0.7
     );
     
     vec3 finalColor = vec3(r, g, b) + tint;
