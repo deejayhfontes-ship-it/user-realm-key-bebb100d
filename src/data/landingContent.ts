@@ -101,7 +101,7 @@ export const landingContent = {
   },
 
   contact: {
-    sectionLabel: "GET IN TOUCH",
+    sectionLabel: "VAMOS CONVERSAR",
     title: "VAMOS CRIAR ALGO INCRÍVEL JUNTOS",
     description: "Tem um projeto em mente? Adoraríamos ouvir sobre ele. Preencha o formulário abaixo e entraremos em contato em breve.",
     form: {
