@@ -14,7 +14,8 @@ import {
   Receipt,
   Inbox,
   Briefcase,
-  FileCheck
+  FileCheck,
+  Layers
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -51,6 +52,11 @@ const navItems = [
     title: 'Briefings', 
     href: '/admin/briefings', 
     icon: Inbox 
+  },
+  { 
+    title: 'Serviços', 
+    href: '/admin/servicos', 
+    icon: Layers 
   },
   { 
     title: 'Orçamentos', 
