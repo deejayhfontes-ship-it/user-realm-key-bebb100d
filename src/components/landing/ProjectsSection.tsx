@@ -113,27 +113,27 @@ export function ProjectsSection() {
             {/* Dark background with subtle green ambient glow */}
             <div className="absolute inset-0 bg-[#1a1a1a]" />
             <div 
-              className="absolute inset-0"
+              className="absolute inset-0 blur-3xl"
               style={{
-                background: 'radial-gradient(ellipse 100% 80% at 95% 10%, hsl(78 100% 55% / 0.45) 0%, transparent 50%)'
+                background: 'radial-gradient(ellipse 120% 100% at 100% 0%, hsl(78 100% 60% / 0.5) 0%, transparent 60%)'
               }}
             />
             <div 
-              className="absolute inset-0"
+              className="absolute inset-0 blur-3xl"
               style={{
-                background: 'radial-gradient(ellipse 70% 60% at 80% 90%, hsl(78 90% 50% / 0.35) 0%, transparent 45%)'
+                background: 'radial-gradient(ellipse 100% 80% at 85% 100%, hsl(78 90% 55% / 0.4) 0%, transparent 55%)'
               }}
             />
             <div 
-              className="absolute inset-0"
+              className="absolute inset-0 blur-2xl"
               style={{
-                background: 'radial-gradient(ellipse 50% 40% at 15% 50%, hsl(78 80% 45% / 0.25) 0%, transparent 40%)'
+                background: 'radial-gradient(ellipse 80% 60% at 10% 50%, hsl(78 80% 50% / 0.3) 0%, transparent 50%)'
               }}
             />
             <div 
-              className="absolute inset-0"
+              className="absolute inset-0 blur-2xl"
               style={{
-                background: 'radial-gradient(ellipse 60% 50% at 50% 40%, hsl(78 70% 40% / 0.15) 0%, transparent 50%)'
+                background: 'radial-gradient(ellipse 90% 70% at 50% 50%, hsl(78 70% 45% / 0.2) 0%, transparent 60%)'
               }}
             />
 
@@ -141,17 +141,17 @@ export function ProjectsSection() {
             <div className="absolute inset-0 flex items-center justify-center p-6 md:p-8">
               <div className="bg-black/40 backdrop-blur-xl rounded-[32px] border border-white/10 p-6 md:p-8 flex flex-col items-center justify-center w-[75%] aspect-square max-w-[280px]">
                 {/* Category Tag */}
-                <p className="font-pixel text-xs text-white/80 tracking-[0.3em] uppercase mb-4">
+                <p className="font-pixel text-xs text-primary tracking-[0.3em] uppercase mb-4">
                   {ctaCards.services.tag}
                 </p>
 
                 {/* Title */}
-                <h3 className="magnetto-title text-2xl md:text-3xl lg:text-4xl text-white text-center mb-6 tracking-[0.1em] leading-tight">
+                <h3 className="magnetto-title text-2xl md:text-3xl lg:text-4xl text-primary text-center mb-6 tracking-[0.1em] leading-tight">
                   {ctaCards.services.title}
                 </h3>
 
                 {/* Button */}
-                <span className="px-6 py-3 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white text-sm font-pixel tracking-wider flex items-center gap-2 group-hover:bg-black/60 transition-all">
+                <span className="px-6 py-3 rounded-full bg-primary/20 backdrop-blur-md border border-primary/30 text-primary text-sm font-pixel tracking-wider flex items-center gap-2 group-hover:bg-primary/30 transition-all">
                   {ctaCards.services.button}
                 </span>
               </div>
