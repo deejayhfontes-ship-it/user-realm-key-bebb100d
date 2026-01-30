@@ -4,7 +4,7 @@ import { useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import heroPortrait from "@/assets/hero-portrait.jpg";
 
-// Shader para efeito cromático sutil (apenas separação de cores, sem distorção)
+// Shader para efeito cromático intenso no estilo Magnetto
 const vertexShader = `
   varying vec2 vUv;
   void main() {
@@ -28,37 +28,39 @@ const fragmentShader = `
     float dist = distance(uv, mousePos);
     
     // Raio de influência maior e mais suave
-    float influence = smoothstep(0.6, 0.0, dist) * uHover;
+    float influence = smoothstep(0.7, 0.0, dist) * uHover;
     
-    // Chromatic Aberration mais forte e interessante
-    float aberration = influence * 0.025;
+    // Chromatic Aberration forte - estilo glitch horizontal
+    float aberration = influence * 0.04;
     vec2 direction = normalize(uv - mousePos + 0.001);
     
+    // Offset horizontal dominante para efeito "speed lines"
+    vec2 horizontalDir = vec2(direction.x * 1.5, direction.y * 0.3);
+    
     // Múltiplas camadas de separação cromática
-    vec2 redOffset = uv + direction * aberration * 1.2;
-    vec2 greenOffset = uv + direction * aberration * 0.3;
-    vec2 blueOffset = uv - direction * aberration * 1.0;
+    vec2 redOffset = uv + horizontalDir * aberration * 1.5;
+    vec2 greenOffset = uv;
+    vec2 blueOffset = uv - horizontalDir * aberration * 1.2;
     
-    // Efeito de "smear" / rastro prisma
-    float smear = influence * 0.015;
-    vec2 smearDir = vec2(direction.x * 0.8, direction.y * 0.5);
+    // Efeito de "smear" / rastro horizontal intenso
+    float smear = influence * 0.025;
     
-    // Samplear com offset adicional para efeito de rastro
-    float r = texture2D(uTexture, redOffset + smearDir * smear).r;
+    // Samplear com offset para efeito de rastro RGB
+    float r = texture2D(uTexture, redOffset + vec2(smear, 0.0)).r;
     float g = texture2D(uTexture, greenOffset).g;
-    float b = texture2D(uTexture, blueOffset - smearDir * smear * 0.5).b;
+    float b = texture2D(uTexture, blueOffset - vec2(smear * 0.5, 0.0)).b;
     
-    // Brilho prisma dinâmico nas bordas
-    float prismEdge = smoothstep(0.0, 0.4, dist) * smoothstep(0.6, 0.3, dist) * influence;
+    // Efeito de linhas de velocidade nas bordas
+    float speedLines = smoothstep(0.2, 0.5, dist) * smoothstep(0.8, 0.4, dist) * influence;
     
-    // Cores do prisma (arco-íris sutil)
-    vec3 prismTint = vec3(
-      0.1 + sin(uTime * 0.5 + uv.x * 3.0) * 0.05,
-      0.05 + sin(uTime * 0.7 + uv.y * 2.0) * 0.03,
-      0.15 + cos(uTime * 0.6 + uv.x * 2.5) * 0.05
-    ) * prismEdge * 0.8;
+    // Tint cyan/magenta nas bordas do efeito
+    vec3 glitchTint = vec3(
+      0.05 + sin(uTime * 0.8 + uv.x * 5.0) * 0.03,
+      0.1 + sin(uTime * 0.5 + uv.y * 3.0) * 0.05,
+      0.15 + cos(uTime * 0.6 + uv.x * 4.0) * 0.05
+    ) * speedLines;
     
-    vec3 finalColor = vec3(r, g, b) + prismTint;
+    vec3 finalColor = vec3(r, g, b) + glitchTint;
     
     gl_FragColor = vec4(finalColor, 1.0);
   }
@@ -109,9 +111,9 @@ function ChromaPlaneInner({ texture }: { texture: THREE.Texture }) {
     // Animação contínua para interpolar
     let animationId: number;
     const animate = () => {
-      uniforms.current.uMouse.value.x += (targetX - uniforms.current.uMouse.value.x) * 0.08;
-      uniforms.current.uMouse.value.y += (targetY - uniforms.current.uMouse.value.y) * 0.08;
-      uniforms.current.uHover.value += (isHovering - uniforms.current.uHover.value) * 0.1;
+      uniforms.current.uMouse.value.x += (targetX - uniforms.current.uMouse.value.x) * 0.06;
+      uniforms.current.uMouse.value.y += (targetY - uniforms.current.uMouse.value.y) * 0.06;
+      uniforms.current.uHover.value += (isHovering - uniforms.current.uHover.value) * 0.08;
       animationId = requestAnimationFrame(animate);
     };
     animate();
@@ -123,16 +125,13 @@ function ChromaPlaneInner({ texture }: { texture: THREE.Texture }) {
     };
   }, []);
 
-  // Calcular aspect ratio - CONTAIN: nunca cortar a figura
+  // Calcular aspect ratio - CONTAIN: figura completa sempre visível
   const img = texture.image as HTMLImageElement | undefined;
   const imageAspect = img?.width && img?.height ? img.width / img.height : 0.75;
-  const viewportAspect = viewport.width / viewport.height;
   
-  // Contain logic: figura completa sempre visível
-  // Deixar espaço à direita para o texto (60% da largura para imagem)
-  const maxWidthPercent = 0.6;
-  const availableWidth = viewport.width * maxWidthPercent;
-  const availableHeight = viewport.height * 0.95; // Margem vertical
+  // Área central (40% do viewport) para a imagem
+  const availableWidth = viewport.width * 0.45;
+  const availableHeight = viewport.height * 0.9;
   
   let scaleX: number;
   let scaleY: number;
@@ -144,20 +143,15 @@ function ChromaPlaneInner({ texture }: { texture: THREE.Texture }) {
   const fitByHeightWidth = fitByHeight * imageAspect;
   
   if (fitByWidthHeight <= availableHeight) {
-    // Cabe pela largura
     scaleX = fitByWidth;
     scaleY = fitByWidthHeight;
   } else {
-    // Cabe pela altura
     scaleX = fitByHeightWidth;
     scaleY = fitByHeight;
   }
 
-  // Posicionar à esquerda do viewport
-  const offsetX = -viewport.width * 0.2;
-
   return (
-    <mesh ref={meshRef} scale={[scaleX, scaleY, 1]} position={[offsetX, 0, 0]}>
+    <mesh ref={meshRef} scale={[scaleX, scaleY, 1]} position={[0, 0, 0]}>
       <planeGeometry args={[1, 1, 1, 1]} />
       <shaderMaterial
         vertexShader={vertexShader}
@@ -178,9 +172,14 @@ function ChromaPlane({ imageUrl }: { imageUrl: string }) {
 function FallbackImage({ imageUrl }: { imageUrl: string }) {
   return (
     <div 
-      className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-      style={{ backgroundImage: `url(${imageUrl})` }}
-    />
+      className="w-full h-full flex items-center justify-center"
+    >
+      <img 
+        src={imageUrl} 
+        alt="Hero" 
+        className="max-h-[90%] max-w-full object-contain"
+      />
+    </div>
   );
 }
 
@@ -188,38 +187,22 @@ export default function ChromaHero() {
   const [hasError, setHasError] = useState(false);
 
   return (
-    <div className="absolute inset-0 z-0">
-      {/* WebGL Canvas com efeito cromático */}
-      {!hasError ? (
-        <Canvas
-          dpr={[1, 1.5]}
-          camera={{ position: [0, 0, 1] }}
-          gl={{
-            antialias: false,
-            alpha: false,
-            powerPreference: "high-performance",
-            failIfMajorPerformanceCaveat: false,
-          }}
-          onError={() => setHasError(true)}
-        >
-          <Suspense fallback={null}>
-            <ChromaPlane imageUrl={heroPortrait} />
-          </Suspense>
-        </Canvas>
-      ) : (
-        <FallbackImage imageUrl={heroPortrait} />
-      )}
+    <div className="absolute inset-0 z-0 bg-[#3a3a3a]">
+      {/* Gradient vignette overlay */}
+      <div 
+        className="absolute inset-0 pointer-events-none z-[1]"
+        style={{
+          background: 'radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.4) 100%)'
+        }}
+      />
       
-      {/* Overlay com título e subtítulo - posicionado à direita, sem sobreposição */}
-      <div className="absolute inset-0 flex items-center pointer-events-none">
-        {/* Área esquerda reservada para imagem */}
-        <div className="w-[55%] md:w-[60%]" />
+      {/* Layout principal: 30% | 40% | 30% */}
+      <div className="absolute inset-0 flex items-center">
         
-        {/* Área direita para texto */}
-        <div className="w-[45%] md:w-[40%] flex flex-col justify-center pr-6 md:pr-12 lg:pr-20">
-          {/* Título principal - único */}
+        {/* Coluna Esquerda - 30% - Título */}
+        <div className="w-[30%] h-full flex flex-col justify-center pl-8 md:pl-12 lg:pl-20 z-10">
           <h1 
-            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight text-black leading-none"
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight text-black leading-[0.9] text-left"
             style={{ 
               fontFamily: "'Space Grotesk', sans-serif",
             }}
@@ -229,16 +212,48 @@ export default function ChromaHero() {
             GRAPHICS
           </h1>
           
-          {/* Subtítulo */}
-          <p 
-            className="mt-3 md:mt-4 text-xs sm:text-sm md:text-base text-zinc-900 tracking-[0.2em] uppercase font-medium"
-            style={{ 
-              fontFamily: "'Space Grotesk', sans-serif",
-            }}
-          >
-            AQUI, VOCÊ CRIA O FUTURO VISUAL
-          </p>
+          {/* Badge verde neon com subtítulo */}
+          <div className="mt-4 md:mt-6">
+            <span 
+              className="inline-block px-3 py-1.5 md:px-4 md:py-2 rounded-full text-[10px] sm:text-xs md:text-sm font-medium tracking-wider uppercase"
+              style={{
+                backgroundColor: '#a3e635',
+                color: '#000000',
+                fontFamily: "'Space Grotesk', sans-serif",
+              }}
+            >
+              AQUI, VOCÊ CRIA O FUTURO VISUAL
+            </span>
+          </div>
         </div>
+        
+        {/* Coluna Central - 40% - Imagem com efeito */}
+        <div className="w-[40%] h-full relative">
+          {!hasError ? (
+            <Canvas
+              dpr={[1, 1.5]}
+              camera={{ position: [0, 0, 1] }}
+              gl={{
+                antialias: false,
+                alpha: true,
+                powerPreference: "high-performance",
+                failIfMajorPerformanceCaveat: false,
+              }}
+              onError={() => setHasError(true)}
+              style={{ background: 'transparent' }}
+            >
+              <Suspense fallback={null}>
+                <ChromaPlane imageUrl={heroPortrait} />
+              </Suspense>
+            </Canvas>
+          ) : (
+            <FallbackImage imageUrl={heroPortrait} />
+          )}
+        </div>
+        
+        {/* Coluna Direita - 30% - Limpa para equilíbrio */}
+        <div className="w-[30%] h-full" />
+        
       </div>
     </div>
   );
