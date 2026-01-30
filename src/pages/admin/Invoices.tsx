@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -7,12 +8,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { 
   FileText, Plus, Trash2, Eye, Download, Loader2, Copy, 
-  Search, Filter, CheckCircle, Clock, AlertCircle, XCircle, QrCode 
+  Search, Filter, CheckCircle, Clock, AlertCircle, XCircle, QrCode, FileCheck 
 } from "lucide-react";
 import { toast } from "sonner";
 import { useInvoices } from "@/hooks/useInvoices";
+import { useNotasFiscais } from "@/hooks/useNotasFiscais";
 import { InvoiceForm } from "@/components/invoices/InvoiceForm";
 import { InvoicePreview } from "@/components/invoices/InvoicePreview";
 import { InvoiceData, InvoiceRow } from "@/types/invoice";
@@ -42,7 +45,9 @@ const statusConfig = {
 };
 
 const Invoices = () => {
+  const navigate = useNavigate();
   const { invoices, isLoading, generateInvoiceNumber, createInvoice, deleteInvoice, updateStatus } = useInvoices();
+  const { notas } = useNotasFiscais();
   const [activeTab, setActiveTab] = useState("list");
   const [invoiceData, setInvoiceData] = useState<InvoiceData>(emptyInvoice);
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceRow | null>(null);
@@ -237,9 +242,9 @@ const Invoices = () => {
                       <TableHead>Data</TableHead>
                       <TableHead>Vencimento</TableHead>
                       <TableHead>Bill To</TableHead>
-                      <TableHead>Ship To</TableHead>
                       <TableHead className="text-right">Total</TableHead>
                       <TableHead>Status</TableHead>
+                      <TableHead>NF</TableHead>
                       <TableHead className="text-center">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -247,6 +252,7 @@ const Invoices = () => {
                     {filteredInvoices.map((invoice) => {
                       const status = statusConfig[invoice.status];
                       const StatusIcon = status.icon;
+                      const notaVinculada = notas.find(n => n.invoice_id === invoice.id);
                       return (
                         <TableRow key={invoice.id}>
                           <TableCell className="font-medium">#{invoice.invoice_number}</TableCell>
@@ -255,7 +261,6 @@ const Invoices = () => {
                             {invoice.due_date ? new Date(invoice.due_date).toLocaleDateString("pt-BR") : "-"}
                           </TableCell>
                           <TableCell>{invoice.bill_to_name}</TableCell>
-                          <TableCell>{invoice.ship_to_name}</TableCell>
                           <TableCell className="text-right font-semibold">
                             R$ {(invoice.total / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                           </TableCell>
@@ -266,12 +271,41 @@ const Invoices = () => {
                                 {status.label}
                               </Badge>
                               {invoice.pix_code && (
-                                <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/20">
+                                <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
                                   <QrCode className="h-3 w-3 mr-1" />
                                   PIX
                                 </Badge>
                               )}
                             </div>
+                          </TableCell>
+                          <TableCell>
+                            {notaVinculada ? (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Badge 
+                                    variant="outline" 
+                                    className="bg-primary/10 text-primary border-primary/20 cursor-pointer"
+                                    onClick={() => navigate('/admin/notas-fiscais')}
+                                  >
+                                    <FileCheck className="h-3 w-3 mr-1" />
+                                    {notaVinculada.numero}
+                                  </Badge>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  {notaVinculada.tipo} - {notaVinculada.status === 'autorizada' ? 'Autorizada' : notaVinculada.status}
+                                </TooltipContent>
+                              </Tooltip>
+                            ) : (
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="h-7 text-xs"
+                                onClick={() => navigate('/admin/notas-fiscais')}
+                              >
+                                <FileCheck className="h-3 w-3 mr-1" />
+                                Emitir
+                              </Button>
+                            )}
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center justify-center gap-1">
