@@ -27,6 +27,20 @@ export const landingContent = {
   projects: {
     sectionTitle: "SELECTED WORKS",
     exploreButton: "Explore More +",
+    ctaCards: {
+      clientLogin: {
+        tag: "ACESSO EXCLUSIVO",
+        title: "ÁREA DO CLIENTE",
+        button: "FAZER LOGIN +",
+        link: "/client/login",
+      },
+      services: {
+        tag: "NOSSOS SERVIÇOS",
+        title: "PLANOS E PACOTES",
+        button: "CONHECER +",
+        link: "#services",
+      },
+    },
   },
 
   about: {

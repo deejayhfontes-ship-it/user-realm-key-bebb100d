@@ -1,9 +1,12 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { usePublicPortfolio } from "@/hooks/usePortfolio";
 import { ArrowRight, X } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { landingContent } from "@/data/landingContent";
+import cardClientLoginBg from "@/assets/card-client-login-bg.jpg";
+import cardServicesBg from "@/assets/card-services-bg.jpg";
 
 export function ProjectsSection() {
   const { cases, isLoading } = usePublicPortfolio();
@@ -57,6 +60,14 @@ export function ProjectsSection() {
 
   const displayProjects = cases.length > 0 ? cases : placeholderProjects;
 
+  const ctaCards = content.ctaCards;
+
+  const handleScrollToServices = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const element = document.querySelector("#services");
+    element?.scrollIntoView({ behavior: "smooth" });
+  };
+
   return (
     <section id="projects" className="section-padding bg-[#0a0a0a]">
       <div className="container mx-auto px-4">
@@ -70,9 +81,81 @@ export function ProjectsSection() {
           </p>
         </div>
 
-        {/* Projects Grid */}
+        {/* Projects Grid - CTA Cards First, then Portfolio */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {displayProjects.slice(0, 4).map((project, index) => (
+          {/* CTA Card 1 - Client Login */}
+          <Link
+            to={ctaCards.clientLogin.link}
+            className="group relative aspect-[3/4] rounded-[40px] overflow-hidden cursor-pointer magnetto-card"
+          >
+            {/* Background Image */}
+            <div
+              className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
+              style={{ backgroundImage: `url(${cardClientLoginBg})` }}
+            />
+            
+            {/* Subtle gradient overlay */}
+            <div className="absolute inset-0 bg-black/30" />
+
+            {/* Central Glass Card - Fixed size */}
+            <div className="absolute inset-0 flex items-center justify-center p-6 md:p-8">
+              <div className="bg-black/40 backdrop-blur-xl rounded-[32px] border border-white/10 p-6 md:p-8 flex flex-col items-center justify-center w-[75%] aspect-square max-w-[280px]">
+                {/* Category Tag */}
+                <p className="font-pixel text-xs text-white/80 tracking-[0.3em] uppercase mb-4">
+                  {ctaCards.clientLogin.tag}
+                </p>
+
+                {/* Title */}
+                <h3 className="magnetto-title text-2xl md:text-3xl lg:text-4xl text-white text-center mb-6 tracking-[0.1em] leading-tight">
+                  {ctaCards.clientLogin.title}
+                </h3>
+
+                {/* Button */}
+                <span className="px-6 py-3 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white text-sm font-pixel tracking-wider flex items-center gap-2 group-hover:bg-black/60 transition-all">
+                  {ctaCards.clientLogin.button}
+                </span>
+              </div>
+            </div>
+          </Link>
+
+          {/* CTA Card 2 - Services */}
+          <a
+            href="#services"
+            onClick={handleScrollToServices}
+            className="group relative aspect-[3/4] rounded-[40px] overflow-hidden cursor-pointer magnetto-card"
+          >
+            {/* Background Image */}
+            <div
+              className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
+              style={{ backgroundImage: `url(${cardServicesBg})` }}
+            />
+            
+            {/* Subtle gradient overlay */}
+            <div className="absolute inset-0 bg-black/30" />
+
+            {/* Central Glass Card - Fixed size */}
+            <div className="absolute inset-0 flex items-center justify-center p-6 md:p-8">
+              <div className="bg-black/40 backdrop-blur-xl rounded-[32px] border border-white/10 p-6 md:p-8 flex flex-col items-center justify-center w-[75%] aspect-square max-w-[280px]">
+                {/* Category Tag */}
+                <p className="font-pixel text-xs text-white/80 tracking-[0.3em] uppercase mb-4">
+                  {ctaCards.services.tag}
+                </p>
+
+                {/* Title */}
+                <h3 className="magnetto-title text-2xl md:text-3xl lg:text-4xl text-white text-center mb-6 tracking-[0.1em] leading-tight">
+                  {ctaCards.services.title}
+                </h3>
+
+                {/* Button */}
+                <span className="px-6 py-3 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white text-sm font-pixel tracking-wider flex items-center gap-2 group-hover:bg-black/60 transition-all">
+                  {ctaCards.services.button}
+                </span>
+              </div>
+            </div>
+          </a>
+
+          {/* Portfolio Project Cards */}
+          {displayProjects.slice(0, 4).map((project) => (
             <div
               key={project.id}
               onClick={() => setSelectedProject(project as typeof cases[0])}
