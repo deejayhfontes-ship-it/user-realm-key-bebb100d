@@ -20,6 +20,7 @@ const navItems = [
   { label: "SOBRE", href: "#about", isRoute: false },
   { label: "PORTFÓLIO", href: "/portfolio", isRoute: true },
   { label: "SERVIÇOS", href: "#services", isRoute: false },
+  { label: "ORÇAMENTO", href: "/briefing", isRoute: true },
   { label: "CONTATO", href: "#contact", isRoute: false },
 ];
 
