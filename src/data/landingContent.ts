@@ -59,8 +59,8 @@ export const landingContent = {
   },
 
   clients: {
-    sectionLabel: "TRUSTED BY",
-    title: "MARCAS QUE CONFIAM EM NÓS",
+    sectionLabel: "PARCEIROS CRIATIVOS",
+    title: "PARCEIROS CRIATIVOS",
   },
 
   services: {

@@ -1,58 +1,84 @@
+import { usePublicPartnerLogos } from "@/hooks/usePartnerLogos";
 import { landingContent } from "@/data/landingContent";
 
-const placeholderClients = [
-  { name: "Client 1", logo: null },
-  { name: "Client 2", logo: null },
-  { name: "Client 3", logo: null },
-  { name: "Client 4", logo: null },
-  { name: "Client 5", logo: null },
-];
-
 export function ClientsSection() {
+  const { logos, showSection, loading } = usePublicPartnerLogos();
   const content = landingContent.clients;
 
-  return (
-    <section className="section-padding bg-[#0a0a0a]">
-      <div className="container mx-auto px-4">
-        {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-8 mb-16">
-          <h2 className="magnetto-title text-5xl md:text-7xl lg:text-8xl text-white">
-            {content.title}
-          </h2>
-          <p className="text-zinc-400 max-w-md text-lg lg:text-right">
-            Colaboramos com marcas visionárias, startups inovadoras e líderes de 
-            mercado que ousam desafiar o convencional.
-          </p>
-        </div>
+  // Don't render if section is disabled or not enough logos
+  if (loading || !showSection || logos.length < 4) {
+    return null;
+  }
 
-        {/* Clients Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          {placeholderClients.map((client, index) => (
+  // Duplicate logos for seamless infinite scroll
+  const duplicatedLogos = [...logos, ...logos];
+
+  return (
+    <section className="relative py-16 md:py-24 bg-[#0a0a0a] overflow-hidden">
+      {/* Fade edges */}
+      <div className="absolute left-0 top-0 bottom-0 w-12 md:w-36 bg-gradient-to-r from-[#0a0a0a] to-transparent z-10 pointer-events-none" />
+      <div className="absolute right-0 top-0 bottom-0 w-12 md:w-36 bg-gradient-to-l from-[#0a0a0a] to-transparent z-10 pointer-events-none" />
+
+      <div className="container mx-auto px-4 mb-14">
+        {/* Title with decorative line */}
+        <div className="text-center">
+          <h2 className="text-xs uppercase tracking-[3px] text-white/40 font-medium transition-colors duration-300 hover:text-white/60">
+            {content.sectionLabel}
+          </h2>
+          <div className="w-16 h-px bg-primary/30 mx-auto mt-4" />
+        </div>
+      </div>
+
+      {/* Carousel Container */}
+      <div className="relative max-w-[1400px] mx-auto">
+        {/* Infinite Scrolling Carousel */}
+        <div className="carousel-track flex gap-16 md:gap-24 animate-scroll-logos hover:[animation-play-state:paused]">
+          {duplicatedLogos.map((logo, index) => (
             <div
-              key={index}
-              className="client-card aspect-square flex items-center justify-center group"
+              key={`${logo.id}-${index}`}
+              className="flex-shrink-0 w-28 md:w-40 h-16 md:h-20 flex items-center justify-center group"
             >
-              {client.logo ? (
-                <img
-                  src={client.logo}
-                  alt={client.name}
-                  className="max-w-[60%] max-h-[60%] object-contain opacity-40 group-hover:opacity-80 transition-opacity filter grayscale group-hover:grayscale-0"
-                />
+              {logo.site_url ? (
+                <a
+                  href={logo.site_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full h-full"
+                  title={logo.nome}
+                >
+                  <img
+                    src={logo.logo_url}
+                    alt={logo.nome}
+                    className="w-full h-full object-contain filter grayscale brightness-50 opacity-50 transition-all duration-300 group-hover:grayscale-0 group-hover:brightness-100 group-hover:opacity-100 group-hover:scale-105 cursor-pointer"
+                  />
+                </a>
               ) : (
-                <div className="text-zinc-600 group-hover:text-zinc-400 transition-colors">
-                  <svg
-                    className="w-12 h-12"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-                  </svg>
-                </div>
+                <img
+                  src={logo.logo_url}
+                  alt={logo.nome}
+                  className="w-full h-full object-contain filter grayscale brightness-50 opacity-50 transition-all duration-300 group-hover:grayscale-0 group-hover:brightness-100 group-hover:opacity-100 group-hover:scale-105"
+                />
               )}
             </div>
           ))}
         </div>
       </div>
+
+      {/* CSS Animation */}
+      <style>{`
+        @keyframes scroll-logos {
+          0% {
+            transform: translateX(0);
+          }
+          100% {
+            transform: translateX(-50%);
+          }
+        }
+        
+        .animate-scroll-logos {
+          animation: scroll-logos 35s linear infinite;
+        }
+      `}</style>
     </section>
   );
 }
