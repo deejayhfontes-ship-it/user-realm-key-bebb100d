@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Instagram, Linkedin, Youtube, MessageCircle } from "lucide-react";
 import { landingContent } from "@/data/landingContent";
 
@@ -11,11 +11,14 @@ const socialIconMap: Record<string, typeof Instagram> = {
 
 export function Footer() {
   const content = landingContent.footer;
+  const navigate = useNavigate();
 
   const handleNavClick = (href: string) => {
     if (href.startsWith("#")) {
       const element = document.querySelector(href);
       element?.scrollIntoView({ behavior: "smooth" });
+    } else {
+      navigate(href);
     }
   };
 

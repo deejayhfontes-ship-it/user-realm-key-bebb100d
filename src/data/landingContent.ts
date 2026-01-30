@@ -121,12 +121,13 @@ export const landingContent = {
       emailHref: "contato@fontesgraphics.com",
       description: "Na Fontes Graphics, quebramos barreiras para criar designs que se destacam e entregam resultados.",
     },
-    navigation: [
+  navigation: [
       { label: "Home", href: "#hero" },
-      { label: "About", href: "#about" },
-      { label: "Projects", href: "#projects" },
-      { label: "Services", href: "#services" },
-      { label: "Contact", href: "#contact" },
+      { label: "Sobre", href: "#about" },
+      { label: "Portfólio", href: "/portfolio" },
+      { label: "Serviços", href: "#services" },
+      { label: "Orçamento", href: "/briefing" },
+      { label: "Contato", href: "#contact" },
     ],
     socialLabel: "Social Media",
     socialLinks: [
