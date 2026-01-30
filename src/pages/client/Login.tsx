@@ -134,7 +134,7 @@ export default function ClientLogin() {
             </div>
 
             <div className="flex items-center justify-end mb-4">
-              <Link to="/recuperar-senha" className="text-sm text-[#1a1a1a] font-medium hover:text-primary hover:underline">
+              <Link to="/recuperar-senha" className="text-sm text-[#1a1a1a] hover:text-primary hover:underline">
                 Esqueceu a senha?
               </Link>
             </div>
@@ -158,8 +158,8 @@ export default function ClientLogin() {
           {/* Signup link */}
           <div className="text-center mb-6">
             <p className="text-sm">
-              <span className="text-[#1a1a1a] font-medium">Ainda não tem conta?</span>{' '}
-              <Link to="/registro" className="text-[#1a1a1a] font-semibold hover:text-primary hover:underline">
+              <span className="text-[#1a1a1a]">Ainda não tem conta?</span>{' '}
+              <Link to="/registro" className="text-[#1a1a1a] hover:text-primary hover:underline">
                 Criar conta grátis
               </Link>
             </p>
@@ -171,7 +171,7 @@ export default function ClientLogin() {
               <div className="w-full border-t border-[#333333]" />
             </div>
             <div className="relative flex justify-center">
-              <span className="bg-background px-4 text-sm text-[#1a1a1a] font-medium">ou</span>
+              <span className="bg-background px-4 text-sm text-[#1a1a1a]">ou</span>
             </div>
           </div>
 
@@ -180,7 +180,7 @@ export default function ClientLogin() {
             <Link to="/plans">
               <Button
                 variant="outline"
-                className="w-full h-12 rounded-2xl border-[#333333] text-[#1a1a1a] font-semibold hover:bg-primary/10 hover:border-primary"
+                className="w-full h-12 rounded-2xl border-[#333333] text-[#1a1a1a] hover:bg-primary/10 hover:border-primary"
               >
                 <Sparkles className="w-4 h-4 mr-2 text-[#1a1a1a]" />
                 Ver Planos e Preços
@@ -189,7 +189,7 @@ export default function ClientLogin() {
             
             <Button
               variant="ghost"
-              className="w-full h-12 rounded-2xl text-[#1a1a1a] font-medium hover:text-primary"
+              className="w-full h-12 rounded-2xl text-[#1a1a1a] hover:text-primary"
               onClick={() => window.open('mailto:suporte@fontesgraphics.com', '_blank')}
             >
               <Headphones className="w-4 h-4 mr-2" />
@@ -198,9 +198,9 @@ export default function ClientLogin() {
           </div>
 
           {/* Admin link */}
-          <p className="text-center text-[#1a1a1a] text-xs mt-8 font-medium">
+          <p className="text-center text-[#1a1a1a] text-xs mt-8">
             É administrador?{' '}
-            <Link to="/login" className="text-[#1a1a1a] font-semibold hover:text-primary hover:underline">
+            <Link to="/login" className="text-[#1a1a1a] hover:text-primary hover:underline">
               Acessar painel admin
             </Link>
           </p>
