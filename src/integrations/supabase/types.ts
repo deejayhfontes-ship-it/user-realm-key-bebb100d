@@ -1418,6 +1418,66 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_logos: {
+        Row: {
+          ativo: boolean | null
+          created_at: string
+          id: string
+          logo_url: string
+          nome: string
+          ordem: number
+          site_url: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ativo?: boolean | null
+          created_at?: string
+          id?: string
+          logo_url: string
+          nome: string
+          ordem?: number
+          site_url?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ativo?: boolean | null
+          created_at?: string
+          id?: string
+          logo_url?: string
+          nome?: string
+          ordem?: number
+          site_url?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      partner_section_settings: {
+        Row: {
+          created_at: string
+          id: string
+          show_section: boolean | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          show_section?: boolean | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          show_section?: boolean | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       payment_configs: {
         Row: {
           api_key_encrypted: string | null

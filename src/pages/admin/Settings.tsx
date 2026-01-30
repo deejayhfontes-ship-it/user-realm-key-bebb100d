@@ -5,7 +5,8 @@ import { PixAccountsList } from '@/components/admin/settings/PixAccountsList';
 import { FiscalConfigTab } from '@/components/admin/settings/FiscalConfigTab';
 import { ChannelsConfigTab } from '@/components/admin/settings/ChannelsConfigTab';
 import { AboutConfigTab } from '@/components/admin/settings/AboutConfigTab';
-import { QrCode, Building2, FileText, MessageCircle, Users } from 'lucide-react';
+import { PartnersConfigTab } from '@/components/admin/settings/PartnersConfigTab';
+import { QrCode, Building2, FileText, MessageCircle, Users, Handshake } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function AdminSettings() {
@@ -37,6 +38,10 @@ export default function AdminSettings() {
               <Users className="h-4 w-4" />
               Quem Somos
             </TabsTrigger>
+            <TabsTrigger value="parceiros" className="flex items-center gap-2">
+              <Handshake className="h-4 w-4" />
+              Parceiros Criativos
+            </TabsTrigger>
             <TabsTrigger value="geral" className="flex items-center gap-2">
               <Building2 className="h-4 w-4" />
               Geral
@@ -57,6 +62,10 @@ export default function AdminSettings() {
 
           <TabsContent value="sobre">
             <AboutConfigTab />
+          </TabsContent>
+
+          <TabsContent value="parceiros">
+            <PartnersConfigTab />
           </TabsContent>
 
           <TabsContent value="geral">
