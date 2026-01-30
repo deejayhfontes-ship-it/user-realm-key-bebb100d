@@ -1220,6 +1220,54 @@ export type Database = {
         }
         Relationships: []
       }
+      portfolio_cases: {
+        Row: {
+          category: string
+          client_name: string
+          created_at: string | null
+          description: string
+          featured: boolean | null
+          gallery_urls: Json | null
+          id: string
+          order_index: number | null
+          results: string | null
+          status: string | null
+          thumbnail_url: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          client_name: string
+          created_at?: string | null
+          description: string
+          featured?: boolean | null
+          gallery_urls?: Json | null
+          id?: string
+          order_index?: number | null
+          results?: string | null
+          status?: string | null
+          thumbnail_url: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          client_name?: string
+          created_at?: string | null
+          description?: string
+          featured?: boolean | null
+          gallery_urls?: Json | null
+          id?: string
+          order_index?: number | null
+          results?: string | null
+          status?: string | null
+          thumbnail_url?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       proposal_settings: {
         Row: {
           company_address: string | null
