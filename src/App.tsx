@@ -23,6 +23,7 @@ import AdminInvoices from "@/pages/admin/Invoices";
 import AdminBriefings from "@/pages/admin/Briefings";
 import AdminPortfolio from "@/pages/admin/Portfolio";
 import AdminNotasFiscais from "@/pages/admin/NotasFiscais";
+import AdminServices from "@/pages/admin/Services";
 import NotFound from "@/pages/NotFound";
 import Platform from "@/pages/Platform";
 
@@ -88,6 +89,7 @@ const App = () => (
               <Route path="ai-providers" element={<AdminAIProviders />} />
               <Route path="payments" element={<AdminPayments />} />
               <Route path="briefings" element={<AdminBriefings />} />
+              <Route path="servicos" element={<AdminServices />} />
               <Route path="budgets" element={<AdminBudgets />} />
               <Route path="propostas" element={<AdminPropostas />} />
               <Route path="invoices" element={<AdminInvoices />} />

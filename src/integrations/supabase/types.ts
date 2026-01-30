@@ -1638,6 +1638,63 @@ export type Database = {
         }
         Relationships: []
       }
+      services: {
+        Row: {
+          created_at: string | null
+          deliverables: Json | null
+          delivery_time: string | null
+          display_order: number | null
+          features: Json | null
+          full_description: string | null
+          icon: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          price_range: string | null
+          short_description: string
+          slug: string
+          title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          deliverables?: Json | null
+          delivery_time?: string | null
+          display_order?: number | null
+          features?: Json | null
+          full_description?: string | null
+          icon?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          price_range?: string | null
+          short_description: string
+          slug: string
+          title: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          deliverables?: Json | null
+          delivery_time?: string | null
+          display_order?: number | null
+          features?: Json | null
+          full_description?: string | null
+          icon?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          price_range?: string | null
+          short_description?: string
+          slug?: string
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           client_id: string | null
