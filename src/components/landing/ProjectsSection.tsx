@@ -164,11 +164,11 @@ export function ProjectsSection() {
                 </h3>
 
                 {/* Button */}
-                <span className="relative px-6 py-3 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white text-sm font-pixel tracking-wider group-hover:bg-black/60 transition-all">
+                <span className="relative px-6 py-3 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white text-xs font-pixel tracking-wider group-hover:bg-black/60 transition-all min-w-[140px] text-center">
                   <span className="opacity-100 group-hover:opacity-0 transition-opacity duration-300">EXPLORAR +</span>
-                  <span className="absolute inset-0 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    Ver Projetos
-                    <FolderOpen className="w-4 h-4" />
+                  <span className="absolute inset-0 flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    VER +
+                    <FolderOpen className="w-3.5 h-3.5" />
                   </span>
                 </span>
               </div>
@@ -203,11 +203,11 @@ export function ProjectsSection() {
                 </h3>
 
                 {/* Button */}
-                <span className="relative px-6 py-3 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white text-sm font-pixel tracking-wider group-hover:bg-black/60 transition-all">
+                <span className="relative px-6 py-3 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white text-xs font-pixel tracking-wider group-hover:bg-black/60 transition-all min-w-[140px] text-center">
                   <span className="opacity-100 group-hover:opacity-0 transition-opacity duration-300">SOLICITAR +</span>
-                  <span className="absolute inset-0 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    Iniciar Briefing
-                    <Briefcase className="w-4 h-4" />
+                  <span className="absolute inset-0 flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    INICIAR +
+                    <Briefcase className="w-3.5 h-3.5" />
                   </span>
                 </span>
               </div>
