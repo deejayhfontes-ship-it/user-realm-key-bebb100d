@@ -7,66 +7,110 @@ import { ChannelsConfigTab } from '@/components/admin/settings/ChannelsConfigTab
 import { AboutConfigTab } from '@/components/admin/settings/AboutConfigTab';
 import { PartnersConfigTab } from '@/components/admin/settings/PartnersConfigTab';
 import { ContactFormConfigTab } from '@/components/admin/settings/ContactFormConfigTab';
-import { QrCode, Building2, FileText, MessageCircle, Users, Handshake, FormInput } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { GeneralConfigTab } from '@/components/admin/settings/GeneralConfigTab';
+import { SocialLinksConfigTab } from '@/components/admin/settings/SocialLinksConfigTab';
+import { LegalPagesConfigTab } from '@/components/admin/settings/LegalPagesConfigTab';
+import { HomePageConfigTab } from '@/components/admin/settings/HomePageConfigTab';
+import { SeoConfigTab } from '@/components/admin/settings/SeoConfigTab';
+import { 
+  Settings as SettingsIcon, 
+  Share2, 
+  FileText, 
+  Home, 
+  Info, 
+  Briefcase, 
+  Users, 
+  Mail, 
+  Globe,
+  QrCode,
+  Building2
+} from 'lucide-react';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 export default function AdminSettings() {
-  const [activeTab, setActiveTab] = useState('pix');
+  const [activeTab, setActiveTab] = useState('geral');
 
   return (
     <div className="flex flex-col h-full">
       <AdminHeader 
         title="Configurações" 
-        subtitle="Configurações do sistema"
+        subtitle="Gerencie todas as configurações do site"
       />
       
       <div className="flex-1 p-6">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-6 flex-wrap">
-            <TabsTrigger value="pix" className="flex items-center gap-2">
-              <QrCode className="h-4 w-4" />
-              Contas PIX
-            </TabsTrigger>
-            <TabsTrigger value="fiscal" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              Nota Fiscal
-            </TabsTrigger>
-            <TabsTrigger value="canais" className="flex items-center gap-2">
-              <MessageCircle className="h-4 w-4" />
-              Canais de Contato
-            </TabsTrigger>
-            <TabsTrigger value="sobre" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Quem Somos
-            </TabsTrigger>
-            <TabsTrigger value="parceiros" className="flex items-center gap-2">
-              <Handshake className="h-4 w-4" />
-              Parceiros Criativos
-            </TabsTrigger>
-            <TabsTrigger value="formulario" className="flex items-center gap-2">
-              <FormInput className="h-4 w-4" />
-              Formulário de Contato
-            </TabsTrigger>
-            <TabsTrigger value="geral" className="flex items-center gap-2">
-              <Building2 className="h-4 w-4" />
-              Geral
-            </TabsTrigger>
-          </TabsList>
+          <ScrollArea className="w-full whitespace-nowrap">
+            <TabsList className="mb-6 inline-flex w-max">
+              <TabsTrigger value="geral" data-tab="geral" className="flex items-center gap-2">
+                <SettingsIcon className="h-4 w-4" />
+                Geral
+              </TabsTrigger>
+              <TabsTrigger value="redes" data-tab="redes" className="flex items-center gap-2">
+                <Share2 className="h-4 w-4" />
+                Redes Sociais
+              </TabsTrigger>
+              <TabsTrigger value="legal" data-tab="legal" className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Termos e Privacidade
+              </TabsTrigger>
+              <TabsTrigger value="home" data-tab="home" className="flex items-center gap-2">
+                <Home className="h-4 w-4" />
+                Home Page
+              </TabsTrigger>
+              <TabsTrigger value="sobre" data-tab="sobre" className="flex items-center gap-2">
+                <Info className="h-4 w-4" />
+                Seção Sobre
+              </TabsTrigger>
+              <TabsTrigger value="servicos" data-tab="servicos" className="flex items-center gap-2">
+                <Briefcase className="h-4 w-4" />
+                Seção Serviços
+              </TabsTrigger>
+              <TabsTrigger value="parceiros" data-tab="parceiros" className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Parceiros
+              </TabsTrigger>
+              <TabsTrigger value="formulario" data-tab="formulario" className="flex items-center gap-2">
+                <Mail className="h-4 w-4" />
+                Formulário
+              </TabsTrigger>
+              <TabsTrigger value="seo" data-tab="seo" className="flex items-center gap-2">
+                <Globe className="h-4 w-4" />
+                SEO
+              </TabsTrigger>
+              <TabsTrigger value="pix" data-tab="pix" className="flex items-center gap-2">
+                <QrCode className="h-4 w-4" />
+                PIX
+              </TabsTrigger>
+              <TabsTrigger value="fiscal" data-tab="fiscal" className="flex items-center gap-2">
+                <Building2 className="h-4 w-4" />
+                Fiscal
+              </TabsTrigger>
+            </TabsList>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
 
-          <TabsContent value="pix">
-            <PixAccountsList />
+          <TabsContent value="geral">
+            <GeneralConfigTab />
           </TabsContent>
 
-          <TabsContent value="fiscal">
-            <FiscalConfigTab />
+          <TabsContent value="redes">
+            <SocialLinksConfigTab />
           </TabsContent>
 
-          <TabsContent value="canais">
-            <ChannelsConfigTab />
+          <TabsContent value="legal">
+            <LegalPagesConfigTab />
+          </TabsContent>
+
+          <TabsContent value="home">
+            <HomePageConfigTab />
           </TabsContent>
 
           <TabsContent value="sobre">
             <AboutConfigTab />
+          </TabsContent>
+
+          <TabsContent value="servicos">
+            <ChannelsConfigTab />
           </TabsContent>
 
           <TabsContent value="parceiros">
@@ -77,20 +121,16 @@ export default function AdminSettings() {
             <ContactFormConfigTab />
           </TabsContent>
 
-          <TabsContent value="geral">
-            <Card className="border border-border">
-              <CardHeader>
-                <CardTitle>Configurações Gerais</CardTitle>
-                <CardDescription>
-                  Configurações gerais do sistema
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Configurações gerais em construção...
-                </p>
-              </CardContent>
-            </Card>
+          <TabsContent value="seo">
+            <SeoConfigTab />
+          </TabsContent>
+
+          <TabsContent value="pix">
+            <PixAccountsList />
+          </TabsContent>
+
+          <TabsContent value="fiscal">
+            <FiscalConfigTab />
           </TabsContent>
         </Tabs>
       </div>
