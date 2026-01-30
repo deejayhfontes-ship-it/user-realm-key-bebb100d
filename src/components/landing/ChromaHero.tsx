@@ -129,25 +129,25 @@ function ChromaPlaneInner({ texture }: { texture: THREE.Texture }) {
   const img = texture.image as HTMLImageElement | undefined;
   const imageAspect = img?.width && img?.height ? img.width / img.height : 0.75;
   
-  // Área central (40% do viewport) para a imagem
-  const availableWidth = viewport.width * 0.45;
-  const availableHeight = viewport.height * 0.9;
+  // A imagem deve ocupar no máximo 85% do espaço disponível no canvas
+  const maxWidth = viewport.width * 0.85;
+  const maxHeight = viewport.height * 0.85;
   
   let scaleX: number;
   let scaleY: number;
   
-  const fitByWidth = availableWidth;
-  const fitByWidthHeight = fitByWidth / imageAspect;
+  // Calcular dimensões mantendo proporção (contain)
+  const widthFromHeight = maxHeight * imageAspect;
+  const heightFromWidth = maxWidth / imageAspect;
   
-  const fitByHeight = availableHeight;
-  const fitByHeightWidth = fitByHeight * imageAspect;
-  
-  if (fitByWidthHeight <= availableHeight) {
-    scaleX = fitByWidth;
-    scaleY = fitByWidthHeight;
+  if (widthFromHeight <= maxWidth) {
+    // Limitado pela altura
+    scaleX = widthFromHeight;
+    scaleY = maxHeight;
   } else {
-    scaleX = fitByHeightWidth;
-    scaleY = fitByHeight;
+    // Limitado pela largura
+    scaleX = maxWidth;
+    scaleY = heightFromWidth;
   }
 
   return (
