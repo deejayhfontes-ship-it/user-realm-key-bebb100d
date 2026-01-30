@@ -453,6 +453,54 @@ export type Database = {
         }
         Relationships: []
       }
+      channel_settings: {
+        Row: {
+          behance_url: string | null
+          contact_email: string | null
+          created_at: string | null
+          id: string
+          instagram_url: string | null
+          linkedin_url: string | null
+          support_hours: string | null
+          updated_at: string | null
+          user_id: string
+          whatsapp_default_message: string | null
+          whatsapp_number: string | null
+          whatsapp_show_float_button: boolean | null
+          youtube_url: string | null
+        }
+        Insert: {
+          behance_url?: string | null
+          contact_email?: string | null
+          created_at?: string | null
+          id?: string
+          instagram_url?: string | null
+          linkedin_url?: string | null
+          support_hours?: string | null
+          updated_at?: string | null
+          user_id: string
+          whatsapp_default_message?: string | null
+          whatsapp_number?: string | null
+          whatsapp_show_float_button?: boolean | null
+          youtube_url?: string | null
+        }
+        Update: {
+          behance_url?: string | null
+          contact_email?: string | null
+          created_at?: string | null
+          id?: string
+          instagram_url?: string | null
+          linkedin_url?: string | null
+          support_hours?: string | null
+          updated_at?: string | null
+          user_id?: string
+          whatsapp_default_message?: string | null
+          whatsapp_number?: string | null
+          whatsapp_show_float_button?: boolean | null
+          youtube_url?: string | null
+        }
+        Relationships: []
+      }
       client_generators: {
         Row: {
           allowed_weekdays: number[] | null
@@ -597,6 +645,63 @@ export type Database = {
         }
         Relationships: []
       }
+      company_about: {
+        Row: {
+          about_image_url: string | null
+          clients_count: string | null
+          created_at: string | null
+          differentials: Json | null
+          foundation_year: string | null
+          full_description: string | null
+          headline: string | null
+          id: string
+          mission: string | null
+          projects_count: string | null
+          story_title: string | null
+          team_size: string | null
+          updated_at: string | null
+          user_id: string
+          values: Json | null
+          vision: string | null
+        }
+        Insert: {
+          about_image_url?: string | null
+          clients_count?: string | null
+          created_at?: string | null
+          differentials?: Json | null
+          foundation_year?: string | null
+          full_description?: string | null
+          headline?: string | null
+          id?: string
+          mission?: string | null
+          projects_count?: string | null
+          story_title?: string | null
+          team_size?: string | null
+          updated_at?: string | null
+          user_id: string
+          values?: Json | null
+          vision?: string | null
+        }
+        Update: {
+          about_image_url?: string | null
+          clients_count?: string | null
+          created_at?: string | null
+          differentials?: Json | null
+          foundation_year?: string | null
+          full_description?: string | null
+          headline?: string | null
+          id?: string
+          mission?: string | null
+          projects_count?: string | null
+          story_title?: string | null
+          team_size?: string | null
+          updated_at?: string | null
+          user_id?: string
+          values?: Json | null
+          vision?: string | null
+        }
+        Relationships: []
+      }
       company_settings: {
         Row: {
           company_address: string | null
@@ -642,6 +747,48 @@ export type Database = {
           show_fontes_logo?: boolean | null
           updated_at?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      contact_messages: {
+        Row: {
+          admin_notes: string | null
+          created_at: string | null
+          email: string
+          id: string
+          message: string
+          name: string
+          phone: string | null
+          read_at: string | null
+          status: string | null
+          subject: string | null
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string | null
+          email: string
+          id?: string
+          message: string
+          name: string
+          phone?: string | null
+          read_at?: string | null
+          status?: string | null
+          subject?: string | null
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          message?: string
+          name?: string
+          phone?: string | null
+          read_at?: string | null
+          status?: string | null
+          subject?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -966,6 +1113,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      newsletter_subscribers: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          is_active: boolean | null
+          name: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id?: string
+          is_active?: boolean | null
+          name?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       nfe_configs: {
         Row: {

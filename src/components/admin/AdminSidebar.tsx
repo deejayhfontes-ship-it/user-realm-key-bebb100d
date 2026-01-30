@@ -15,7 +15,8 @@ import {
   Inbox,
   Briefcase,
   FileCheck,
-  Layers
+  Layers,
+  MessageSquare
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -57,6 +58,11 @@ const navItems = [
     title: 'Serviços', 
     href: '/admin/servicos', 
     icon: Layers 
+  },
+  { 
+    title: 'Atendimento', 
+    href: '/admin/atendimento', 
+    icon: MessageSquare 
   },
   { 
     title: 'Orçamentos', 
