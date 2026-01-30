@@ -12,6 +12,8 @@ import { SocialLinksConfigTab } from '@/components/admin/settings/SocialLinksCon
 import { LegalPagesConfigTab } from '@/components/admin/settings/LegalPagesConfigTab';
 import { HomePageConfigTab } from '@/components/admin/settings/HomePageConfigTab';
 import { SeoConfigTab } from '@/components/admin/settings/SeoConfigTab';
+import { LiveChatConfigTab } from '@/components/admin/settings/LiveChatConfigTab';
+import { GoalsConfigTab } from '@/components/admin/settings/GoalsConfigTab';
 import { 
   Settings as SettingsIcon, 
   Share2, 
@@ -23,7 +25,9 @@ import {
   Mail, 
   Globe,
   QrCode,
-  Building2
+  Building2,
+  MessageCircle,
+  Target
 } from 'lucide-react';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
@@ -85,6 +89,14 @@ export default function AdminSettings() {
                 <Building2 className="h-4 w-4" />
                 Fiscal
               </TabsTrigger>
+              <TabsTrigger value="chat" data-tab="chat" className="flex items-center gap-2">
+                <MessageCircle className="h-4 w-4" />
+                Chat ao Vivo
+              </TabsTrigger>
+              <TabsTrigger value="metas" data-tab="metas" className="flex items-center gap-2">
+                <Target className="h-4 w-4" />
+                Metas
+              </TabsTrigger>
             </TabsList>
             <ScrollBar orientation="horizontal" />
           </ScrollArea>
@@ -131,6 +143,14 @@ export default function AdminSettings() {
 
           <TabsContent value="fiscal">
             <FiscalConfigTab />
+          </TabsContent>
+
+          <TabsContent value="chat">
+            <LiveChatConfigTab />
+          </TabsContent>
+
+          <TabsContent value="metas">
+            <GoalsConfigTab />
           </TabsContent>
         </Tabs>
       </div>
