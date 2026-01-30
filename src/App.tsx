@@ -31,6 +31,7 @@ import Platform from "@/pages/Platform";
 // Public Pages
 import Terms from "@/pages/public/Terms";
 import Privacy from "@/pages/public/Privacy";
+import Home from "@/pages/Home";
 
 // Client Pages
 import ClientLogin from "@/pages/client/Login";
@@ -71,8 +72,8 @@ const App = () => (
             <Route path="/termos" element={<Terms />} />
             <Route path="/privacidade" element={<Privacy />} />
             
-            {/* Redirect root to login or dashboard */}
-            <Route path="/" element={<Navigate to="/login" replace />} />
+            {/* Public Landing Page */}
+            <Route path="/" element={<Home />} />
 
             {/* Admin routes */}
             <Route
