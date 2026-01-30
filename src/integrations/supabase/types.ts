@@ -967,6 +967,238 @@ export type Database = {
           },
         ]
       }
+      nfe_configs: {
+        Row: {
+          ambiente: string | null
+          api_key: string | null
+          api_provider: string | null
+          api_secret: string | null
+          bairro: string | null
+          cep: string | null
+          certificado_base64: string | null
+          certificado_senha: string | null
+          certificado_validade: string | null
+          cnpj: string
+          codigo_municipio_ibge: string | null
+          complemento: string | null
+          created_at: string | null
+          id: string
+          inscricao_estadual: string | null
+          inscricao_municipal: string | null
+          logradouro: string | null
+          municipio: string | null
+          nome_fantasia: string | null
+          numero: string | null
+          proximo_numero_nfe: number | null
+          proximo_numero_nfse: number | null
+          razao_social: string
+          regime_tributario: string | null
+          serie_nfe: string | null
+          serie_nfse: string | null
+          uf: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          ambiente?: string | null
+          api_key?: string | null
+          api_provider?: string | null
+          api_secret?: string | null
+          bairro?: string | null
+          cep?: string | null
+          certificado_base64?: string | null
+          certificado_senha?: string | null
+          certificado_validade?: string | null
+          cnpj: string
+          codigo_municipio_ibge?: string | null
+          complemento?: string | null
+          created_at?: string | null
+          id?: string
+          inscricao_estadual?: string | null
+          inscricao_municipal?: string | null
+          logradouro?: string | null
+          municipio?: string | null
+          nome_fantasia?: string | null
+          numero?: string | null
+          proximo_numero_nfe?: number | null
+          proximo_numero_nfse?: number | null
+          razao_social: string
+          regime_tributario?: string | null
+          serie_nfe?: string | null
+          serie_nfse?: string | null
+          uf?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          ambiente?: string | null
+          api_key?: string | null
+          api_provider?: string | null
+          api_secret?: string | null
+          bairro?: string | null
+          cep?: string | null
+          certificado_base64?: string | null
+          certificado_senha?: string | null
+          certificado_validade?: string | null
+          cnpj?: string
+          codigo_municipio_ibge?: string | null
+          complemento?: string | null
+          created_at?: string | null
+          id?: string
+          inscricao_estadual?: string | null
+          inscricao_municipal?: string | null
+          logradouro?: string | null
+          municipio?: string | null
+          nome_fantasia?: string | null
+          numero?: string | null
+          proximo_numero_nfe?: number | null
+          proximo_numero_nfse?: number | null
+          razao_social?: string
+          regime_tributario?: string | null
+          serie_nfe?: string | null
+          serie_nfse?: string | null
+          uf?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notas_fiscais: {
+        Row: {
+          cfop: string | null
+          chave_acesso: string | null
+          cliente_cpf_cnpj: string
+          cliente_email: string | null
+          cliente_endereco: string | null
+          cliente_id: string | null
+          cliente_municipio: string | null
+          cliente_nome: string
+          cliente_uf: string | null
+          codigo_servico_municipio: string | null
+          cofins_valor: number | null
+          created_at: string | null
+          data_competencia: string | null
+          data_emissao: string | null
+          descricao_servico: string
+          id: string
+          invoice_id: string | null
+          issqn_aliquota: number | null
+          issqn_retido: boolean | null
+          issqn_valor: number | null
+          motivo_status: string | null
+          natureza_operacao: string | null
+          numero: number
+          pdf_url: string | null
+          pis_valor: number | null
+          protocolo: string | null
+          serie: string | null
+          status: string | null
+          tipo: string
+          updated_at: string | null
+          user_id: string
+          valor_desconto: number | null
+          valor_liquido: number
+          valor_servico: number
+          xml_url: string | null
+        }
+        Insert: {
+          cfop?: string | null
+          chave_acesso?: string | null
+          cliente_cpf_cnpj: string
+          cliente_email?: string | null
+          cliente_endereco?: string | null
+          cliente_id?: string | null
+          cliente_municipio?: string | null
+          cliente_nome: string
+          cliente_uf?: string | null
+          codigo_servico_municipio?: string | null
+          cofins_valor?: number | null
+          created_at?: string | null
+          data_competencia?: string | null
+          data_emissao?: string | null
+          descricao_servico: string
+          id?: string
+          invoice_id?: string | null
+          issqn_aliquota?: number | null
+          issqn_retido?: boolean | null
+          issqn_valor?: number | null
+          motivo_status?: string | null
+          natureza_operacao?: string | null
+          numero: number
+          pdf_url?: string | null
+          pis_valor?: number | null
+          protocolo?: string | null
+          serie?: string | null
+          status?: string | null
+          tipo?: string
+          updated_at?: string | null
+          user_id: string
+          valor_desconto?: number | null
+          valor_liquido: number
+          valor_servico: number
+          xml_url?: string | null
+        }
+        Update: {
+          cfop?: string | null
+          chave_acesso?: string | null
+          cliente_cpf_cnpj?: string
+          cliente_email?: string | null
+          cliente_endereco?: string | null
+          cliente_id?: string | null
+          cliente_municipio?: string | null
+          cliente_nome?: string
+          cliente_uf?: string | null
+          codigo_servico_municipio?: string | null
+          cofins_valor?: number | null
+          created_at?: string | null
+          data_competencia?: string | null
+          data_emissao?: string | null
+          descricao_servico?: string
+          id?: string
+          invoice_id?: string | null
+          issqn_aliquota?: number | null
+          issqn_retido?: boolean | null
+          issqn_valor?: number | null
+          motivo_status?: string | null
+          natureza_operacao?: string | null
+          numero?: number
+          pdf_url?: string | null
+          pis_valor?: number | null
+          protocolo?: string | null
+          serie?: string | null
+          status?: string | null
+          tipo?: string
+          updated_at?: string | null
+          user_id?: string
+          valor_desconto?: number | null
+          valor_liquido?: number
+          valor_servico?: number
+          xml_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notas_fiscais_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "client_stats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notas_fiscais_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notas_fiscais_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       packages: {
         Row: {
           active: boolean | null
@@ -1519,6 +1751,10 @@ export type Database = {
       check_package_expiration: { Args: never; Returns: undefined }
       generate_invoice_number: { Args: never; Returns: string }
       generate_proposal_number: { Args: never; Returns: string }
+      get_next_nota_number: {
+        Args: { p_tipo: string; p_user_id: string }
+        Returns: number
+      }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {

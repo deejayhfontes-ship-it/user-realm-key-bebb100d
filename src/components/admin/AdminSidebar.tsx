@@ -13,7 +13,8 @@ import {
   FileSignature,
   Receipt,
   Inbox,
-  Briefcase
+  Briefcase,
+  FileCheck
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -65,6 +66,11 @@ const navItems = [
     title: 'Faturas', 
     href: '/admin/invoices', 
     icon: Receipt 
+  },
+  { 
+    title: 'Notas Fiscais', 
+    href: '/admin/notas-fiscais', 
+    icon: FileCheck 
   },
   { 
     title: 'Portfólio', 

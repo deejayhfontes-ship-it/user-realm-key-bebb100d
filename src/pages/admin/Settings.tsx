@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PixAccountsList } from '@/components/admin/settings/PixAccountsList';
-import { QrCode, Building2 } from 'lucide-react';
+import { FiscalConfigTab } from '@/components/admin/settings/FiscalConfigTab';
+import { QrCode, Building2, FileText } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function AdminSettings() {
@@ -22,6 +23,10 @@ export default function AdminSettings() {
               <QrCode className="h-4 w-4" />
               Contas PIX
             </TabsTrigger>
+            <TabsTrigger value="fiscal" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              Nota Fiscal
+            </TabsTrigger>
             <TabsTrigger value="geral" className="flex items-center gap-2">
               <Building2 className="h-4 w-4" />
               Geral
@@ -30,6 +35,10 @@ export default function AdminSettings() {
 
           <TabsContent value="pix">
             <PixAccountsList />
+          </TabsContent>
+
+          <TabsContent value="fiscal">
+            <FiscalConfigTab />
           </TabsContent>
 
           <TabsContent value="geral">
