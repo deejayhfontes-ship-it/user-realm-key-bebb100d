@@ -21,6 +21,7 @@ import AdminBudgets from "@/pages/admin/Budgets";
 import AdminPropostas from "@/pages/admin/Propostas";
 import AdminInvoices from "@/pages/admin/Invoices";
 import AdminBriefings from "@/pages/admin/Briefings";
+import AdminPortfolio from "@/pages/admin/Portfolio";
 import NotFound from "@/pages/NotFound";
 import Platform from "@/pages/Platform";
 
@@ -89,6 +90,7 @@ const App = () => (
               <Route path="budgets" element={<AdminBudgets />} />
               <Route path="propostas" element={<AdminPropostas />} />
               <Route path="invoices" element={<AdminInvoices />} />
+              <Route path="portfolio" element={<AdminPortfolio />} />
               <Route path="settings" element={<AdminSettings />} />
             </Route>
 
