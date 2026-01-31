@@ -195,9 +195,10 @@ export function Navbar() {
         {/* Logo/Avatar */}
         <button
           onClick={handleLogoClick}
-          className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center overflow-hidden mr-2 hover:scale-105 transition-transform cursor-pointer"
+          className="w-12 h-12 rounded-full flex items-center justify-center overflow-hidden mr-2 hover:scale-105 transition-transform cursor-pointer"
+          style={{ background: 'linear-gradient(135deg, #c4ff0d, #a8e000)' }}
         >
-          <span className="font-display text-sm text-white">FG</span>
+          <span className="font-display text-sm text-black font-semibold">FG</span>
         </button>
 
         {/* Nav Items */}
@@ -276,9 +277,10 @@ export function Navbar() {
         {/* Logo */}
         <button
           onClick={handleLogoClick}
-          className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center hover:scale-105 transition-transform"
+          className="w-10 h-10 rounded-full flex items-center justify-center hover:scale-105 transition-transform"
+          style={{ background: 'linear-gradient(135deg, #c4ff0d, #a8e000)' }}
         >
-          <span className="font-display text-xs text-white">FG</span>
+          <span className="font-display text-xs text-black font-semibold">FG</span>
         </button>
 
         <div className="flex items-center gap-2">
