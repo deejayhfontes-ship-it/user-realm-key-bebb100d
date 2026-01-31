@@ -12,10 +12,10 @@ import {
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { useState } from 'react';
 import { toast } from 'sonner';
 import { useClientData } from '@/hooks/useClientData';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useClientSidebar } from '@/layouts/ClientLayout';
 
 const navItems = [
   { 
@@ -50,7 +50,7 @@ export function ClientSidebar() {
   const navigate = useNavigate();
   const { signOut, profile, isAdmin } = useAuth();
   const { client, isLoading } = useClientData();
-  const [collapsed, setCollapsed] = useState(false);
+  const { collapsed, setCollapsed } = useClientSidebar();
 
   const handleLogout = async () => {
     await signOut();
