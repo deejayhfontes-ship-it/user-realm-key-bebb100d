@@ -31,16 +31,16 @@ const fragmentShader = `
     // Influência baseada na proximidade do mouse
     float influence = smoothstep(0.5, 0.0, dist) * uHover;
     
-    // Speed lines horizontais - efeito sutil
-    float speedIntensity = influence * 0.025;
+    // Speed lines horizontais - intensidade 2x
+    float speedIntensity = influence * 0.05;
     
     // Offset horizontal para criar "rastros"
-    float horizontalSmear = speedIntensity * (1.0 + sin(uv.y * 30.0 + uTime * 1.5) * 0.15);
+    float horizontalSmear = speedIntensity * (1.0 + sin(uv.y * 30.0 + uTime * 1.5) * 0.3);
     
-    // RGB split sutil
-    vec2 redOffset = uv + vec2(horizontalSmear * 0.5, 0.0);
+    // RGB split 2x mais forte
+    vec2 redOffset = uv + vec2(horizontalSmear * 1.0, 0.0);
     vec2 greenOffset = uv;
-    vec2 blueOffset = uv - vec2(horizontalSmear * 0.4, 0.0);
+    vec2 blueOffset = uv - vec2(horizontalSmear * 0.8, 0.0);
     
     // Samplear canais separados
     float r = texture2D(uTexture, redOffset).r;
