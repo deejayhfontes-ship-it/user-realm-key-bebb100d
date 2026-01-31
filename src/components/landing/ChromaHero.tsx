@@ -199,7 +199,7 @@ export default function ChromaHero() {
       </div>
       
       {/* Overlay de texto - à esquerda */}
-      <div className="absolute inset-0 flex items-center pointer-events-none z-10">
+      <div className="absolute inset-0 flex items-center pointer-events-none z-[5]">
         <div className="pl-8 md:pl-16 lg:pl-24 xl:pl-32">
           <h1 
             className="text-6xl sm:text-7xl md:text-8xl lg:text-8xl xl:text-9xl font-bold tracking-tight text-black leading-[0.9] text-left"
