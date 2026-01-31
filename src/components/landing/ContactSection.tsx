@@ -138,7 +138,7 @@ export function ContactSection() {
   return (
     <section
       id="contact"
-      className="relative section-padding overflow-hidden"
+      className="relative py-16 md:py-20 lg:py-24 overflow-hidden"
     >
       {/* Background */}
       <div
@@ -148,14 +148,14 @@ export function ContactSection() {
         }}
       />
 
-      <div className="container mx-auto px-4 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
           {/* Left - Title */}
           <div>
-            <h2 className="magnetto-title text-5xl md:text-7xl lg:text-8xl text-white leading-[0.9]">
+            <h2 className="magnetto-title text-4xl md:text-5xl lg:text-6xl text-white leading-tight">
               {content.title}
             </h2>
-            <p className="text-zinc-400 text-lg mt-8 max-w-md">
+            <p className="text-zinc-400 text-base md:text-lg mt-6 md:mt-8 max-w-md">
               {content.description}
             </p>
             
@@ -171,7 +171,7 @@ export function ContactSection() {
           </div>
 
           {/* Right - Form */}
-          <div className="magnetto-glass p-8 md:p-10">
+          <div className="magnetto-glass p-6 md:p-8 lg:p-10">
             <div className="mb-8">
               <span className="font-pixel text-xs text-zinc-400 tracking-[0.2em]">
                 {content.sectionLabel}
