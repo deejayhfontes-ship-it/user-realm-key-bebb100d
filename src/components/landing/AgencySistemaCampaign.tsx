@@ -35,7 +35,7 @@ export function AgencySistemaCampaign() {
           
           {/* Card 1: Como sempre foi */}
           <div className="relative group">
-            <div className="absolute inset-0 bg-gradient-to-br from-zinc-800/20 to-transparent rounded-2xl blur-xl group-hover:blur-2xl transition-all" />
+            <div className="absolute inset-0 bg-gradient-to-br from-zinc-800/10 to-transparent rounded-2xl opacity-50" />
             
             <div className="relative bg-zinc-900/40 backdrop-blur-sm border border-white/10 rounded-2xl p-10 hover:border-white/20 transition-all h-full">
               <div className="flex items-start gap-4 mb-6">
@@ -72,8 +72,8 @@ export function AgencySistemaCampaign() {
               </div>
 
               <div className="mt-8 pt-6 border-t border-white/10">
-                <p className="text-zinc-500 text-sm italic">
-                  Cada adaptação = novo processo
+                <p className="text-zinc-500 text-sm">
+                  Cada adaptação é um novo processo
                 </p>
               </div>
             </div>
@@ -81,7 +81,7 @@ export function AgencySistemaCampaign() {
 
           {/* Card 2: Agora */}
           <div className="relative group">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent rounded-2xl blur-xl group-hover:blur-2xl transition-all" />
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent rounded-2xl opacity-50" />
             
             <div className="relative bg-zinc-900/40 backdrop-blur-sm border border-primary/20 rounded-2xl p-10 hover:border-primary/40 transition-all h-full">
               <div className="flex items-start gap-4 mb-6">
@@ -118,8 +118,8 @@ export function AgencySistemaCampaign() {
               </div>
 
               <div className="mt-8 pt-6 border-t border-white/10">
-                <p className="text-sm font-medium text-primary">
-                  Cada adaptação = 1 clique
+                <p className="text-sm text-primary">
+                  Cada adaptação é só um clique
                 </p>
               </div>
             </div>
@@ -298,6 +298,22 @@ export function AgencySistemaCampaign() {
           </div>
         </div>
 
+        {/* ESPAÇO PARA VÍDEO PUBLICITÁRIO */}
+        <div className="max-w-4xl mx-auto mb-24">
+          <div className="bg-zinc-900/40 backdrop-blur-sm border border-white/10 rounded-3xl p-8 md:p-12">
+            <div className="aspect-video bg-zinc-800/50 rounded-2xl flex items-center justify-center border border-white/5">
+              <div className="text-center">
+                <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-10 h-10 text-primary" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
+                </div>
+                <p className="text-zinc-400 text-sm">Vídeo em breve</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* CTAs */}
         <div className="text-center">
           <div className="inline-flex flex-col md:flex-row items-center gap-4 mb-12">
@@ -320,7 +336,7 @@ export function AgencySistemaCampaign() {
           </div>
 
           <p className="text-sm text-zinc-500 mb-16">
-            Teste 7 dias grátis • Sem cartão de crédito • Cancele quando quiser
+            Solicite um teste
           </p>
 
           {/* FRASE FINAL */}
