@@ -8,6 +8,7 @@ import { ServicesSection } from "@/components/landing/ServicesSection";
 import { ContactSection } from "@/components/landing/ContactSection";
 import { Footer } from "@/components/landing/Footer";
 import { LiveChatWidget } from "@/components/landing/LiveChatWidget";
+import { AgencySistemaCampaign } from "@/components/landing/AgencySistemaCampaign";
 import { usePublicHomeSections } from "@/hooks/useHomeSections";
 
 export default function Home() {
@@ -35,6 +36,9 @@ export default function Home() {
         
         {/* Cards Principais */}
         {isSectionActive('projects') && <ProjectsSection />}
+        
+        {/* CAMPANHA: Agência + Sistema */}
+        <AgencySistemaCampaign />
         
         {/* Geradores IA */}
         {isSectionActive('generators') && <GeneratorsSection />}

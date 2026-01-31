@@ -19,7 +19,8 @@ import {
   MessageSquare,
   ShoppingBag,
   MessageCircle,
-  Package
+  Package,
+  Calendar
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -31,6 +32,11 @@ const navItems = [
     title: 'Dashboard', 
     href: '/admin/dashboard', 
     icon: LayoutDashboard 
+  },
+  { 
+    title: 'Agenda', 
+    href: '/admin/agenda', 
+    icon: Calendar 
   },
   { 
     title: 'Clientes', 

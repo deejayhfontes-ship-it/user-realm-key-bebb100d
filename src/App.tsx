@@ -28,6 +28,7 @@ import AdminAtendimento from "@/pages/admin/Atendimento";
 import AdminPedidos from "@/pages/admin/Pedidos";
 import AdminEntregas from "@/pages/admin/Entregas";
 import AdminChat from "@/pages/admin/Chat";
+import AdminAgenda from "@/pages/admin/Agenda";
 import NotFound from "@/pages/NotFound";
 import Platform from "@/pages/Platform";
 
@@ -77,6 +78,7 @@ const App = () => (
             <Route path="/nova-senha" element={<ClientResetPassword />} />
             <Route path="/plans" element={<ClientPlans />} />
             <Route path="/platform" element={<Platform />} />
+            <Route path="/pacotes" element={<Navigate to="/platform" replace />} />
             <Route path="/portfolio" element={<Portfolio />} />
             <Route path="/briefing" element={<PublicBriefing />} />
             <Route path="/pedido/:protocolo" element={<PedidoAcompanhamento />} />
@@ -114,6 +116,7 @@ const App = () => (
               <Route path="notas-fiscais" element={<AdminNotasFiscais />} />
               <Route path="portfolio" element={<AdminPortfolio />} />
               <Route path="chat" element={<AdminChat />} />
+              <Route path="agenda" element={<AdminAgenda />} />
               <Route path="settings" element={<AdminSettings />} />
             </Route>
 

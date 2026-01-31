@@ -243,7 +243,7 @@ export function ContactSection() {
                 </div>
               </div>
 
-              {/* Contact Type - NOVO! */}
+              {/* Contact Type - ESTILIZADO */}
               <div>
                 <label className="block text-zinc-400 text-sm mb-2">
                   Motivo do Contato
@@ -253,13 +253,21 @@ export function ContactSection() {
                   onChange={(e) =>
                     setFormData({ ...formData, contactType: e.target.value })
                   }
-                  className="w-full px-4 py-3 rounded-xl bg-zinc-800/50 border border-zinc-700 text-white focus:outline-none focus:border-primary transition-colors"
+                  className="w-full px-4 py-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white focus:outline-none focus:border-primary transition-colors appearance-none cursor-pointer"
+                  style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%23c4ff0d' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
+                    backgroundPosition: 'right 0.75rem center',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundSize: '1.5em 1.5em',
+                    paddingRight: '2.5rem'
+                  }}
                 >
-                  {contactTypes.map((type) => (
-                    <option key={type.value} value={type.value}>
-                      {type.label}
-                    </option>
-                  ))}
+                  <option value="duvida" className="bg-zinc-900 text-white">💬 Dúvida</option>
+                  <option value="sugestao" className="bg-zinc-900 text-white">💡 Sugestão</option>
+                  <option value="reclamacao" className="bg-zinc-900 text-white">⚠️ Reclamação</option>
+                  <option value="elogio" className="bg-zinc-900 text-white">👍 Elogio</option>
+                  <option value="newsletter" className="bg-zinc-900 text-white">📧 Quero receber novidades</option>
+                  <option value="outro" className="bg-zinc-900 text-white">📝 Outro</option>
                 </select>
               </div>
 

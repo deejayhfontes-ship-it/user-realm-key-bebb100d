@@ -1,7 +1,6 @@
-import { Badge } from "@/components/ui/badge";
 import { NeonButton } from "./NeonButton";
 import { Link } from "react-router-dom";
-import { Sparkles, Play } from "lucide-react";
+import { Play } from "lucide-react";
 
 export function HeroSection() {
   return (
@@ -21,54 +20,49 @@ export function HeroSection() {
         />
       </div>
 
-      <div className="relative z-10 container mx-auto px-4 text-center">
+      <div className="relative z-10 container mx-auto px-4 text-center max-w-6xl">
         {/* Badge */}
-        <div className="inline-flex items-center gap-2 mb-6 animate-fade-in">
-          <Badge className="bg-lime-400/20 text-lime-400 border-lime-400/30 px-3 py-1">
-            <Sparkles className="h-3 w-3 mr-1" />
-            NOVO • SaaS
-          </Badge>
+        <div className="inline-block mb-6 animate-fade-in">
+          <span className="text-xs uppercase tracking-[0.3em] font-semibold text-zinc-500">
+            AGÊNCIA + SISTEMA
+          </span>
         </div>
 
         {/* Headline */}
-        <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 tracking-tight animate-fade-in">
-          Gere Artes Profissionais
+        <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-8 leading-[1.1] tracking-tight animate-fade-in">
+          Criação profissional no início.
           <br />
-          <span className="text-lime-400">com IA</span>
+          <span className="text-lime-400">Liberdade total depois.</span>
         </h1>
 
         {/* Subheadline */}
-        <p className="text-lg md:text-xl text-zinc-400 max-w-2xl mx-auto mb-8 font-light animate-fade-in">
-          Deixe sua equipe criar conteúdo visual em segundos. 
-          Templates prontos, IA avançada, resultados profissionais.
+        <p className="text-lg md:text-xl lg:text-2xl text-zinc-400 max-w-4xl mx-auto mb-12 font-light leading-relaxed animate-fade-in">
+          A agência cria a base criativa. Você controla os desdobramentos.
+          <br className="hidden md:block" />
+          Padrão visual + escala operacional.
         </p>
 
         {/* CTAs */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12 animate-fade-in">
           <Link to="/client/login">
             <NeonButton size="lg">
-              Testar Gratuitamente
+              Criar minha base criativa
             </NeonButton>
           </Link>
           <NeonButton variant="secondary" size="lg">
             <Play className="h-4 w-4" />
-            Ver Demonstração
+            Ver demonstração
           </NeonButton>
         </div>
 
-        {/* Trust Badges */}
+        {/* Trust */}
         <div className="animate-fade-in">
-          <p className="text-zinc-500 text-sm mb-3">Usado por empresas que confiam na inovação</p>
-          <div className="flex flex-wrap justify-center gap-6 text-zinc-600 text-sm">
-            <span className="bg-white/5 px-4 py-2 rounded-lg border border-white/10">
-              Prefeitura de Osasco
-            </span>
-            <span className="bg-white/5 px-4 py-2 rounded-lg border border-white/10">
-              Anhanguera
-            </span>
-            <span className="bg-white/5 px-4 py-2 rounded-lg border border-white/10">
-              +50 empresas
-            </span>
+          <p className="text-zinc-500 text-sm mb-4">Usado por empresas que evoluíram a relação com agência</p>
+          
+          {/* Posicionamento */}
+          <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-white/5 border border-white/10">
+            <span className="text-white font-semibold">Você não compete com agência.</span>
+            <span className="text-zinc-400">Você evolui a agência.</span>
           </div>
         </div>
 
