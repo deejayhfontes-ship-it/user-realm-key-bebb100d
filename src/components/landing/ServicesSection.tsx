@@ -65,16 +65,29 @@ export function ServicesSection() {
 
           {/* Right Column - Milestones */}
           <div className="flex flex-col justify-center">
-            <h3 className="magnetto-title text-4xl md:text-5xl text-white mb-12 text-center lg:text-left">
-              {content.milestonesTitle}
-            </h3>
+            {/* Title with label */}
+            <div className="text-center lg:text-left mb-12">
+              <p 
+                className="text-xs uppercase tracking-widest mb-3" 
+                style={{ 
+                  color: 'rgba(255,255,255,0.4)',
+                  letterSpacing: '3px'
+                }}
+              >
+                {content.milestonesLabel}
+              </p>
+              <h3 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white">
+                {content.milestonesTitle}
+              </h3>
+            </div>
 
             <div className="space-y-12">
               <div className="text-center lg:text-left">
-                <p className="stat-number text-white">
-                  {content.milestones.years.value}<span className="text-primary">{content.milestones.years.suffix}</span>
+                <p className="text-6xl md:text-7xl lg:text-8xl font-bold mb-2">
+                  <span className="text-white">{content.milestones.years.value}</span>
+                  <span className="text-primary">{content.milestones.years.suffix}</span>
                 </p>
-                <p className="text-zinc-400 font-pixel text-sm tracking-wider">
+                <p className="text-zinc-400 text-sm uppercase tracking-wider">
                   {content.milestones.years.label}
                 </p>
               </div>
@@ -82,10 +95,11 @@ export function ServicesSection() {
               <div className="border-t border-zinc-800" />
 
               <div className="text-center lg:text-left">
-                <p className="stat-number text-white">
-                  {content.milestones.projects.value}<span className="text-primary">{content.milestones.projects.suffix}</span>
+                <p className="text-6xl md:text-7xl lg:text-8xl font-bold mb-2">
+                  <span className="text-white">{content.milestones.projects.value}</span>
+                  <span className="text-primary">{content.milestones.projects.suffix}</span>
                 </p>
-                <p className="text-zinc-400 font-pixel text-sm tracking-wider">
+                <p className="text-zinc-400 text-sm uppercase tracking-wider">
                   {content.milestones.projects.label}
                 </p>
               </div>
@@ -93,10 +107,11 @@ export function ServicesSection() {
               <div className="border-t border-zinc-800" />
 
               <div className="text-center lg:text-left">
-                <p className="stat-number text-white">
-                  {content.milestones.clients.value}<span className="text-primary">{content.milestones.clients.suffix}</span>
+                <p className="text-6xl md:text-7xl lg:text-8xl font-bold mb-2">
+                  <span className="text-white">{content.milestones.clients.value}</span>
+                  <span className="text-primary">{content.milestones.clients.suffix}</span>
                 </p>
-                <p className="text-zinc-400 font-pixel text-sm tracking-wider">
+                <p className="text-zinc-400 text-sm uppercase tracking-wider">
                   {content.milestones.clients.label}
                 </p>
               </div>
