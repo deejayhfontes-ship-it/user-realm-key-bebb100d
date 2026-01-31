@@ -90,21 +90,21 @@ export function AgencySistemaCampaign() {
           {/* Card 2: Agora - COM EFEITO PULSE FORTE */}
           <ScrollReveal direction="right" delay={200}>
             <div className="relative group h-full">
-              {/* Glow pulsante com blur suave */}
+              {/* Glow pulsante forte com blur */}
               <div 
-                className="absolute -inset-3 rounded-3xl blur-xl opacity-70"
+                className="absolute -inset-4 rounded-3xl blur-2xl"
                 style={{
-                  background: 'radial-gradient(ellipse at center, hsl(var(--primary) / 0.5) 0%, hsl(var(--primary) / 0.2) 40%, transparent 70%)',
-                  animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+                  background: 'radial-gradient(ellipse at center, hsl(var(--primary) / 0.6) 0%, hsl(var(--primary) / 0.3) 40%, transparent 70%)',
+                  animation: 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite'
                 }}
               />
-              {/* Segunda camada mais próxima */}
+              {/* Segunda camada mais intensa */}
               <div 
-                className="absolute -inset-1 rounded-2xl blur-md opacity-50"
+                className="absolute -inset-2 rounded-2xl blur-lg"
                 style={{
-                  background: 'linear-gradient(135deg, hsl(var(--primary) / 0.3) 0%, transparent 50%, hsl(var(--primary) / 0.3) 100%)',
-                  animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                  animationDelay: '0.5s'
+                  background: 'radial-gradient(ellipse at center, hsl(var(--primary) / 0.5) 0%, hsl(var(--primary) / 0.2) 50%, transparent 80%)',
+                  animation: 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                  animationDelay: '0.3s'
                 }}
               />
               
