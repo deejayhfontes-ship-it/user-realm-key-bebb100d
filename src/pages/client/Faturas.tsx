@@ -93,16 +93,16 @@ export default function ClientFaturas() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
+      <div className="p-6 md:p-8 flex items-center justify-center py-12">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 md:p-8 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Minhas Faturas</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground">Minhas Faturas</h1>
         <p className="text-muted-foreground">
           Histórico de pagamentos e assinaturas
         </p>
