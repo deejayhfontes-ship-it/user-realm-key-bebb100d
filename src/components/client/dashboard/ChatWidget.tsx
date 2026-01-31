@@ -1,17 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Paperclip, MessageCircle, Minimize2, X } from 'lucide-react';
+import { Send, Paperclip, MessageCircle, Minimize2, X, Loader2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
-
-interface Message {
-  id: string;
-  text: string;
-  sender: 'client' | 'admin';
-  timestamp: Date;
-  read: boolean;
-}
+import { useClientChat } from '@/hooks/useClientChat';
+import { toast } from 'sonner';
 
 interface ChatWidgetProps {
   isOpen?: boolean;
@@ -27,9 +21,8 @@ const quickReplies = [
 ];
 
 export function ChatWidget({ isOpen = true, onClose, isMobile = false }: ChatWidgetProps) {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const { messages, sendMessage, markAsRead, isLoading, isSending } = useClientChat();
   const [newMessage, setNewMessage] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -40,33 +33,26 @@ export function ChatWidget({ isOpen = true, onClose, isMobile = false }: ChatWid
     scrollToBottom();
   }, [messages]);
 
-  const handleSend = () => {
-    if (!newMessage.trim()) return;
+  // Mark messages as read when opening chat
+  useEffect(() => {
+    if (isOpen) {
+      markAsRead();
+    }
+  }, [isOpen, markAsRead]);
 
-    const message: Message = {
-      id: Date.now().toString(),
-      text: newMessage,
-      sender: 'client',
-      timestamp: new Date(),
-      read: false,
-    };
+  const handleSend = async () => {
+    if (!newMessage.trim() || isSending) return;
 
-    setMessages(prev => [...prev, message]);
+    const text = newMessage.trim();
     setNewMessage('');
 
-    // Simulate admin typing and response
-    setIsTyping(true);
-    setTimeout(() => {
-      setIsTyping(false);
-      const response: Message = {
-        id: (Date.now() + 1).toString(),
-        text: 'Obrigado pela mensagem! Em breve um de nossos atendentes irá responder.',
-        sender: 'admin',
-        timestamp: new Date(),
-        read: false,
-      };
-      setMessages(prev => [...prev, response]);
-    }, 2000);
+    try {
+      await sendMessage(text);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast.error('Erro ao enviar mensagem');
+      setNewMessage(text); // Restore message if failed
+    }
   };
 
   const handleQuickReply = (text: string) => {
@@ -115,7 +101,11 @@ export function ChatWidget({ isOpen = true, onClose, isMobile = false }: ChatWid
 
       {/* Messages area */}
       <CardContent className="flex-1 overflow-y-auto p-4 bg-muted/30 space-y-3">
-        {messages.length === 0 ? (
+        {isLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="w-6 h-6 animate-spin text-primary" />
+          </div>
+        ) : messages.length === 0 ? (
           <div className="text-center py-8">
             <div className="w-16 h-16 rounded-full bg-muted mx-auto mb-4 flex items-center justify-center">
               <MessageCircle className="w-8 h-8 text-muted-foreground/30" />
@@ -166,14 +156,10 @@ export function ChatWidget({ isOpen = true, onClose, isMobile = false }: ChatWid
               </div>
             ))}
             
-            {isTyping && (
-              <div className="flex justify-start">
-                <div className="bg-card rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
-                  <div className="flex gap-1">
-                    <span className="w-2 h-2 rounded-full bg-muted-foreground/50 animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <span className="w-2 h-2 rounded-full bg-muted-foreground/50 animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <span className="w-2 h-2 rounded-full bg-muted-foreground/50 animate-bounce" style={{ animationDelay: '300ms' }} />
-                  </div>
+            {isSending && (
+              <div className="flex justify-end">
+                <div className="bg-primary/50 rounded-2xl rounded-br-sm px-4 py-3">
+                  <Loader2 className="w-4 h-4 animate-spin text-primary-foreground" />
                 </div>
               </div>
             )}
@@ -196,14 +182,19 @@ export function ChatWidget({ isOpen = true, onClose, isMobile = false }: ChatWid
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyDown={handleKeyPress}
             rows={1}
+            disabled={isSending}
           />
           <Button 
             size="icon" 
             className="flex-shrink-0"
             onClick={handleSend}
-            disabled={!newMessage.trim()}
+            disabled={!newMessage.trim() || isSending}
           >
-            <Send className="w-4 h-4" />
+            {isSending ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Send className="w-4 h-4" />
+            )}
           </Button>
         </div>
       </div>

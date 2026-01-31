@@ -4,19 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-
-interface Notification {
-  id: string;
-  tipo: 'pedido' | 'mensagem' | 'pagamento' | 'entrega';
-  titulo: string;
-  descricao: string;
-  tempo: string;
-  lida: boolean;
-  link?: string;
-}
+import { ClientNotification } from '@/hooks/useClientNotifications';
 
 interface NotificationsCardProps {
-  notifications: Notification[];
+  notifications: ClientNotification[];
   unreadCount: number;
 }
 
@@ -40,11 +31,6 @@ export function NotificationsCard({ notifications, unreadCount }: NotificationsC
             </Badge>
           )}
         </CardTitle>
-        <Link to="/client/notificacoes">
-          <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground gap-1">
-            Ver todas <ArrowRight className="w-4 h-4" />
-          </Button>
-        </Link>
       </CardHeader>
       <CardContent>
         {(!notifications || notifications.length === 0) ? (
@@ -52,11 +38,11 @@ export function NotificationsCard({ notifications, unreadCount }: NotificationsC
             <div className="w-12 h-12 rounded-full bg-muted mx-auto mb-3 flex items-center justify-center">
               <Bell className="w-6 h-6 text-muted-foreground/50" />
             </div>
-            <p className="text-sm text-muted-foreground">Nenhuma notificação</p>
+            <p className="text-sm text-muted-foreground">Nenhuma notificação recente</p>
           </div>
         ) : (
           <div className="space-y-2">
-            {notifications.slice(0, 3).map((notif) => {
+            {notifications.slice(0, 5).map((notif) => {
               const Icon = iconMap[notif.tipo] || Bell;
               return (
                 <Link 

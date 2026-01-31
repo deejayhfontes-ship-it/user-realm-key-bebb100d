@@ -1,12 +1,12 @@
 import { Link } from 'react-router-dom';
-import { Plus, Sparkles, Download, HelpCircle } from 'lucide-react';
+import { Plus, Sparkles, FileText, MessageCircle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 
 const actions = [
   { label: 'Novo Orçamento', icon: Plus, href: '/briefing' },
   { label: 'Acessar Geradores', icon: Sparkles, href: '/client/geradores' },
-  { label: 'Meus Arquivos', icon: Download, href: '/client/arquivos' },
-  { label: 'Suporte', icon: HelpCircle, href: '/client/suporte' },
+  { label: 'Minhas Faturas', icon: FileText, href: '/client/faturas' },
+  { label: 'Histórico de Artes', icon: MessageCircle, href: '/client/historico' },
 ];
 
 export function QuickActionsCard() {

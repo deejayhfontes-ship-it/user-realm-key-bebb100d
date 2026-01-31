@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useClientData } from '@/hooks/useClientData';
+import { useClientNotifications } from '@/hooks/useClientNotifications';
+import { useClientFiles } from '@/hooks/useClientFiles';
+import { useClientChat } from '@/hooks/useClientChat';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -20,6 +23,9 @@ import { MobileChatFAB } from '@/components/client/dashboard/MobileChatFAB';
 export default function ClientDashboard() {
   const { profile } = useAuth();
   const { client, generators, creditsInfo, isLoading } = useClientData();
+  const { notifications, unreadCount: notificationUnreadCount } = useClientNotifications();
+  const { files, isLoading: isLoadingFiles } = useClientFiles();
+  const { unreadCount: chatUnreadCount } = useClientChat();
   const [chatOpen, setChatOpen] = useState(true);
 
   // Fetch client's orders (pedidos)
@@ -67,44 +73,21 @@ export default function ClientDashboard() {
     data_entrega: p.data_entrega,
   })) || [];
 
-  // Mock notifications (replace with real data)
-  const notifications = [
-    {
-      id: '1',
-      tipo: 'pedido' as const,
-      titulo: 'Pedido atualizado',
-      descricao: 'Status alterado para "Em Confecção"',
-      tempo: 'há 2 horas',
-      lida: false,
-      link: '/client/pedidos',
-    },
-    {
-      id: '2',
-      tipo: 'mensagem' as const,
-      titulo: 'Nova mensagem',
-      descricao: 'Você recebeu uma resposta do suporte',
-      tempo: 'há 5 horas',
-      lida: true,
-      link: '/client/suporte',
-    },
-  ];
-
-  // Mock plan info (replace with real data)
-  const planInfo = client?.type === 'package' ? {
-    nome: 'Plano Profissional',
-    ativo: true,
+  // Build plan info from real data
+  const planInfo = client ? {
+    nome: client.type === 'fixed' ? 'Plano Mensal' : `Pacote ${client.package_credits || 0} Créditos`,
+    ativo: client.status === 'active',
     renovacao: client.access_expires_at,
     beneficios: [
-      `${client.package_credits || 0} créditos de geração`,
-      'Suporte prioritário',
-      'Revisões ilimitadas',
+      client.type === 'fixed' 
+        ? `${client.monthly_credits || 'Ilimitado'} créditos por mês`
+        : `${client.package_credits || 0} créditos no pacote`,
+      `${generators?.length || 0} geradores disponíveis`,
+      'Suporte via chat',
+      'Histórico de gerações',
     ],
   } : null;
 
-  // Mock files (replace with real data)
-  const files: any[] = [];
-
-  const unreadNotifications = notifications.filter(n => !n.lida).length;
   const activeOrdersCount = pedidos?.filter(p => 
     !['entregue', 'cancelado'].includes(p.status || '')
   ).length || 0;
@@ -174,7 +157,7 @@ export default function ClientDashboard() {
               <div className="mt-6">
                 <NotificationsCard 
                   notifications={notifications}
-                  unreadCount={unreadNotifications}
+                  unreadCount={notificationUnreadCount}
                 />
               </div>
 
@@ -195,14 +178,14 @@ export default function ClientDashboard() {
         <div className="lg:hidden mt-6 space-y-6">
           <NotificationsCard 
             notifications={notifications}
-            unreadCount={unreadNotifications}
+            unreadCount={notificationUnreadCount}
           />
           <QuickActionsCard />
           <PlanCard plan={planInfo} />
         </div>
 
         {/* Mobile Chat FAB */}
-        <MobileChatFAB unreadCount={2} />
+        <MobileChatFAB unreadCount={chatUnreadCount} />
       </div>
     </div>
   );
