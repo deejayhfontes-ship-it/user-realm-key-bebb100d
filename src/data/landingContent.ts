@@ -116,9 +116,9 @@ export const landingContent = {
 
   footer: {
     stayConnected: {
-      label: "STAY CONNECTED.",
-      email: "CONTATO@FONTES\nGRAPHICS.COM",
-      emailHref: "contato@fontesgraphics.com",
+      label: "FIQUE CONECTADO.",
+      email: "CONTATO@FONTES\nGRAPHICSGESIGN.COM.BR",
+      emailHref: "contato@fontesgraphicsdesign.com.br",
       description: "Na Fontes Graphics, quebramos barreiras para criar designs que se destacam e entregam resultados.",
     },
   navigation: [
