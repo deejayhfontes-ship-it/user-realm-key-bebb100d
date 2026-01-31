@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useHomeSections } from '@/hooks/useHomeSections';
 import { cn } from '@/lib/utils';
+import { toast } from '@/hooks/use-toast';
 
 interface SectionConfig {
   slug: string;
@@ -24,6 +25,10 @@ interface SectionConfig {
   iconBg: string;
   isFixed?: boolean;
   editTab?: string;
+}
+
+interface HomePageConfigTabProps {
+  onTabChange?: (tab: string) => void;
 }
 
 const allSections: SectionConfig[] = [
@@ -91,7 +96,7 @@ const allSections: SectionConfig[] = [
   },
 ];
 
-export function HomePageConfigTab() {
+export function HomePageConfigTab({ onTabChange }: HomePageConfigTabProps) {
   const { sections, loading, updating, updateSection } = useHomeSections();
   const [localStates, setLocalStates] = useState<Record<string, boolean>>({});
 
@@ -109,6 +114,10 @@ export function HomePageConfigTab() {
     
     try {
       await updateSection({ slug, updates: { is_active: isActive } });
+      toast({
+        title: isActive ? '✅ Seção ativada' : '❌ Seção desativada',
+        description: `A seção será ${isActive ? 'exibida' : 'ocultada'} na home.`,
+      });
     } catch {
       // Revert on error
       setLocalStates(prev => {
@@ -116,13 +125,24 @@ export function HomePageConfigTab() {
         delete newState[slug];
         return newState;
       });
+      toast({
+        title: 'Erro ao atualizar',
+        description: 'Não foi possível atualizar a seção.',
+        variant: 'destructive',
+      });
     }
   };
 
   const handleEditClick = (tabName: string) => {
-    const element = document.querySelector(`[data-tab="${tabName}"]`);
-    if (element) {
-      (element as HTMLButtonElement).click();
+    if (onTabChange) {
+      onTabChange(tabName);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      // Fallback: try clicking the tab directly
+      const element = document.querySelector(`[data-tab="${tabName}"]`);
+      if (element) {
+        (element as HTMLButtonElement).click();
+      }
     }
   };
 
@@ -182,7 +202,8 @@ export function HomePageConfigTab() {
                       variant="ghost"
                       size="sm"
                       onClick={() => handleEditClick(section.editTab!)}
-                      className="text-primary hover:text-primary/80 font-semibold"
+                      className="font-semibold hover:bg-[#c4ff0d]/20"
+                      style={{ color: '#c4ff0d' }}
                     >
                       Editar
                     </Button>
