@@ -115,7 +115,7 @@ export function LiveChatWidget() {
           onClick={handleOpen}
           className={cn(
             'fixed z-50 flex items-center justify-center w-[60px] h-[60px] rounded-full shadow-2xl transition-all duration-300 hover:scale-110',
-            config.posicao === 'bottom-left' ? 'bottom-6 left-6' : 'bottom-6 right-6'
+            config.posicao === 'top-left' ? 'top-6 left-6' : 'top-6 right-6'
           )}
           style={{ backgroundColor: config.cor }}
           aria-label="Abrir chat"
@@ -136,12 +136,12 @@ export function LiveChatWidget() {
       {isOpen && (
         <div
           className={cn(
-            'fixed z-50 bg-white shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-5 duration-300',
+            'fixed z-50 bg-white shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-top-5 duration-300',
             // Desktop
-            'md:bottom-6 md:w-[380px] md:h-[600px] md:rounded-2xl',
-            config.posicao === 'bottom-left' ? 'md:left-6' : 'md:right-6',
+            'md:top-6 md:w-[380px] md:h-[600px] md:rounded-2xl',
+            config.posicao === 'top-left' ? 'md:left-6' : 'md:right-6',
             // Mobile - fullscreen
-            'bottom-0 left-0 right-0 top-0 md:top-auto rounded-none'
+            'bottom-0 left-0 right-0 top-0 md:bottom-auto rounded-none'
           )}
         >
           {/* Header */}
