@@ -1,35 +1,32 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, Send } from "lucide-react";
+import { Loader2, Send, CheckCircle, HelpCircle, Lightbulb, AlertCircle, ThumbsUp, Bell, MessageSquare } from "lucide-react";
 import { landingContent } from "@/data/landingContent";
-import { CustomSelect, projectTypeOptions, SelectOption } from "./CustomSelect";
-import { useProjectTypes } from "@/hooks/useProjectTypes";
+
+// Tipos de contato disponíveis
+const contactTypes = [
+  { value: 'duvida', label: 'Dúvida', icon: HelpCircle },
+  { value: 'sugestao', label: 'Sugestão', icon: Lightbulb },
+  { value: 'reclamacao', label: 'Reclamação', icon: AlertCircle },
+  { value: 'elogio', label: 'Elogio', icon: ThumbsUp },
+  { value: 'newsletter', label: 'Quero receber novidades', icon: Bell },
+  { value: 'outro', label: 'Outro', icon: MessageSquare },
+];
 
 export function ContactSection() {
-  const { projectTypes, loading: loadingTypes } = useProjectTypes();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
     phone: "",
-    projectType: "",
+    contactType: "duvida",
     message: "",
   });
 
   const content = landingContent.contact;
-
-  // Convert database project types to select options, fallback to static
-  const dynamicOptions: SelectOption[] = useMemo(() => {
-    if (projectTypes.length === 0) return projectTypeOptions;
-    
-    return projectTypes.map(pt => ({
-      value: pt.name,
-      label: pt.name,
-      icon: pt.icon || 'MoreHorizontal',
-    }));
-  }, [projectTypes]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,32 +43,55 @@ export function ContactSection() {
     setIsSubmitting(true);
     
     try {
-      const { error } = await supabase.from("briefings").insert({
-        nome: `${formData.firstName} ${formData.lastName}`.trim(),
+      // Enviar para contact_messages (não briefings!)
+      const { error } = await supabase.from("contact_messages").insert({
+        name: `${formData.firstName} ${formData.lastName}`.trim(),
         email: formData.email,
-        telefone: formData.phone || null,
-        tipo_projeto: formData.projectType || null,
-        descricao: formData.message,
-        status: "novo",
-        prioridade: "normal",
+        phone: formData.phone || null,
+        subject: contactTypes.find(t => t.value === formData.contactType)?.label || 'Outro',
+        message: formData.message,
+        status: "new",
+        user_id: (await supabase.auth.getSession()).data.session?.user.id || 
+          // Para visitantes não logados, usar um ID fixo do admin
+          "00000000-0000-0000-0000-000000000000",
       });
 
       if (error) throw error;
 
+      // Se o tipo é newsletter, também adicionar à lista de assinantes (ignorar se já existe)
+      if (formData.contactType === 'newsletter') {
+        try {
+          await supabase.from("newsletter_subscribers").insert({
+            name: `${formData.firstName} ${formData.lastName}`.trim(),
+            email: formData.email,
+            is_active: true,
+            user_id: (await supabase.auth.getSession()).data.session?.user.id || 
+              "00000000-0000-0000-0000-000000000000",
+          });
+        } catch {
+          // Ignorar erro de duplicata
+        }
+      }
+
+      setSubmitted(true);
+
       toast({
-        title: "Briefing enviado! 🎉",
+        title: "Mensagem enviada! 🎉",
         description: content.form.successMessage,
       });
 
-      // Reset form
-      setFormData({
-        firstName: "",
-        lastName: "",
-        email: "",
-        phone: "",
-        projectType: "",
-        message: "",
-      });
+      // Reset form após 5 segundos
+      setTimeout(() => {
+        setSubmitted(false);
+        setFormData({
+          firstName: "",
+          lastName: "",
+          email: "",
+          phone: "",
+          contactType: "duvida",
+          message: "",
+        });
+      }, 5000);
     } catch {
       toast({
         title: "Erro ao enviar",
@@ -82,6 +102,38 @@ export function ContactSection() {
       setIsSubmitting(false);
     }
   };
+
+  // Tela de sucesso
+  if (submitted) {
+    return (
+      <section
+        id="contact"
+        className="relative section-padding overflow-hidden"
+      >
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.9), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=1600&q=80')`,
+          }}
+        />
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="magnetto-glass p-12 text-center max-w-md">
+              <div className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-6">
+                <CheckCircle className="w-10 h-10 text-primary" />
+              </div>
+              <h3 className="text-2xl font-bold text-white mb-3">
+                Mensagem Enviada!
+              </h3>
+              <p className="text-zinc-400">
+                Obrigado pelo contato. Responderemos em breve!
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section
@@ -106,6 +158,16 @@ export function ContactSection() {
             <p className="text-zinc-400 text-lg mt-8 max-w-md">
               {content.description}
             </p>
+            
+            {/* Nota sobre briefing */}
+            <div className="mt-6 p-4 rounded-xl bg-primary/10 border border-primary/20">
+              <p className="text-sm text-zinc-300">
+                <strong className="text-primary">Quer um orçamento?</strong>{" "}
+                <a href="/briefing" className="underline hover:text-primary transition-colors">
+                  Acesse nosso formulário de briefing
+                </a> para solicitar propostas detalhadas.
+              </p>
+            </div>
           </div>
 
           {/* Right - Form */}
@@ -181,20 +243,24 @@ export function ContactSection() {
                 </div>
               </div>
 
-              {/* Project Type */}
+              {/* Contact Type - NOVO! */}
               <div>
                 <label className="block text-zinc-400 text-sm mb-2">
-                  Tipo de Projeto
+                  Motivo do Contato
                 </label>
-                <CustomSelect
-                  value={formData.projectType}
-                  onChange={(value) =>
-                    setFormData({ ...formData, projectType: value })
+                <select
+                  value={formData.contactType}
+                  onChange={(e) =>
+                    setFormData({ ...formData, contactType: e.target.value })
                   }
-                  options={dynamicOptions}
-                  placeholder="Selecione..."
-                  loading={loadingTypes}
-                />
+                  className="w-full px-4 py-3 rounded-xl bg-zinc-800/50 border border-zinc-700 text-white focus:outline-none focus:border-primary transition-colors"
+                >
+                  {contactTypes.map((type) => (
+                    <option key={type.value} value={type.value}>
+                      {type.label}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {/* Message */}
@@ -207,7 +273,11 @@ export function ContactSection() {
                   onChange={(e) =>
                     setFormData({ ...formData, message: e.target.value })
                   }
-                  placeholder={content.form.messagePlaceholder}
+                  placeholder={
+                    formData.contactType === 'newsletter'
+                      ? 'Deixe uma mensagem ou apenas envie para se cadastrar!'
+                      : content.form.messagePlaceholder
+                  }
                   rows={4}
                   className="w-full px-4 py-3 rounded-xl bg-zinc-800/50 border border-zinc-700 text-white placeholder:text-zinc-600 focus:outline-none focus:border-primary transition-colors resize-none"
                 />
@@ -231,6 +301,14 @@ export function ContactSection() {
                   </>
                 )}
               </button>
+
+              <p className="text-xs text-zinc-500 text-center">
+                Ao enviar, você concorda com nossa{" "}
+                <a href="/privacidade" className="underline hover:text-primary">
+                  Política de Privacidade
+                </a>
+                .
+              </p>
             </form>
           </div>
         </div>
