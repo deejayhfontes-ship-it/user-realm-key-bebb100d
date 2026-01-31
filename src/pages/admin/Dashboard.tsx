@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
-import { AgendaCard } from '@/components/admin/dashboard/AgendaCard';
+import { CalendarAgenda } from '@/components/admin/dashboard/CalendarAgenda';
 import { TrelloCard } from '@/components/admin/dashboard/TrelloCard';
 import { CobrancasCard } from '@/components/admin/dashboard/CobrancasCard';
 import { FaturamentoCard } from '@/components/admin/dashboard/FaturamentoCard';
@@ -125,7 +125,8 @@ export default function AdminDashboard() {
         <div className="max-w-[1600px] mx-auto">
           {/* Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            <AgendaCard />
+            {/* Agenda ocupa 2 colunas no desktop para melhor visualização */}
+            <CalendarAgenda className="md:col-span-2 xl:col-span-2" />
             <TrelloCard />
             <CobrancasCard />
             <FaturamentoCard />
