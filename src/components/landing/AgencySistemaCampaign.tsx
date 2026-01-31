@@ -90,19 +90,19 @@ export function AgencySistemaCampaign() {
           {/* Card 2: Agora - COM EFEITO PULSE FORTE */}
           <ScrollReveal direction="right" delay={200}>
             <div className="relative group h-full">
-              {/* Glow pulsante mais intenso */}
+              {/* Glow pulsante com blur suave */}
               <div 
-                className="absolute -inset-2 rounded-2xl opacity-80"
+                className="absolute -inset-3 rounded-3xl blur-xl opacity-70"
                 style={{
-                  background: 'linear-gradient(135deg, hsl(var(--primary) / 0.4) 0%, hsl(var(--primary) / 0.15) 50%, hsl(var(--primary) / 0.4) 100%)',
+                  background: 'radial-gradient(ellipse at center, hsl(var(--primary) / 0.5) 0%, hsl(var(--primary) / 0.2) 40%, transparent 70%)',
                   animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
                 }}
               />
-              {/* Segunda camada de glow para intensificar */}
+              {/* Segunda camada mais próxima */}
               <div 
-                className="absolute -inset-1 rounded-2xl opacity-60"
+                className="absolute -inset-1 rounded-2xl blur-md opacity-50"
                 style={{
-                  background: 'linear-gradient(180deg, hsl(var(--primary) / 0.3) 0%, transparent 50%, hsl(var(--primary) / 0.3) 100%)',
+                  background: 'linear-gradient(135deg, hsl(var(--primary) / 0.3) 0%, transparent 50%, hsl(var(--primary) / 0.3) 100%)',
                   animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
                   animationDelay: '0.5s'
                 }}
