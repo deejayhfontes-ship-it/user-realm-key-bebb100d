@@ -65,8 +65,7 @@ export const landingContent = {
 
   services: {
     sectionTitle: "SERVIÇOS",
-    milestonesLabel: "NOSSA JORNADA",
-    milestonesTitle: "NÚMEROS QUE FALAM POR NÓS",
+    milestonesTitle: "CONQUISTAS",
     description: "Criamos experiências digitais que elevam marcas e engajam audiências. Nossos serviços combinam criatividade com estratégia, garantindo resultados visuais impactantes.",
     placeholderServices: [
       {
