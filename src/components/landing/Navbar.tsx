@@ -267,10 +267,10 @@ export function Navbar() {
         )}
       </nav>
 
-      {/* Mobile Header Bar */}
+      {/* Mobile Bottom Bar */}
       <nav
         className={cn(
-          "fixed top-4 left-4 right-4 z-50 flex md:hidden items-center justify-between px-4 py-3 transition-all duration-300",
+          "fixed bottom-4 left-4 right-4 z-50 flex md:hidden items-center justify-between px-4 py-3 transition-all duration-300",
           "rounded-full bg-black/40 backdrop-blur-xl border border-white/10"
         )}
       >
