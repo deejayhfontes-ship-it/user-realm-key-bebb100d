@@ -14,12 +14,12 @@ export function ClientsSection() {
   const duplicatedLogos = [...logos, ...logos];
 
   return (
-    <section className="relative py-16 md:py-24 bg-[#0a0a0a] overflow-hidden">
+    <section className="relative py-12 md:py-16 lg:py-20 bg-[#0a0a0a] overflow-hidden">
       {/* Fade edges */}
       <div className="absolute left-0 top-0 bottom-0 w-12 md:w-36 bg-gradient-to-r from-[#0a0a0a] to-transparent z-10 pointer-events-none" />
       <div className="absolute right-0 top-0 bottom-0 w-12 md:w-36 bg-gradient-to-l from-[#0a0a0a] to-transparent z-10 pointer-events-none" />
 
-      <div className="container mx-auto px-4 mb-14">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 mb-10 md:mb-14">
         {/* Title with decorative line */}
         <div className="text-center">
           <h2 className="text-xs uppercase tracking-[3px] text-white/40 font-medium transition-colors duration-300 hover:text-white/60">
