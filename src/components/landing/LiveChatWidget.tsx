@@ -386,7 +386,11 @@ export function LiveChatWidget() {
             <div 
               className="flex items-end gap-2 p-2 rounded-xl"
               style={{
-                background: 'rgba(0,0,0,0.03)',
+                background: 'rgba(10,10,10,0.7)',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.05)',
               }}
             >
               <textarea
@@ -395,7 +399,7 @@ export function LiveChatWidget() {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyPress}
                 placeholder="Mensagem..."
-                className="flex-1 resize-none bg-transparent focus:outline-none text-sm text-gray-900 placeholder:text-gray-400"
+                className="flex-1 resize-none bg-transparent focus:outline-none text-sm text-white placeholder:text-white/50"
                 style={{
                   minHeight: '36px',
                   maxHeight: '80px',
