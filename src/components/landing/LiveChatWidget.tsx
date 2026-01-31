@@ -215,9 +215,9 @@ export function LiveChatWidget() {
                   height: '36px',
                   borderRadius: '10px',
                   background: isOnline 
-                    ? `linear-gradient(135deg, ${accentColor}, ${accentColor}dd)` 
+                    ? 'linear-gradient(135deg, #c4ff0d, #a8e000)' 
                     : 'linear-gradient(135deg, #1a1a1a, #333)',
-                  boxShadow: isOnline ? `0 0 12px ${accentColor}60` : 'none',
+                  boxShadow: isOnline ? '0 0 12px rgba(196, 255, 13, 0.5)' : 'none',
                   transition: 'all 0.3s ease',
                 }}
               >
