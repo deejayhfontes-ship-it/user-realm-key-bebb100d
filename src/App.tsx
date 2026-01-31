@@ -8,6 +8,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ClientRoute } from "@/components/ClientRoute";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { ClientLayout } from "@/layouts/ClientLayout";
+import { CodeProtectionProvider } from "@/components/CodeProtectionProvider";
 
 // Admin Pages
 import Login from "@/pages/Login";
@@ -64,11 +65,12 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <Routes>
+      <CodeProtectionProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
+            <Routes>
             {/* Public routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/client/login" element={<ClientLogin />} />
@@ -157,6 +159,7 @@ const App = () => (
           </Routes>
         </AuthProvider>
       </BrowserRouter>
+      </CodeProtectionProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
