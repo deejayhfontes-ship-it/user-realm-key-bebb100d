@@ -189,7 +189,7 @@ export function AdminSidebar({ onNavigate }: AdminSidebarProps) {
       )}
 
       {/* Navigation */}
-      <nav className="p-3 space-y-1 flex-1 overflow-y-auto">
+      <nav className="p-3 space-y-1 flex-1 overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10 hover:scrollbar-thumb-white/20">
         {navItems.map((item) => {
           const isActive = location.pathname === item.href;
           return (
