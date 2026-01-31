@@ -3,9 +3,9 @@ import { ClientSidebar } from '@/components/client/ClientSidebar';
 
 export function ClientLayout() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen w-full bg-background">
       <ClientSidebar />
-      <main className="ml-64 min-h-screen overflow-y-auto">
+      <main className="ml-64 min-h-screen">
         <Outlet />
       </main>
     </div>
