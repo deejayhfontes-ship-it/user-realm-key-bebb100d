@@ -11,14 +11,19 @@ import { LiveChatWidget } from "@/components/landing/LiveChatWidget";
 import { usePublicHomeSections } from "@/hooks/useHomeSections";
 
 export default function Home() {
-  const { data: sections } = usePublicHomeSections();
+  const { data: sections, isLoading } = usePublicHomeSections();
 
   // Helper to check if section is active
   const isSectionActive = (slug: string): boolean => {
-    // If no sections data, show all by default
+    // While loading, show all sections
+    if (isLoading) return true;
+    // If no sections configured in DB, show all by default
     if (!sections || sections.length === 0) return true;
+    // Find the section - if not found or is_active is false, hide it
     const section = sections.find(s => s.slug === slug);
-    return section?.is_active ?? true;
+    // If section exists in DB, respect its is_active value
+    // If section doesn't exist in DB, show it by default (not yet configured)
+    return section ? section.is_active : true;
   };
 
   return (
