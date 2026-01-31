@@ -120,15 +120,25 @@ const navItems = [
   },
 ];
 
-export function AdminSidebar() {
+interface AdminSidebarProps {
+  onNavigate?: () => void;
+}
+
+export function AdminSidebar({ onNavigate }: AdminSidebarProps) {
   const location = useLocation();
   const { signOut, profile } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
 
+  const handleNavClick = () => {
+    if (onNavigate) {
+      onNavigate();
+    }
+  };
+
   return (
     <aside 
       className={cn(
-        "fixed left-0 top-0 h-screen flex flex-col gradient-sidebar transition-all duration-300 z-50 overflow-y-auto",
+        "fixed left-0 top-0 h-screen flex flex-col gradient-sidebar transition-all duration-300 z-50 overflow-y-auto md:fixed relative md:h-screen h-full",
         collapsed ? "w-16" : "w-64"
       )}
     >
@@ -155,7 +165,7 @@ export function AdminSidebar() {
             variant="ghost"
             size="icon"
             onClick={() => setCollapsed(!collapsed)}
-            className="text-white/50 hover:bg-white/5 hover:text-white rounded-xl"
+            className="text-white/50 hover:bg-white/5 hover:text-white rounded-xl hidden md:flex"
           >
             <ChevronLeft className={cn(
               "w-4 h-4 transition-transform",
@@ -166,7 +176,7 @@ export function AdminSidebar() {
       </div>
 
       {collapsed && (
-        <div className="p-2">
+        <div className="p-2 hidden md:block">
           <Button
             variant="ghost"
             size="icon"
@@ -179,13 +189,14 @@ export function AdminSidebar() {
       )}
 
       {/* Navigation */}
-      <nav className="p-3 space-y-1">
+      <nav className="p-3 space-y-1 flex-1 overflow-y-auto">
         {navItems.map((item) => {
           const isActive = location.pathname === item.href;
           return (
             <NavLink
               key={item.href}
               to={item.href}
+              onClick={handleNavClick}
               className={cn(
                 "flex items-center gap-3 px-3 py-3 rounded-2xl transition-all duration-200 group",
                 isActive 
@@ -209,9 +220,6 @@ export function AdminSidebar() {
           );
         })}
       </nav>
-
-      {/* Spacer to push user section to bottom */}
-      <div className="flex-1" />
 
       {/* User section */}
       <div className="p-3 border-t border-white/5">
