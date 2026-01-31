@@ -87,13 +87,28 @@ export function AgencySistemaCampaign() {
             </div>
           </ScrollReveal>
 
-          {/* Card 2: Agora - COM EFEITO PULSE */}
+          {/* Card 2: Agora - COM EFEITO PULSE FORTE */}
           <ScrollReveal direction="right" delay={200}>
             <div className="relative group h-full">
-              {/* Glow pulsante */}
-              <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl animate-pulse opacity-60" />
+              {/* Glow pulsante mais intenso */}
+              <div 
+                className="absolute -inset-2 rounded-2xl opacity-80"
+                style={{
+                  background: 'linear-gradient(135deg, hsl(var(--primary) / 0.4) 0%, hsl(var(--primary) / 0.15) 50%, hsl(var(--primary) / 0.4) 100%)',
+                  animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+                }}
+              />
+              {/* Segunda camada de glow para intensificar */}
+              <div 
+                className="absolute -inset-1 rounded-2xl opacity-60"
+                style={{
+                  background: 'linear-gradient(180deg, hsl(var(--primary) / 0.3) 0%, transparent 50%, hsl(var(--primary) / 0.3) 100%)',
+                  animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                  animationDelay: '0.5s'
+                }}
+              />
               
-              <div className="relative bg-zinc-900/90 border border-primary/30 rounded-2xl p-10 hover:border-primary/50 transition-all h-full">
+              <div className="relative bg-zinc-900/90 border border-primary/40 rounded-2xl p-10 hover:border-primary/60 transition-all h-full">
                 <div className="flex items-start gap-4 mb-6">
                   <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-primary/10">
                     <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -128,7 +143,7 @@ export function AgencySistemaCampaign() {
                 </div>
 
                 <div className="mt-8 pt-6 border-t border-white/10">
-                  <p className="text-sm text-primary">
+                  <p className="text-sm text-primary font-medium">
                     Cada adaptação é só um clique
                   </p>
                 </div>
@@ -137,7 +152,7 @@ export function AgencySistemaCampaign() {
           </ScrollReveal>
         </div>
 
-        {/* PILARES DA CAMPANHA */}
+        {/* PILARES DA CAMPANHA - Cards iguais */}
         <div className="grid md:grid-cols-3 gap-8 mb-24">
           {[
             {
@@ -160,19 +175,19 @@ export function AgencySistemaCampaign() {
             }
           ].map((pilar, idx) => (
             <ScrollReveal key={pilar.num} direction="up" delay={idx * 100}>
-              <div className="bg-zinc-900/90 border border-white/10 rounded-2xl p-10 hover:border-primary/30 transition-all duration-300 h-full">
-                <div className="mb-8">
+              <div className="bg-zinc-900/90 border border-white/10 rounded-2xl p-8 md:p-10 hover:border-primary/30 transition-all duration-300 h-full">
+                <div className="mb-6">
                   <div className="text-sm font-semibold mb-3 text-primary">
                     {pilar.num}
                   </div>
-                  <h3 className="text-2xl font-bold text-white mb-4">
+                  <h3 className="text-xl md:text-2xl font-bold text-white mb-3">
                     {pilar.title}
                   </h3>
-                  <p className="text-sm text-zinc-500 font-medium mb-6">
+                  <p className="text-sm text-zinc-500 font-medium">
                     {pilar.subtitle}
                   </p>
                 </div>
-                <p className="text-zinc-300 leading-relaxed">
+                <p className="text-zinc-400 text-sm leading-relaxed">
                   {pilar.text}
                 </p>
               </div>
