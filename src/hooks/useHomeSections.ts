@@ -170,7 +170,7 @@ export function useHomeSections() {
   };
 }
 
-// Public hook
+// Public hook - returns ALL sections so we can check is_active status
 export function usePublicHomeSections() {
   return useQuery({
     queryKey: ['public-home-sections'],
@@ -178,12 +178,11 @@ export function usePublicHomeSections() {
       const { data, error } = await supabase
         .from('home_sections')
         .select('slug, name, is_active, sort_order, config')
-        .eq('is_active', true)
         .order('sort_order', { ascending: true });
       
       if (error) throw error;
       return data || [];
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: 1 * 60 * 1000, // 1 minute cache for faster updates
   });
 }
