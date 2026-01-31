@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query';
 import { 
   User, 
   Mail, 
@@ -12,25 +13,61 @@ import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useClientData } from '@/hooks/useClientData';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function ClientPerfil() {
   const { profile } = useAuth();
   const { client, creditsInfo, generators, isLoading } = useClientData();
   
+  // Fetch monthly usage from generations table
+  const { data: monthlyUsage } = useQuery({
+    queryKey: ['client-monthly-usage', profile?.client_id],
+    queryFn: async () => {
+      if (!profile?.client_id) return [];
+      
+      // Get generations from last 6 months
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+      
+      const { data, error } = await supabase
+        .from('generations')
+        .select('created_at')
+        .eq('client_id', profile.client_id)
+        .gte('created_at', sixMonthsAgo.toISOString())
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+      
+      // Group by month
+      const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+      const months: Record<string, number> = {};
+      
+      // Initialize last 6 months with 0
+      for (let i = 5; i >= 0; i--) {
+        const d = new Date();
+        d.setMonth(d.getMonth() - i);
+        const key = `${monthNames[d.getMonth()]}`;
+        months[key] = 0;
+      }
+      
+      // Count generations per month
+      for (const gen of data || []) {
+        const date = new Date(gen.created_at);
+        const key = `${monthNames[date.getMonth()]}`;
+        if (key in months) {
+          months[key]++;
+        }
+      }
+      
+      return Object.entries(months).map(([month, credits]) => ({ month, credits }));
+    },
+    enabled: !!profile?.client_id,
+  });
+  
   // Calculate credits percentage
   const creditsTotal = creditsInfo.total === Infinity ? 100 : creditsInfo.total;
   const creditsPercentage = creditsTotal > 0 ? (creditsInfo.used / creditsTotal) * 100 : 0;
-  
-  // Generate mock monthly usage based on real data (last 6 months)
-  const monthlyUsage = [
-    { month: 'Ago', credits: 0 },
-    { month: 'Set', credits: 0 },
-    { month: 'Out', credits: 0 },
-    { month: 'Nov', credits: 0 },
-    { month: 'Dez', credits: 0 },
-    { month: 'Jan', credits: creditsInfo.used },
-  ];
   
   // Build plan features based on client data
   const planFeatures = [
@@ -183,7 +220,7 @@ export default function ClientPerfil() {
         <CardContent>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={monthlyUsage}>
+              <BarChart data={monthlyUsage || []}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis 
                   dataKey="month" 
