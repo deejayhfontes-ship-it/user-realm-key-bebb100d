@@ -167,13 +167,10 @@ export function ProjectsSection() {
                   PORTFÓLIO
                 </h3>
 
-                {/* Button */}
-                <span className="relative px-6 py-3 rounded-full border border-white/20 text-white text-xs font-pixel tracking-wider group-hover:border-white/40 group-hover:bg-white/5 transition-all min-w-[140px] text-center">
-                  <span className="opacity-100 group-hover:opacity-0 transition-opacity duration-300">EXPLORAR</span>
-                  <span className="absolute inset-0 flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    VER PROJETOS
-                    <FolderOpen className="w-3.5 h-3.5" />
-                  </span>
+                {/* Button - Simples sem hover complexo */}
+                <span className="px-6 py-3 rounded-full border border-white/20 text-white text-xs font-pixel tracking-wider group-hover:border-white/40 group-hover:bg-white/5 transition-all min-w-[140px] text-center flex items-center justify-center gap-2">
+                  EXPLORAR
+                  <FolderOpen className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </span>
               </div>
             </div>
@@ -213,13 +210,10 @@ export function ProjectsSection() {
                   ORÇAMENTO
                 </h3>
 
-                {/* Button */}
-                <span className="relative px-6 py-3 rounded-full bg-primary text-primary-foreground text-xs font-pixel tracking-wider group-hover:opacity-90 transition-all min-w-[140px] text-center">
-                  <span className="opacity-100 group-hover:opacity-0 transition-opacity duration-300">SOLICITAR</span>
-                  <span className="absolute inset-0 flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    INICIAR
-                    <Briefcase className="w-3.5 h-3.5" />
-                  </span>
+                {/* Button - Simples sem hover complexo */}
+                <span className="px-6 py-3 rounded-full bg-primary text-primary-foreground text-xs font-pixel tracking-wider group-hover:opacity-90 transition-all min-w-[140px] text-center flex items-center justify-center gap-2">
+                  SOLICITAR
+                  <Briefcase className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </span>
               </div>
             </div>
