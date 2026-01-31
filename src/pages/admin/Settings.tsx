@@ -114,7 +114,7 @@ export default function AdminSettings() {
           </TabsContent>
 
           <TabsContent value="home">
-            <HomePageConfigTab />
+            <HomePageConfigTab onTabChange={setActiveTab} />
           </TabsContent>
 
           <TabsContent value="sobre">
