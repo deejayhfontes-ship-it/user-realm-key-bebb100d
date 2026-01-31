@@ -209,15 +209,19 @@ export function LiveChatWidget() {
             <div className="flex items-center gap-3">
               {/* Avatar */}
               <div 
-                className="relative flex items-center justify-center"
+                className={`relative flex items-center justify-center ${isOnline ? 'animate-pulse' : ''}`}
                 style={{
                   width: '36px',
                   height: '36px',
                   borderRadius: '10px',
-                  background: 'linear-gradient(135deg, #1a1a1a, #333)',
+                  background: isOnline 
+                    ? `linear-gradient(135deg, ${accentColor}, ${accentColor}dd)` 
+                    : 'linear-gradient(135deg, #1a1a1a, #333)',
+                  boxShadow: isOnline ? `0 0 12px ${accentColor}60` : 'none',
+                  transition: 'all 0.3s ease',
                 }}
               >
-                <span className="text-white text-xs font-semibold">FG</span>
+                <span className={`text-xs font-semibold ${isOnline ? 'text-black' : 'text-white'}`}>FG</span>
                 {/* Online dot */}
                 <span 
                   className="absolute -bottom-0.5 -right-0.5"
