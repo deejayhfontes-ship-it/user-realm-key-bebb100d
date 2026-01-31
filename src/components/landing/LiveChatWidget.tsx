@@ -160,7 +160,7 @@ export function LiveChatWidget() {
         </button>
       )}
 
-      {/* Chat Window - Glass Minimal */}
+      {/* Chat Window - Dark Glass */}
       {isOpen && (
         <div
           className={cn(
@@ -173,17 +173,15 @@ export function LiveChatWidget() {
             height: 'auto',
             maxWidth: '340px',
             maxHeight: '550px',
-            borderRadius: '0',
-            background: 'rgba(255,255,255,0.97)',
+            borderRadius: '20px',
+            background: 'rgba(10,10,10,0.85)',
             backdropFilter: 'blur(24px)',
             WebkitBackdropFilter: 'blur(24px)',
-            border: '1px solid rgba(0,0,0,0.06)',
-            boxShadow: '0 8px 40px rgba(0,0,0,0.12)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            boxShadow: '0 8px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)',
             animation: 'scaleIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)',
             transformOrigin: 'top right',
           }}
-          // Desktop styles via className
-          {...({} as any)}
         >
           <style>{`
             @keyframes scaleIn {
@@ -201,11 +199,11 @@ export function LiveChatWidget() {
             }
           `}</style>
 
-          {/* Header - Minimal */}
+          {/* Header */}
           <div 
             className="flex items-center justify-between p-4 shrink-0"
             style={{
-              borderBottom: '1px solid rgba(0,0,0,0.06)',
+              borderBottom: '1px solid rgba(255,255,255,0.1)',
             }}
           >
             <div className="flex items-center gap-3">
@@ -228,7 +226,7 @@ export function LiveChatWidget() {
                     height: '10px',
                     borderRadius: '50%',
                     background: isOnline ? '#22c55e' : '#9ca3af',
-                    border: '2px solid white',
+                    border: '2px solid rgba(10,10,10,0.85)',
                     boxShadow: isOnline ? '0 0 6px #22c55e' : 'none',
                   }}
                 />
@@ -236,8 +234,8 @@ export function LiveChatWidget() {
 
               {/* Info */}
               <div>
-                <p className="text-sm font-medium text-gray-900">Fontes Graphics</p>
-                <p className="text-xs text-gray-500">
+                <p className="text-sm font-medium text-white">Fontes Graphics</p>
+                <p className="text-xs text-white/60">
                   {isOnline ? 'Online' : 'Responde em breve'}
                 </p>
               </div>
@@ -246,9 +244,9 @@ export function LiveChatWidget() {
             {/* Close button */}
             <button
               onClick={handleClose}
-              className="p-1.5 rounded-lg transition-colors hover:bg-gray-100"
+              className="p-1.5 rounded-lg transition-colors hover:bg-white/10"
             >
-              <X className="w-5 h-5 text-gray-500" />
+              <X className="w-5 h-5 text-white/70" />
             </button>
           </div>
 
@@ -256,7 +254,7 @@ export function LiveChatWidget() {
           <div 
             className="flex-1 overflow-y-auto p-4 space-y-3"
             style={{
-              background: 'linear-gradient(180deg, rgba(249,250,251,0.5) 0%, rgba(255,255,255,0) 100%)',
+              background: 'transparent',
             }}
           >
             {/* Empty state */}
@@ -268,13 +266,13 @@ export function LiveChatWidget() {
                     width: '56px',
                     height: '56px',
                     borderRadius: '16px',
-                    background: 'rgba(0,0,0,0.04)',
+                    background: 'rgba(255,255,255,0.08)',
                   }}
                 >
-                  <MessageCircle className="w-6 h-6 text-gray-400" />
+                  <MessageCircle className="w-6 h-6 text-white/40" />
                 </div>
-                <p className="text-base font-medium text-gray-900 mb-1">Olá! 👋</p>
-                <p className="text-sm text-gray-500 mb-5">Como podemos ajudar?</p>
+                <p className="text-base font-medium text-white mb-1">Olá! 👋</p>
+                <p className="text-sm text-white/60 mb-5">Como podemos ajudar?</p>
 
                 {/* Quick Replies */}
                 <div className="flex flex-wrap justify-center gap-2">
@@ -282,10 +280,10 @@ export function LiveChatWidget() {
                     <button
                       key={index}
                       onClick={() => handleQuickReply(reply)}
-                      className="px-3 py-1.5 text-xs rounded-full transition-all hover:scale-105"
+                      className="px-3 py-1.5 text-xs text-white/80 rounded-full transition-all hover:scale-105 hover:bg-white/15"
                       style={{
-                        background: 'rgba(0,0,0,0.04)',
-                        border: '1px solid rgba(0,0,0,0.06)',
+                        background: 'rgba(255,255,255,0.1)',
+                        border: '1px solid rgba(255,255,255,0.1)',
                       }}
                     >
                       {reply}
@@ -301,14 +299,13 @@ export function LiveChatWidget() {
                 <div 
                   className="max-w-[80%] px-3 py-2 rounded-2xl rounded-bl-md"
                   style={{
-                    background: 'rgba(255,255,255,0.9)',
+                    background: 'rgba(255,255,255,0.1)',
                     backdropFilter: 'blur(10px)',
-                    border: '1px solid rgba(0,0,0,0.06)',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                    border: '1px solid rgba(255,255,255,0.1)',
                   }}
                 >
-                  <p className="text-sm text-gray-800">{chatConfig.mensagem_boas_vindas}</p>
-                  <p className="text-[10px] text-gray-400 mt-1">agora</p>
+                  <p className="text-sm text-white">{chatConfig.mensagem_boas_vindas}</p>
+                  <p className="text-[10px] text-white/50 mt-1">agora</p>
                 </div>
               </div>
             )}
@@ -336,17 +333,16 @@ export function LiveChatWidget() {
                           boxShadow: `0 2px 12px ${accentColor}40`,
                         }
                       : {
-                          background: 'rgba(255,255,255,0.9)',
+                          background: 'rgba(255,255,255,0.1)',
                           backdropFilter: 'blur(10px)',
-                          border: '1px solid rgba(0,0,0,0.06)',
-                          boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                          border: '1px solid rgba(255,255,255,0.1)',
                         }
                   }
                 >
                   <p 
                     className="text-sm whitespace-pre-wrap break-words"
                     style={{
-                      color: message.remetente_tipo === 'visitante' ? '#000' : '#1f2937'
+                      color: message.remetente_tipo === 'visitante' ? '#000' : '#fff'
                     }}
                   >
                     {message.mensagem}
@@ -356,7 +352,10 @@ export function LiveChatWidget() {
                       href={message.anexo_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs underline mt-1 block opacity-70"
+                      className="text-xs underline mt-1 block"
+                      style={{
+                        color: message.remetente_tipo === 'visitante' ? 'rgba(0,0,0,0.7)' : 'rgba(255,255,255,0.7)'
+                      }}
                     >
                       📎 Anexo
                     </a>
@@ -364,7 +363,7 @@ export function LiveChatWidget() {
                   <p
                     className="text-[10px] mt-1"
                     style={{
-                      color: message.remetente_tipo === 'visitante' ? 'rgba(0,0,0,0.5)' : '#9ca3af'
+                      color: message.remetente_tipo === 'visitante' ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)'
                     }}
                   >
                     {formatTime(message.enviada_em)}
@@ -376,21 +375,18 @@ export function LiveChatWidget() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input Area - Minimal */}
+          {/* Input Area */}
           <div 
             className="p-3 shrink-0"
             style={{
-              borderTop: '1px solid rgba(0,0,0,0.06)',
+              borderTop: '1px solid rgba(255,255,255,0.1)',
             }}
           >
             <div 
               className="flex items-end gap-2 p-2 rounded-xl"
               style={{
-                background: 'rgba(10,10,10,0.7)',
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
+                background: 'rgba(255,255,255,0.08)',
                 border: '1px solid rgba(255,255,255,0.1)',
-                boxShadow: '0 4px 16px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.05)',
               }}
             >
               <textarea
