@@ -184,7 +184,7 @@ export default function ClientSignup() {
     console.log('🚀 Iniciando cadastro:', email);
 
     try {
-      // Step 1: Create auth user
+      // Create auth user - trigger handles client/user creation
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
@@ -192,14 +192,15 @@ export default function ClientSignup() {
           emailRedirectTo: `${window.location.origin}/client/login`,
           data: {
             name: name,
-            phone: whatsapp,
+            phone: whatsapp || null,
             document_type: documentType,
+            document_number: documentNumber.replace(/\D/g, ''),
           },
         },
       });
 
       if (authError) {
-        console.error('❌ Erro ao criar usuário auth:', authError);
+        console.error('❌ Erro ao criar usuário:', authError);
         if (authError.message.includes('already registered')) {
           toast.error('Este email já está cadastrado. Faça login.');
           setErrors({ email: 'Este email já está cadastrado' });
@@ -214,56 +215,7 @@ export default function ClientSignup() {
         return;
       }
 
-      console.log('✅ Usuário auth criado:', authData.user.id);
-
-      // Step 2: Create client record
-      const { data: clientData, error: clientError } = await supabase
-        .from('clients')
-        .insert({
-          name,
-          email,
-          phone: whatsapp || null,
-          type: 'package',
-          status: 'pending', // Pending approval/credits
-          package_credits: 0,
-          package_credits_used: 0,
-          document_type: documentType,
-          document_number: documentNumber.replace(/\D/g, ''), // Store only numbers
-        })
-        .select()
-        .single();
-
-      if (clientError) {
-        console.error('❌ Erro ao criar cliente:', clientError);
-        // Rollback: delete auth user
-        await supabase.auth.admin?.deleteUser?.(authData.user.id);
-        toast.error('Erro ao criar conta. Tente novamente.');
-        return;
-      }
-
-      console.log('✅ Cliente criado:', clientData.id);
-
-      // Step 3: Create user record linking to client
-      const { error: userError } = await supabase
-        .from('users')
-        .insert({
-          id: authData.user.id,
-          client_id: clientData.id,
-          email,
-          password_hash: 'managed_by_supabase_auth',
-          role: 'client',
-          login_count: 0,
-        });
-
-      if (userError) {
-        console.error('❌ Erro ao criar usuário:', userError);
-        // Rollback: delete client and auth user
-        await supabase.from('clients').delete().eq('id', clientData.id);
-        toast.error('Erro ao criar conta. Tente novamente.');
-        return;
-      }
-
-      console.log('✅ Usuário criado com sucesso!');
+      console.log('✅ Conta criada com sucesso:', authData.user.id);
       toast.success('Conta criada com sucesso!');
       navigate('/registro-sucesso');
 
