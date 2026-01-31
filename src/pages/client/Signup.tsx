@@ -189,7 +189,7 @@ export default function ClientSignup() {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/client/login`,
+          emailRedirectTo: `${window.location.origin}/client/dashboard`,
           data: {
             name: name,
             phone: whatsapp || null,
@@ -210,14 +210,25 @@ export default function ClientSignup() {
         return;
       }
 
-      if (!authData.user) {
+      // Supabase returns user or session on success (depends on email confirmation setting)
+      const userId = authData.user?.id || authData.session?.user?.id;
+      
+      if (!userId) {
+        // Check if it's an email confirmation pending scenario
+        if (authData.user === null && authData.session === null) {
+          toast.success('Verifique seu email para confirmar a conta!');
+          navigate('/client/login');
+          return;
+        }
         toast.error('Erro ao criar conta. Tente novamente.');
         return;
       }
 
-      console.log('✅ Conta criada com sucesso:', authData.user.id);
-      toast.success('Conta criada com sucesso!');
-      navigate('/registro-sucesso');
+      console.log('✅ Conta criada com sucesso:', userId);
+      toast.success('Conta criada com sucesso! Bem-vindo!');
+      
+      // User is auto-logged in after signup, redirect to dashboard
+      navigate('/client/dashboard');
 
     } catch (err) {
       console.error('❌ Erro inesperado:', err);
