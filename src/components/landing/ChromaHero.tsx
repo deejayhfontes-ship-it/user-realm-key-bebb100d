@@ -209,9 +209,10 @@ export default function ChromaHero() {
           
           {/* Subtítulo discreto */}
           <p 
-            className="mt-4 md:mt-6 text-xs md:text-sm tracking-[0.15em] uppercase text-zinc-700 font-medium"
+            className="mt-4 md:mt-6 text-xs md:text-sm tracking-[0.15em] uppercase font-semibold"
             style={{ 
               fontFamily: "'Space Grotesk', sans-serif",
+              color: '#1a1a1a',
             }}
           >
             AQUI, VOCÊ CRIA O FUTURO VISUAL
