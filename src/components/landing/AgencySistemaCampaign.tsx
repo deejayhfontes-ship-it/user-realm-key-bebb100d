@@ -19,54 +19,109 @@ export function AgencySistemaCampaign() {
             </span>
           </div>
           
-          <h2 className="text-5xl md:text-7xl font-bold text-white mb-8 leading-[1.1] tracking-tight">
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight">
             A agência cria o conceito.
             <br />
-            <span className="text-primary">Você controla os desdobramentos.</span>
+            <span className="text-primary">Você cria no seu tempo.</span>
           </h2>
           
-          <p className="text-xl md:text-2xl text-zinc-400 max-w-4xl mx-auto leading-relaxed font-light">
-            Tipografia, cores, linguagem e direção criativa definidas por profissionais.
-            <br className="hidden md:block" />
-            Depois disso, você gera variações no formato e no tempo que quiser.
+          <p className="text-xl text-zinc-400 max-w-3xl mx-auto">
+            Chega de depender de prazos para criar.
           </p>
         </div>
 
-        {/* A VIRADA DE CHAVE */}
-        <div className="bg-gradient-to-br from-zinc-900/50 to-zinc-950/50 backdrop-blur-sm border border-white/5 rounded-3xl p-12 mb-24">
-          <div className="text-center mb-12">
-            <h3 className="text-3xl md:text-4xl font-bold text-white mb-6">
-              O gargalo que sua agência nunca resolveu
-            </h3>
-            <p className="text-zinc-400 text-lg max-w-3xl mx-auto leading-relaxed">
-              Agências sempre trabalharam com <span className="text-white font-semibold">arte-matriz</span>.
-              <br />
-              Tudo depois são <span className="text-white font-semibold">variações</span>.
-              <br />
-              O problema: <span className="text-red-400 font-semibold">cada variação virava pedido, prazo e custo</span>.
-            </p>
-          </div>
+        {/* NOVA FORMA DE TRABALHAR - Cards lado a lado */}
+        <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto mb-24">
+          
+          {/* Card 1: Como sempre foi */}
+          <div className="relative group">
+            <div className="absolute inset-0 bg-gradient-to-br from-zinc-800/20 to-transparent rounded-2xl blur-xl group-hover:blur-2xl transition-all" />
+            
+            <div className="relative bg-zinc-900/40 backdrop-blur-sm border border-white/10 rounded-2xl p-10 hover:border-white/20 transition-all h-full">
+              <div className="flex items-start gap-4 mb-6">
+                <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-6 h-6 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-white mb-2">Como sempre foi</h3>
+                  <p className="text-sm text-zinc-500">O modelo tradicional</p>
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className="w-1.5 h-1.5 rounded-full bg-zinc-600 mt-2 flex-shrink-0" />
+                  <p className="text-zinc-400 text-sm leading-relaxed">
+                    Agência cria a arte principal
+                  </p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-1.5 h-1.5 rounded-full bg-zinc-600 mt-2 flex-shrink-0" />
+                  <p className="text-zinc-400 text-sm leading-relaxed">
+                    Cliente precisa de uma variação
+                  </p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-1.5 h-1.5 rounded-full bg-zinc-600 mt-2 flex-shrink-0" />
+                  <p className="text-zinc-400 text-sm leading-relaxed">
+                    Novo briefing, novo prazo, nova espera
+                  </p>
+                </div>
+              </div>
 
-          <div className="max-w-4xl mx-auto">
-            <div className="grid md:grid-cols-3 gap-6 text-center">
-              <div className="bg-white/5 rounded-2xl p-8 border border-white/10">
-                <div className="text-4xl mb-4">📐</div>
-                <p className="text-zinc-300 font-medium">Existe uma arte-matriz</p>
-              </div>
-              <div className="bg-white/5 rounded-2xl p-8 border border-white/10">
-                <div className="text-4xl mb-4">🔄</div>
-                <p className="text-zinc-300 font-medium">Tudo depois são variações</p>
-              </div>
-              <div className="bg-red-500/10 rounded-2xl p-8 border border-red-500/20">
-                <div className="text-4xl mb-4">💸</div>
-                <p className="text-red-400 font-medium">Cada variação = novo pedido</p>
+              <div className="mt-8 pt-6 border-t border-white/10">
+                <p className="text-zinc-500 text-sm italic">
+                  Cada adaptação = novo processo
+                </p>
               </div>
             </div>
+          </div>
+
+          {/* Card 2: Agora */}
+          <div className="relative group">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent rounded-2xl blur-xl group-hover:blur-2xl transition-all" />
             
-            <div className="text-center mt-12">
-              <p className="text-2xl font-bold text-primary">
-                → Sua plataforma quebra esse gargalo.
-              </p>
+            <div className="relative bg-zinc-900/40 backdrop-blur-sm border border-primary/20 rounded-2xl p-10 hover:border-primary/40 transition-all h-full">
+              <div className="flex items-start gap-4 mb-6">
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-primary/10">
+                  <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-white mb-2">Agora</h3>
+                  <p className="text-sm text-primary">Novo jeito de trabalhar</p>
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className="w-1.5 h-1.5 rounded-full flex-shrink-0 mt-2 bg-primary" />
+                  <p className="text-zinc-300 text-sm leading-relaxed">
+                    Agência cria a base criativa
+                  </p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-1.5 h-1.5 rounded-full flex-shrink-0 mt-2 bg-primary" />
+                  <p className="text-zinc-300 text-sm leading-relaxed">
+                    Você gera variações quando precisar
+                  </p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-1.5 h-1.5 rounded-full flex-shrink-0 mt-2 bg-primary" />
+                  <p className="text-zinc-300 text-sm leading-relaxed">
+                    Sem espera, sem novo pedido, sem custo extra
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-8 pt-6 border-t border-white/10">
+                <p className="text-sm font-medium text-primary">
+                  Cada adaptação = 1 clique
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -144,82 +199,62 @@ export function AgencySistemaCampaign() {
           </p>
         </div>
 
-        {/* EXEMPLO CONCRETO (VENDE MUITO) */}
-        <div className="bg-gradient-to-br from-zinc-900/80 to-black/80 backdrop-blur-sm border border-white/10 rounded-3xl overflow-hidden mb-24">
-          <div className="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-white/10">
+        {/* EXEMPLO PRÁTICO SIMPLIFICADO */}
+        <div className="max-w-4xl mx-auto mb-24">
+          <div className="bg-gradient-to-br from-zinc-900/60 to-zinc-950/60 backdrop-blur-sm border border-white/10 rounded-3xl p-12">
             
-            {/* ANTES */}
-            <div className="p-12">
-              <div className="flex items-center gap-3 mb-8">
-                <div className="w-12 h-12 rounded-xl bg-red-500/10 flex items-center justify-center">
-                  <span className="text-red-400 text-2xl font-bold">✕</span>
+            <div className="text-center mb-10">
+              <p className="text-sm text-zinc-500 mb-3">EXEMPLO PRÁTICO</p>
+              <h3 className="text-2xl md:text-3xl font-bold text-white">
+                Um projeto, infinitas versões
+              </h3>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-8">
+              
+              {/* Antes */}
+              <div className="text-center">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-zinc-800/50 mb-6">
+                  <svg className="w-8 h-8 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
                 </div>
-                <h3 className="text-2xl font-bold text-white">Modelo antigo</h3>
+                <h4 className="text-lg font-bold text-white mb-3">Antes</h4>
+                <p className="text-zinc-400 text-sm mb-4">
+                  1 arte criada = 1 formato
+                </p>
+                <div className="space-y-2 text-sm text-zinc-500">
+                  <p>Nova versão? Novo pedido.</p>
+                  <p>Prazo: 2-5 dias</p>
+                </div>
               </div>
-              <div className="space-y-6">
-                <div>
-                  <p className="text-white font-semibold mb-3">Agência cria post de lançamento</p>
-                  <p className="text-zinc-400 text-sm mb-4">Cliente pede:</p>
-                  <div className="space-y-2">
-                    {[
-                      'Versão stories',
-                      'Versão anúncio',
-                      'Versão WhatsApp',
-                      'Versão com outro texto'
-                    ].map((item, idx) => (
-                      <div key={idx} className="flex items-center gap-2 text-zinc-400 text-sm">
-                        <div className="w-1.5 h-1.5 rounded-full bg-red-400/50" />
-                        <span>{item}</span>
-                      </div>
-                    ))}
-                  </div>
+
+              {/* Agora */}
+              <div className="text-center">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-6 bg-primary/10">
+                  <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                  </svg>
                 </div>
-                <div className="pt-6 border-t border-white/10">
-                  <div className="inline-flex items-center gap-3 text-red-400 font-bold">
-                    <span>→</span>
-                    <span>5 pedidos, 5 prazos, 5 custos</span>
-                  </div>
+                <h4 className="text-lg font-bold text-white mb-3">Agora</h4>
+                <p className="text-sm mb-4 text-primary">
+                  1 arte criada = infinitos formatos
+                </p>
+                <div className="space-y-2 text-sm text-zinc-300">
+                  <p>Stories, posts, banners...</p>
+                  <p>Prazo: instantâneo</p>
                 </div>
               </div>
             </div>
 
-            {/* AGORA */}
-            <div className="p-12 relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent" />
-              
-              <div className="relative">
-                <div className="flex items-center gap-3 mb-8">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-primary/10">
-                    <span className="text-primary text-2xl font-bold">✓</span>
-                  </div>
-                  <h3 className="text-2xl font-bold text-white">Novo modelo</h3>
-                </div>
-                <div className="space-y-6">
-                  <div>
-                    <p className="text-white font-semibold mb-3">Agência cria 1 arte central</p>
-                    <p className="text-zinc-400 text-sm mb-4">Cliente gera:</p>
-                    <div className="space-y-2">
-                      {[
-                        '10 stories',
-                        '3 variações de texto',
-                        '5 formatos',
-                        'Quando quiser'
-                      ].map((item, idx) => (
-                        <div key={idx} className="flex items-center gap-2 text-zinc-300 text-sm">
-                          <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                          <span>{item}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="pt-6 border-t border-white/10">
-                    <div className="inline-flex items-center gap-3 font-bold text-primary">
-                      <span>→</span>
-                      <span>Zero espera. Zero retrabalho.</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+            {/* CTA da seção */}
+            <div className="text-center mt-12 pt-10 border-t border-white/10">
+              <p className="text-xl md:text-2xl text-white font-medium mb-2">
+                A base é profissional.
+              </p>
+              <p className="text-lg text-zinc-400">
+                O resto é <span className="font-semibold text-primary">com você</span>.
+              </p>
             </div>
           </div>
         </div>
