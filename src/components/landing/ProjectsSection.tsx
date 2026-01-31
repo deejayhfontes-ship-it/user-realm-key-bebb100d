@@ -1,13 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CheckCircle2, LogIn, ArrowRight, Briefcase, FolderOpen } from "lucide-react";
+import { CheckCircle2, LogIn, FolderOpen, Briefcase } from "lucide-react";
 import { landingContent } from "@/data/landingContent";
 import { useAuth } from "@/hooks/useAuth";
 import { useClientData } from "@/hooks/useClientData";
 import { PackagesModal } from "./PackagesModal";
-import cardPortfolioBg from "@/assets/card-portfolio-bg.jpg";
-import cardBriefingBg from "@/assets/card-briefing-bg.jpg";
-
 export function ProjectsSection() {
   const [packagesModalOpen, setPackagesModalOpen] = useState(false);
   const { user, profile } = useAuth();
@@ -136,27 +133,34 @@ export function ProjectsSection() {
             </div>
           </div>
 
-          {/* Card 3 - Portfólio */}
+          {/* Card 3 - Portfólio - CORES CORRIGIDAS */}
           <div
             onClick={() => navigate("/portfolio")}
-            className="group relative aspect-[3/4] rounded-[40px] overflow-hidden cursor-pointer magnetto-card active:scale-[0.98] transition-transform duration-200"
+            className="group relative aspect-[3/4] rounded-[40px] overflow-hidden cursor-pointer magnetto-card bg-[#0f0f0f] active:scale-[0.98] transition-transform duration-200"
           >
-            {/* Background Image */}
-            <div
-              className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
-              style={{ backgroundImage: `url(${cardPortfolioBg})` }}
+            {/* Background escuro com glow branco sutil */}
+            <div className="absolute inset-0 bg-[#0f0f0f]" />
+            <div 
+              className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+              style={{
+                background: 'radial-gradient(ellipse 80% 80% at 50% 50%, rgba(255,255,255,0.05) 0%, transparent 60%)'
+              }}
             />
-            
-            {/* Gradient overlay for better contrast */}
-            <div className="absolute inset-0 bg-black/30" />
 
             {/* Central Glass Card */}
             <div className="absolute inset-0 flex items-center justify-center p-6 md:p-8">
-              <div className="bg-black/40 backdrop-blur-xl rounded-[32px] border border-white/10 p-6 md:p-8 flex flex-col items-center justify-center w-[75%] aspect-square max-w-[280px]">
+              <div className="bg-white/5 backdrop-blur-xl rounded-[32px] border border-white/10 p-6 md:p-8 flex flex-col items-center justify-center w-[75%] aspect-square max-w-[280px] group-hover:border-white/20 transition-all">
                 {/* Category Tag */}
-                <p className="font-pixel text-xs text-white/80 tracking-[0.3em] uppercase mb-4">
+                <p className="font-pixel text-xs text-white/60 tracking-[0.3em] uppercase mb-4">
                   NOSSOS PROJETOS
                 </p>
+
+                {/* Icon */}
+                <div className="w-16 h-16 mb-4 flex items-center justify-center">
+                  <svg className="w-10 h-10 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
 
                 {/* Title */}
                 <h3 className="magnetto-title text-2xl md:text-3xl lg:text-4xl text-white text-center mb-6 tracking-[0.1em] leading-tight">
@@ -164,10 +168,10 @@ export function ProjectsSection() {
                 </h3>
 
                 {/* Button */}
-                <span className="relative px-6 py-3 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white text-xs font-pixel tracking-wider group-hover:bg-black/60 transition-all min-w-[140px] text-center">
-                  <span className="opacity-100 group-hover:opacity-0 transition-opacity duration-300">EXPLORAR +</span>
+                <span className="relative px-6 py-3 rounded-full border border-white/20 text-white text-xs font-pixel tracking-wider group-hover:border-white/40 group-hover:bg-white/5 transition-all min-w-[140px] text-center">
+                  <span className="opacity-100 group-hover:opacity-0 transition-opacity duration-300">EXPLORAR</span>
                   <span className="absolute inset-0 flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    VER +
+                    VER PROJETOS
                     <FolderOpen className="w-3.5 h-3.5" />
                   </span>
                 </span>
@@ -175,38 +179,45 @@ export function ProjectsSection() {
             </div>
           </div>
 
-          {/* Card 4 - Orçamento */}
+          {/* Card 4 - Orçamento - CORES CORRIGIDAS */}
           <div
             onClick={() => navigate("/briefing")}
-            className="group relative aspect-[3/4] rounded-[40px] overflow-hidden cursor-pointer magnetto-card active:scale-[0.98] transition-transform duration-200"
+            className="group relative aspect-[3/4] rounded-[40px] overflow-hidden cursor-pointer magnetto-card bg-[#0f0f0f] active:scale-[0.98] transition-transform duration-200"
           >
-            {/* Background Image */}
-            <div
-              className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
-              style={{ backgroundImage: `url(${cardBriefingBg})` }}
+            {/* Background escuro com glow verde sutil */}
+            <div className="absolute inset-0 bg-[#0f0f0f]" />
+            <div 
+              className="absolute inset-0 opacity-30 group-hover:opacity-50 transition-opacity duration-500"
+              style={{
+                background: 'radial-gradient(ellipse 100% 100% at 50% 100%, hsl(var(--primary) / 0.3) 0%, transparent 60%)'
+              }}
             />
-            
-            {/* Gradient overlay for better contrast */}
-            <div className="absolute inset-0 bg-black/30" />
 
             {/* Central Glass Card */}
             <div className="absolute inset-0 flex items-center justify-center p-6 md:p-8">
-              <div className="bg-black/40 backdrop-blur-xl rounded-[32px] border border-white/10 p-6 md:p-8 flex flex-col items-center justify-center w-[75%] aspect-square max-w-[280px]">
+              <div className="bg-white/5 backdrop-blur-xl rounded-[32px] border border-primary/20 p-6 md:p-8 flex flex-col items-center justify-center w-[75%] aspect-square max-w-[280px] group-hover:border-primary/40 transition-all">
                 {/* Category Tag */}
-                <p className="font-pixel text-xs text-white/80 tracking-[0.3em] uppercase mb-4">
+                <p className="font-pixel text-xs text-primary/80 tracking-[0.3em] uppercase mb-4">
                   FAÇA SEU PEDIDO
                 </p>
 
+                {/* Icon */}
+                <div className="w-16 h-16 mb-4 flex items-center justify-center">
+                  <svg className="w-10 h-10 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+
                 {/* Title */}
-                <h3 className="magnetto-title text-2xl md:text-3xl lg:text-4xl text-white text-center mb-6 tracking-[0.1em] leading-tight">
+                <h3 className="magnetto-title text-2xl md:text-3xl lg:text-4xl text-primary text-center mb-6 tracking-[0.1em] leading-tight">
                   ORÇAMENTO
                 </h3>
 
                 {/* Button */}
-                <span className="relative px-6 py-3 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white text-xs font-pixel tracking-wider group-hover:bg-black/60 transition-all min-w-[140px] text-center">
-                  <span className="opacity-100 group-hover:opacity-0 transition-opacity duration-300">SOLICITAR +</span>
+                <span className="relative px-6 py-3 rounded-full bg-primary text-primary-foreground text-xs font-pixel tracking-wider group-hover:opacity-90 transition-all min-w-[140px] text-center">
+                  <span className="opacity-100 group-hover:opacity-0 transition-opacity duration-300">SOLICITAR</span>
                   <span className="absolute inset-0 flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    INICIAR +
+                    INICIAR
                     <Briefcase className="w-3.5 h-3.5" />
                   </span>
                 </span>
