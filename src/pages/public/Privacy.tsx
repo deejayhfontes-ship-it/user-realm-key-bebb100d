@@ -27,18 +27,18 @@ export default function Privacy() {
       </header>
 
       {/* Content */}
-      <main className="container mx-auto px-4 py-12">
+      <main className="container mx-auto px-4 py-8 md:py-12">
         <div className="max-w-3xl mx-auto">
           {/* Title Section */}
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-lime-400/10 border border-lime-400/20 mb-6">
+          <div className="text-center mb-8 md:mb-12">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-lime-400/10 border border-lime-400/20 mb-4 md:mb-6">
               <Shield className="w-4 h-4 text-lime-400" />
               <span className="text-lime-400 text-sm font-medium">LGPD Compliant</span>
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4">
               Política de Privacidade
             </h1>
-            <p className="text-zinc-400 text-lg">Como tratamos seus dados</p>
+            <p className="text-zinc-400 text-base md:text-lg">Como tratamos seus dados</p>
             <p className="text-zinc-500 text-sm mt-2">Última atualização: 29 de Janeiro de 2026</p>
           </div>
 

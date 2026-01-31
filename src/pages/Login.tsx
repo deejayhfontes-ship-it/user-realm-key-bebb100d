@@ -57,9 +57,9 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-6">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 md:p-6">
       {/* Large container with two columns */}
-      <div className="w-full max-w-5xl flex rounded-[2.5rem] overflow-hidden soft-card-elevated">
+      <div className="w-full max-w-5xl flex flex-col lg:flex-row rounded-[2rem] md:rounded-[2.5rem] overflow-hidden soft-card-elevated">
         
         {/* Left side - Branding / Decorative */}
         <div className="hidden lg:flex lg:w-1/2 bg-secondary p-12 flex-col justify-between relative overflow-hidden">
@@ -114,7 +114,7 @@ export default function Login() {
         </div>
 
         {/* Right side - Login Form */}
-        <div className="w-full lg:w-1/2 p-8 md:p-12 flex flex-col justify-center bg-card">
+        <div className="w-full lg:w-1/2 p-6 sm:p-8 md:p-12 flex flex-col justify-center bg-card">
           {/* Mobile logo */}
           <div className="lg:hidden text-center mb-10">
             <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary mb-4">
