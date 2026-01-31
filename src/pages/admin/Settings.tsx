@@ -14,6 +14,7 @@ import { HomePageConfigTab } from '@/components/admin/settings/HomePageConfigTab
 import { SeoConfigTab } from '@/components/admin/settings/SeoConfigTab';
 import { LiveChatConfigTab } from '@/components/admin/settings/LiveChatConfigTab';
 import { GoalsConfigTab } from '@/components/admin/settings/GoalsConfigTab';
+import { SecurityConfigTab } from '@/components/admin/settings/SecurityConfigTab';
 import { 
   Settings as SettingsIcon, 
   Share2, 
@@ -27,7 +28,8 @@ import {
   QrCode,
   Building2,
   MessageCircle,
-  Target
+  Target,
+  Shield
 } from 'lucide-react';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
@@ -97,6 +99,10 @@ export default function AdminSettings() {
                 <Target className="h-4 w-4" />
                 Metas
               </TabsTrigger>
+              <TabsTrigger value="seguranca" data-tab="seguranca" className="flex items-center gap-2">
+                <Shield className="h-4 w-4" />
+                Segurança
+              </TabsTrigger>
             </TabsList>
             <ScrollBar orientation="horizontal" />
           </ScrollArea>
@@ -151,6 +157,10 @@ export default function AdminSettings() {
 
           <TabsContent value="metas">
             <GoalsConfigTab />
+          </TabsContent>
+
+          <TabsContent value="seguranca">
+            <SecurityConfigTab />
           </TabsContent>
         </Tabs>
       </div>
