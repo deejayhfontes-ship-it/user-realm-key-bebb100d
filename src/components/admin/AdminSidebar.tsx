@@ -19,7 +19,8 @@ import {
   MessageSquare,
   ShoppingBag,
   MessageCircle,
-  Package
+  Package,
+  Sparkles
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -46,6 +47,11 @@ const navItems = [
     title: 'Provedores IA', 
     href: '/admin/ai-providers', 
     icon: Zap 
+  },
+  { 
+    title: 'Teste IA', 
+    href: '/admin/teste-ia', 
+    icon: Sparkles 
   },
   { 
     title: 'Pagamentos', 
