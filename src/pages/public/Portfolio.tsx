@@ -60,10 +60,10 @@ export default function Portfolio() {
       
       {/* Hero Section - 300px height */}
       <section 
-        className="h-[300px] flex flex-col items-center justify-center pt-20"
+        className="min-h-[250px] md:h-[300px] flex flex-col items-center justify-center pt-20 px-4"
         style={{ background: "linear-gradient(180deg, #1a1a1a 0%, #2a2a2a 100%)" }}
       >
-        <h1 className="text-5xl md:text-[48px] font-bold text-white text-center mb-4">
+        <h1 className="text-3xl sm:text-4xl md:text-[48px] font-bold text-white text-center mb-4">
           Portfólio
         </h1>
         {/* Breadcrumb */}
@@ -78,15 +78,15 @@ export default function Portfolio() {
       </section>
 
       {/* Filter Pills */}
-      <section className="py-8">
-        <div className="container mx-auto px-6 max-w-[1200px]">
-          <div className="flex flex-wrap justify-center gap-3">
+      <section className="py-6 md:py-8">
+        <div className="container mx-auto px-4 md:px-6 max-w-[1200px]">
+          <div className="flex flex-wrap justify-center gap-2 md:gap-3">
             {FILTER_CATEGORIES.map((category) => (
               <button
                 key={category}
                 onClick={() => setSelectedCategory(category)}
                 className={cn(
-                  "px-5 py-2 rounded-[24px] text-sm transition-all duration-300",
+                  "px-4 md:px-5 py-2 rounded-[24px] text-xs md:text-sm transition-all duration-300",
                   selectedCategory === category
                     ? "bg-[#c4ff0d] text-[#1a1a1a] border border-transparent"
                     : "bg-transparent text-white border border-white/20 hover:border-[#c4ff0d]"
@@ -100,7 +100,7 @@ export default function Portfolio() {
       </section>
 
       {/* Projects Grid */}
-      <section className="py-12 px-6">
+      <section className="py-8 md:py-12 px-4 md:px-6">
         <div className="mx-auto max-w-[1400px]">
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -111,12 +111,12 @@ export default function ClientHistorico() {
 
   if (isLoading) {
     return (
-      <div className="p-6 md:p-8 space-y-6">
+      <div className="p-4 sm:p-6 md:p-8 space-y-6">
         <div className="space-y-2">
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-4 w-64" />
+          <Skeleton className="h-7 sm:h-8 w-40 sm:w-48" />
+          <Skeleton className="h-4 w-56 sm:w-64" />
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
           {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
             <Skeleton key={i} className="aspect-square" />
           ))}
@@ -126,24 +126,24 @@ export default function ClientHistorico() {
   }
 
   return (
-    <div className="p-6 md:p-8 space-y-6">
+    <div className="p-4 sm:p-6 md:p-8 space-y-4 md:space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground">Minhas Artes</h1>
-        <p className="text-muted-foreground mt-1">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">Minhas Artes</h1>
+        <p className="text-sm md:text-base text-muted-foreground mt-1">
           Histórico de todas as artes geradas
         </p>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap items-center gap-4">
+      <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-3 md:gap-4">
         <div className="flex items-center gap-2 text-muted-foreground">
           <Filter className="w-4 h-4" />
           <span className="text-sm font-medium">Filtros:</span>
         </div>
         
         <Select value={periodFilter} onValueChange={(v) => { setPeriodFilter(v); setPage(1); }}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-full sm:w-[180px]">
             <Calendar className="w-4 h-4 mr-2" />
             <SelectValue placeholder="Período" />
           </SelectTrigger>
@@ -157,7 +157,7 @@ export default function ClientHistorico() {
         </Select>
 
         <Select value={generatorFilter} onValueChange={(v) => { setGeneratorFilter(v); setPage(1); }}>
-          <SelectTrigger className="w-[200px]">
+          <SelectTrigger className="w-full sm:w-[200px]">
             <SelectValue placeholder="Gerador" />
           </SelectTrigger>
           <SelectContent>
@@ -192,7 +192,7 @@ export default function ClientHistorico() {
 
       {/* Arts Grid */}
       {generations.length > 0 ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
           {generations.map((gen) => (
             <Card 
               key={gen.id} 

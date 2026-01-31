@@ -100,10 +100,10 @@ export default function ClientFaturas() {
   }
 
   return (
-    <div className="p-6 md:p-8 space-y-6">
+    <div className="p-4 sm:p-6 md:p-8 space-y-4 md:space-y-6">
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground">Minhas Faturas</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">Minhas Faturas</h1>
+        <p className="text-sm md:text-base text-muted-foreground">
           Histórico de pagamentos e assinaturas
         </p>
       </div>

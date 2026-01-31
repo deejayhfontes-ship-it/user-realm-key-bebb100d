@@ -43,16 +43,16 @@ export default function ClientPerfil() {
   const planName = client?.type === 'fixed' ? 'Mensal' : 'Pacote';
 
   return (
-    <div className="p-6 md:p-8 space-y-8">
+    <div className="p-4 sm:p-6 md:p-8 space-y-6 md:space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground">Meu Perfil</h1>
-        <p className="text-muted-foreground mt-1">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">Meu Perfil</h1>
+        <p className="text-sm md:text-base text-muted-foreground mt-1">
           Gerencie suas informações e acompanhe seu consumo
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         {/* Dados da Empresa */}
         <Card className="border-none shadow-sm">
           <CardHeader>

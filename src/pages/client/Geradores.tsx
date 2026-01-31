@@ -46,12 +46,12 @@ export default function ClientGeradores() {
 
   if (isLoading) {
     return (
-      <div className="p-6 md:p-8 space-y-6">
+      <div className="p-4 sm:p-6 md:p-8 space-y-6">
         <div className="space-y-2">
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-4 w-64" />
+          <Skeleton className="h-7 sm:h-8 w-40 sm:w-48" />
+          <Skeleton className="h-4 w-56 sm:w-64" />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {[1, 2, 3].map((i) => (
             <Skeleton key={i} className="h-48" />
           ))}
@@ -63,28 +63,28 @@ export default function ClientGeradores() {
   const hasCredits = creditsInfo.remaining > 0 || client?.type === 'fixed';
 
   return (
-    <div className="p-6 md:p-8 space-y-6">
+    <div className="p-4 sm:p-6 md:p-8 space-y-4 md:space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground">Meus Geradores</h1>
-        <p className="text-muted-foreground mt-1">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">Meus Geradores</h1>
+        <p className="text-sm md:text-base text-muted-foreground mt-1">
           Acesse os geradores disponíveis para seu plano
         </p>
       </div>
 
       {/* Filters */}
-      <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
         <div className="flex items-center gap-2 text-muted-foreground">
           <Filter className="w-4 h-4" />
           <span className="text-sm font-medium">Filtrar:</span>
         </div>
         <Tabs value={filter} onValueChange={setFilter}>
-          <TabsList className="bg-muted/50">
+          <TabsList className="bg-muted/50 flex-wrap h-auto p-1">
             {categories.map((cat) => (
               <TabsTrigger 
                 key={cat.value} 
                 value={cat.value}
-                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                className="text-xs sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
               >
                 {cat.label}
               </TabsTrigger>
@@ -95,7 +95,7 @@ export default function ClientGeradores() {
 
       {/* Generators Grid */}
       {filteredGenerators && filteredGenerators.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {filteredGenerators.map((gen) => {
             const Icon = iconMap[gen.generator?.type] || Wand2;
             const access = checkGeneratorAccess(gen, client);

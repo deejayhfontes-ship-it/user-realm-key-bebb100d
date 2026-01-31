@@ -52,21 +52,21 @@ export default function Consultar() {
       
       {/* Hero Section */}
       <section 
-        className="h-[300px] flex flex-col items-center justify-center pt-20"
+        className="min-h-[250px] md:h-[300px] flex flex-col items-center justify-center pt-20 px-4"
         style={{ background: "linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%)" }}
       >
-        <h1 className="text-[48px] font-bold text-white text-center mb-3">
+        <h1 className="text-3xl sm:text-4xl md:text-[48px] font-bold text-white text-center mb-3">
           Consultar Pedido
         </h1>
-        <p className="text-lg text-white/70 text-center">
+        <p className="text-base md:text-lg text-white/70 text-center max-w-md">
           Acompanhe o status do seu pedido em tempo real
         </p>
       </section>
 
       {/* Form Container */}
-      <section className="py-12 px-6">
+      <section className="py-8 md:py-12 px-4 md:px-6">
         <div 
-          className="max-w-[600px] mx-auto p-12 rounded-[24px]"
+          className="max-w-[600px] mx-auto p-6 sm:p-8 md:p-12 rounded-[24px]"
           style={{ 
             background: "rgba(255,255,255,0.05)",
             backdropFilter: "blur(10px)",

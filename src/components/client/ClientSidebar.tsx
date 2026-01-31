@@ -61,7 +61,9 @@ export function ClientSidebar() {
   return (
     <aside 
       className={cn(
-        "fixed left-0 top-0 h-screen flex flex-col gradient-sidebar transition-all duration-300 z-50 overflow-y-auto",
+        "h-screen flex flex-col gradient-sidebar transition-all duration-300 overflow-y-auto",
+        "fixed left-0 top-0 z-50",
+        "md:fixed",
         collapsed ? "w-16" : "w-64"
       )}
     >

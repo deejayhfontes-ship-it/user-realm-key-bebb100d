@@ -124,18 +124,18 @@ export default function PublicBriefing() {
       
       {/* Hero Section */}
       <section 
-        className="h-[250px] flex flex-col items-center justify-center pt-20"
+        className="min-h-[200px] md:h-[250px] flex flex-col items-center justify-center pt-20 px-4"
         style={{ background: "linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%)" }}
       >
-        <h1 className="text-[40px] font-bold text-white text-center mb-3">
+        <h1 className="text-2xl sm:text-3xl md:text-[40px] font-bold text-white text-center mb-3">
           Novo Orçamento
         </h1>
-        <p className="text-lg text-white/70 text-center mb-6">
+        <p className="text-base md:text-lg text-white/70 text-center mb-6 max-w-md">
           Conte-nos sobre seu projeto em detalhes
         </p>
         <button
           onClick={() => navigate("/consultar")}
-          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-[#c4ff0d]/50 text-[#c4ff0d] hover:bg-[#c4ff0d]/10 transition-all duration-300 text-sm font-medium"
+          className="inline-flex items-center gap-2 px-5 md:px-6 py-2.5 rounded-full border border-[#c4ff0d]/50 text-[#c4ff0d] hover:bg-[#c4ff0d]/10 transition-all duration-300 text-sm font-medium"
         >
           <Search className="w-4 h-4" />
           Consultar Pedido
@@ -143,9 +143,9 @@ export default function PublicBriefing() {
       </section>
 
       {/* Form Container */}
-      <section className="py-12 px-6" style={{ minHeight: "calc(100vh - 250px)" }}>
+      <section className="py-8 md:py-12 px-4 md:px-6" style={{ minHeight: "calc(100vh - 250px)" }}>
         <div 
-          className="max-w-[800px] mx-auto p-12 rounded-[24px]"
+          className="max-w-[800px] mx-auto p-6 sm:p-8 md:p-12 rounded-[24px]"
           style={{ 
             background: "rgba(255,255,255,0.05)",
             backdropFilter: "blur(10px)",
