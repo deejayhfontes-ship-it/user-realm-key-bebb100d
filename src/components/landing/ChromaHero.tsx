@@ -3,6 +3,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import heroPortrait from "@/assets/hero-portrait.jpg";
+import { useIsMobile } from '@/hooks/use-mobile';
 
 // Shader estilo Magnetto - speed lines horizontais
 const vertexShader = `
@@ -166,12 +167,16 @@ function FallbackImage({ imageUrl }: { imageUrl: string }) {
 
 export default function ChromaHero() {
   const [hasError, setHasError] = useState(false);
+  const isMobile = useIsMobile();
+
+  // Desativa WebGL em mobile para compatibilidade com navegadores
+  const useStaticImage = isMobile || hasError;
 
   return (
     <div className="absolute inset-0 z-0" style={{ backgroundColor: '#b8b8b8' }}>
-      {/* Canvas WebGL fullscreen - imagem integrada ao fundo */}
+      {/* Canvas WebGL fullscreen - apenas desktop */}
       <div className="absolute inset-0">
-        {!hasError ? (
+        {!useStaticImage ? (
           <Canvas
             dpr={[1, 1.5]}
             camera={{ position: [0, 0, 1] }}
@@ -179,7 +184,7 @@ export default function ChromaHero() {
               antialias: false,
               alpha: true,
               powerPreference: "high-performance",
-              failIfMajorPerformanceCaveat: false,
+              failIfMajorPerformanceCaveat: true,
             }}
             onError={() => setHasError(true)}
             style={{ background: 'transparent' }}
