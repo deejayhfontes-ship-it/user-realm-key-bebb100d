@@ -958,6 +958,156 @@ export type Database = {
           },
         ]
       }
+      entregas: {
+        Row: {
+          arquivos: Json | null
+          cliente_email: string | null
+          cliente_id: string | null
+          cliente_nome: string | null
+          cliente_whatsapp: string | null
+          created_at: string
+          data_envio: string | null
+          dias_validade: number | null
+          enviado_por_email: boolean | null
+          enviado_por_whatsapp: boolean | null
+          expira_em: string | null
+          id: string
+          link_acesso: string | null
+          link_externo: string | null
+          mensagem: string | null
+          pedido_id: string
+          protocolo: string
+          revogado_em: string | null
+          revogado_por: string | null
+          servico_nome: string | null
+          status: string | null
+          tipo: string | null
+          token: string
+          total_acessos: number | null
+          total_downloads: number | null
+          ultimo_acesso: string | null
+          updated_at: string
+        }
+        Insert: {
+          arquivos?: Json | null
+          cliente_email?: string | null
+          cliente_id?: string | null
+          cliente_nome?: string | null
+          cliente_whatsapp?: string | null
+          created_at?: string
+          data_envio?: string | null
+          dias_validade?: number | null
+          enviado_por_email?: boolean | null
+          enviado_por_whatsapp?: boolean | null
+          expira_em?: string | null
+          id?: string
+          link_acesso?: string | null
+          link_externo?: string | null
+          mensagem?: string | null
+          pedido_id: string
+          protocolo: string
+          revogado_em?: string | null
+          revogado_por?: string | null
+          servico_nome?: string | null
+          status?: string | null
+          tipo?: string | null
+          token: string
+          total_acessos?: number | null
+          total_downloads?: number | null
+          ultimo_acesso?: string | null
+          updated_at?: string
+        }
+        Update: {
+          arquivos?: Json | null
+          cliente_email?: string | null
+          cliente_id?: string | null
+          cliente_nome?: string | null
+          cliente_whatsapp?: string | null
+          created_at?: string
+          data_envio?: string | null
+          dias_validade?: number | null
+          enviado_por_email?: boolean | null
+          enviado_por_whatsapp?: boolean | null
+          expira_em?: string | null
+          id?: string
+          link_acesso?: string | null
+          link_externo?: string | null
+          mensagem?: string | null
+          pedido_id?: string
+          protocolo?: string
+          revogado_em?: string | null
+          revogado_por?: string | null
+          servico_nome?: string | null
+          status?: string | null
+          tipo?: string | null
+          token?: string
+          total_acessos?: number | null
+          total_downloads?: number | null
+          ultimo_acesso?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entregas_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "client_stats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "entregas_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "entregas_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      entregas_logs: {
+        Row: {
+          created_at: string
+          descricao: string | null
+          entrega_id: string | null
+          evento: string
+          id: string
+          ip_address: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          descricao?: string | null
+          entrega_id?: string | null
+          evento: string
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          descricao?: string | null
+          entrega_id?: string | null
+          evento?: string
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entregas_logs_entrega_id_fkey"
+            columns: ["entrega_id"]
+            isOneToOne: false
+            referencedRelation: "entregas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       generations: {
         Row: {
           base_image_url: string | null
@@ -2564,6 +2714,7 @@ export type Database = {
     }
     Functions: {
       check_package_expiration: { Args: never; Returns: undefined }
+      generate_entrega_token: { Args: never; Returns: string }
       generate_invoice_number: { Args: never; Returns: string }
       generate_proposal_number: { Args: never; Returns: string }
       get_next_nota_number: {

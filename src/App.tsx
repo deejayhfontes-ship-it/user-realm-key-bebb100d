@@ -26,6 +26,7 @@ import AdminNotasFiscais from "@/pages/admin/NotasFiscais";
 import AdminServices from "@/pages/admin/Services";
 import AdminAtendimento from "@/pages/admin/Atendimento";
 import AdminPedidos from "@/pages/admin/Pedidos";
+import AdminEntregas from "@/pages/admin/Entregas";
 import AdminChat from "@/pages/admin/Chat";
 import NotFound from "@/pages/NotFound";
 import Platform from "@/pages/Platform";
@@ -36,6 +37,7 @@ import Privacy from "@/pages/public/Privacy";
 import Home from "@/pages/Home";
 import PublicBriefing from "@/pages/public/Briefing";
 import PedidoAcompanhamento from "@/pages/public/PedidoAcompanhamento";
+import EntregaDownload from "@/pages/public/EntregaDownload";
 import Portfolio from "@/pages/public/Portfolio";
 import Consultar from "@/pages/public/Consultar";
 
@@ -78,6 +80,7 @@ const App = () => (
             <Route path="/portfolio" element={<Portfolio />} />
             <Route path="/briefing" element={<PublicBriefing />} />
             <Route path="/pedido/:protocolo" element={<PedidoAcompanhamento />} />
+            <Route path="/entrega/:token" element={<EntregaDownload />} />
             <Route path="/consultar" element={<Consultar />} />
             <Route path="/termos" element={<Terms />} />
             <Route path="/privacidade" element={<Privacy />} />
@@ -101,6 +104,7 @@ const App = () => (
               <Route path="ai-providers" element={<AdminAIProviders />} />
               <Route path="payments" element={<AdminPayments />} />
               <Route path="pedidos" element={<AdminPedidos />} />
+              <Route path="entregas" element={<AdminEntregas />} />
               <Route path="briefings" element={<AdminBriefings />} />
               <Route path="servicos" element={<AdminServices />} />
               <Route path="atendimento" element={<AdminAtendimento />} />

@@ -18,7 +18,8 @@ import {
   Layers,
   MessageSquare,
   ShoppingBag,
-  MessageCircle
+  MessageCircle,
+  Package
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -55,6 +56,11 @@ const navItems = [
     title: 'Pedidos', 
     href: '/admin/pedidos', 
     icon: ShoppingBag 
+  },
+  { 
+    title: 'Entregas', 
+    href: '/admin/entregas', 
+    icon: Package 
   },
   { 
     title: 'Briefings', 
