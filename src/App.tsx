@@ -28,7 +28,6 @@ import AdminAtendimento from "@/pages/admin/Atendimento";
 import AdminPedidos from "@/pages/admin/Pedidos";
 import AdminEntregas from "@/pages/admin/Entregas";
 import AdminChat from "@/pages/admin/Chat";
-import AdminTesteIA from "@/pages/admin/TesteIA";
 import NotFound from "@/pages/NotFound";
 import Platform from "@/pages/Platform";
 
@@ -115,7 +114,6 @@ const App = () => (
               <Route path="notas-fiscais" element={<AdminNotasFiscais />} />
               <Route path="portfolio" element={<AdminPortfolio />} />
               <Route path="chat" element={<AdminChat />} />
-              <Route path="teste-ia" element={<AdminTesteIA />} />
               <Route path="settings" element={<AdminSettings />} />
             </Route>
 
