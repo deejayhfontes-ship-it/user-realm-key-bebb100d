@@ -41,13 +41,14 @@ export function LiveChatWidget() {
 
   // Show welcome message after delay
   useEffect(() => {
-    if (isOpen && !showWelcome && messages.length === 0 && config) {
+    if (isOpen && !showWelcome && messages.length === 0) {
+      const delay = config?.delay_boas_vindas ?? 2;
       const timer = setTimeout(() => {
         setShowWelcome(true);
-      }, config.delay_boas_vindas * 1000);
+      }, delay * 1000);
       return () => clearTimeout(timer);
     }
-  }, [isOpen, showWelcome, messages.length, config]);
+  }, [isOpen, showWelcome, messages.length, config?.delay_boas_vindas]);
 
   // Initialize session when chat opens
   useEffect(() => {
@@ -94,10 +95,24 @@ export function LiveChatWidget() {
     (m) => m.remetente_tipo === 'admin' && !m.lida
   ).length;
 
-  // Don't render if config not loaded or chat disabled
-  if (isLoading || !config?.ativo) {
+  // Don't render if still loading. Show by default if no config exists yet.
+  if (isLoading) {
     return null;
   }
+
+  // If config exists but chat is disabled, don't render
+  if (config && config.ativo === false) {
+    return null;
+  }
+
+  // Default config fallback when no config exists in database
+  const chatConfig = config || {
+    ativo: true,
+    cor: '#c4ff0d',
+    posicao: 'top-right',
+    delay_boas_vindas: 2,
+    mensagem_boas_vindas: 'Olá! Como posso ajudar?',
+  };
 
   // Format time
   const formatTime = (date: string) => {
@@ -115,9 +130,9 @@ export function LiveChatWidget() {
           onClick={handleOpen}
           className={cn(
             'fixed z-50 flex items-center justify-center w-[60px] h-[60px] rounded-full shadow-2xl transition-all duration-300 hover:scale-110',
-            config.posicao === 'top-left' ? 'top-6 left-6' : 'top-6 right-6'
+            chatConfig.posicao === 'top-left' ? 'top-6 left-6' : 'top-6 right-6'
           )}
-          style={{ backgroundColor: config.cor }}
+          style={{ backgroundColor: chatConfig.cor }}
           aria-label="Abrir chat"
         >
           <MessageCircle className="w-7 h-7 text-black" />
@@ -139,7 +154,7 @@ export function LiveChatWidget() {
             'fixed z-50 bg-white shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-top-5 duration-300',
             // Desktop
             'md:top-6 md:w-[380px] md:h-[600px] md:rounded-2xl',
-            config.posicao === 'top-left' ? 'md:left-6' : 'md:right-6',
+            chatConfig.posicao === 'top-left' ? 'md:left-6' : 'md:right-6',
             // Mobile - fullscreen
             'bottom-0 left-0 right-0 top-0 md:bottom-auto rounded-none'
           )}
@@ -147,7 +162,7 @@ export function LiveChatWidget() {
           {/* Header */}
           <div
             className="p-4 flex items-center gap-3 shrink-0"
-            style={{ backgroundColor: config.cor }}
+            style={{ backgroundColor: chatConfig.cor }}
           >
             <div className="relative">
               <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
@@ -213,10 +228,10 @@ export function LiveChatWidget() {
             )}
 
             {/* Welcome message from admin */}
-            {showWelcome && messages.length === 0 && config.mensagem_boas_vindas && (
+            {showWelcome && messages.length === 0 && chatConfig.mensagem_boas_vindas && (
               <div className="flex justify-start animate-in slide-in-from-left-5">
                 <div className="max-w-[75%] px-4 py-3 rounded-2xl rounded-bl-sm bg-white shadow-sm">
-                  <p className="text-sm text-gray-800">{config.mensagem_boas_vindas}</p>
+                  <p className="text-sm text-gray-800">{chatConfig.mensagem_boas_vindas}</p>
                   <p className="text-[10px] text-gray-400 mt-1">agora</p>
                 </div>
               </div>
@@ -242,7 +257,7 @@ export function LiveChatWidget() {
                   )}
                   style={
                     message.remetente_tipo === 'visitante'
-                      ? { backgroundColor: config.cor }
+                      ? { backgroundColor: chatConfig.cor }
                       : undefined
                   }
                 >
@@ -302,7 +317,7 @@ export function LiveChatWidget() {
                 onClick={handleSend}
                 disabled={!input.trim() || isSending}
                 className="shrink-0 rounded-full"
-                style={{ backgroundColor: config.cor }}
+                style={{ backgroundColor: chatConfig.cor }}
               >
                 <Send className="w-4 h-4 text-black" />
               </Button>
