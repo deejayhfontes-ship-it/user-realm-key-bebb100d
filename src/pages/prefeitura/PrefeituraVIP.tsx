@@ -187,9 +187,6 @@ export default function PrefeituraVIP() {
                     <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-lime-400 transition-colors">
                       Story para Instagram
                     </h3>
-                    <p className="text-zinc-500 text-sm leading-relaxed mb-4">
-                      Crie stories verticais com texto sobreposto em segundos
-                    </p>
                     
                     <span className="inline-flex items-center gap-2 text-sm font-medium text-zinc-600 group-hover:text-lime-400 transition-colors">
                       <Wand2 className="w-4 h-4" />
@@ -219,9 +216,6 @@ export default function PrefeituraVIP() {
                     <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-indigo-400 transition-colors">
                       Carrossel de Interações
                     </h3>
-                    <p className="text-zinc-500 text-sm leading-relaxed mb-4">
-                      Posts múltiplos para engajamento com sua audiência
-                    </p>
                     
                     <span className="inline-flex items-center gap-2 text-sm font-medium text-zinc-600 group-hover:text-indigo-400 transition-colors">
                       <Wand2 className="w-4 h-4" />
