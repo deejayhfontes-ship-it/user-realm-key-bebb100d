@@ -42,6 +42,7 @@ import PedidoAcompanhamento from "@/pages/public/PedidoAcompanhamento";
 import EntregaDownload from "@/pages/public/EntregaDownload";
 import Portfolio from "@/pages/public/Portfolio";
 import Consultar from "@/pages/public/Consultar";
+import PrefeituraVIP from "@/pages/prefeitura/PrefeituraVIP";
 
 // Client Pages
 import ClientLogin from "@/pages/client/Login";
@@ -88,6 +89,7 @@ const App = () => (
             <Route path="/consultar" element={<Consultar />} />
             <Route path="/termos" element={<Terms />} />
             <Route path="/privacidade" element={<Privacy />} />
+            <Route path="/prefeitura" element={<PrefeituraVIP />} />
             
             {/* Public Landing Page */}
             <Route path="/" element={<Home />} />
