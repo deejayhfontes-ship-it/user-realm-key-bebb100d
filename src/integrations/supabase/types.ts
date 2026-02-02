@@ -1329,6 +1329,48 @@ export type Database = {
         }
         Relationships: []
       }
+      geradores_vip: {
+        Row: {
+          ativo: boolean | null
+          cor: string | null
+          created_at: string | null
+          created_by: string | null
+          descricao: string | null
+          icone: string | null
+          id: string
+          nome: string
+          ordem: number | null
+          rota_frontend: string | null
+          slug: string
+        }
+        Insert: {
+          ativo?: boolean | null
+          cor?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          descricao?: string | null
+          icone?: string | null
+          id?: string
+          nome: string
+          ordem?: number | null
+          rota_frontend?: string | null
+          slug: string
+        }
+        Update: {
+          ativo?: boolean | null
+          cor?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          descricao?: string | null
+          icone?: string | null
+          id?: string
+          nome?: string
+          ordem?: number | null
+          rota_frontend?: string | null
+          slug?: string
+        }
+        Relationships: []
+      }
       global_settings: {
         Row: {
           created_at: string
@@ -2306,6 +2348,39 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          email: string | null
+          full_name: string | null
+          id: string
+          role: string | null
+          tipo_dashboard: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id: string
+          role?: string | null
+          tipo_dashboard?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          role?: string | null
+          tipo_dashboard?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       project_types: {
         Row: {
           created_at: string
@@ -2674,6 +2749,41 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      usuario_geradores: {
+        Row: {
+          ativo: boolean | null
+          gerador_id: string | null
+          id: string
+          liberado_em: string | null
+          liberado_por: string | null
+          user_id: string | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          gerador_id?: string | null
+          id?: string
+          liberado_em?: string | null
+          liberado_por?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          ativo?: boolean | null
+          gerador_id?: string | null
+          id?: string
+          liberado_em?: string | null
+          liberado_por?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "usuario_geradores_gerador_id_fkey"
+            columns: ["gerador_id"]
+            isOneToOne: false
+            referencedRelation: "geradores_vip"
             referencedColumns: ["id"]
           },
         ]
