@@ -184,7 +184,7 @@ export default function PrefeituraVIP() {
                       </div>
                     </div>
 
-                    <h3 className="text-xl font-bold text-white mb-2 group-hover:text-lime-400 transition-colors">
+                    <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-lime-400 transition-colors">
                       Story para Instagram
                     </h3>
                     <p className="text-zinc-500 text-sm leading-relaxed mb-4">
@@ -216,7 +216,7 @@ export default function PrefeituraVIP() {
                       </div>
                     </div>
 
-                    <h3 className="text-xl font-bold text-white mb-2 group-hover:text-indigo-400 transition-colors">
+                    <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-indigo-400 transition-colors">
                       Carrossel de Interações
                     </h3>
                     <p className="text-zinc-500 text-sm leading-relaxed mb-4">
