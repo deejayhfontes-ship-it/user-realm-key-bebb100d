@@ -174,24 +174,26 @@ export default function PrefeituraVIP() {
                   onClick={() => setView('stories')}
                   className="group relative aspect-square bg-[#131313] rounded-[2rem] p-8 text-left transition-all duration-500 border border-white/[0.06] hover:border-lime-400/30 hover:shadow-[0_0_60px_-15px_rgba(163,230,53,0.25)] hover:-translate-y-1 overflow-hidden flex flex-col"
                 >
-                  <div className="relative z-10">
-                    <div className="flex items-start justify-between mb-6">
-                      <div className="w-14 h-14 bg-gradient-to-br from-lime-400 to-green-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
-                        <Smartphone className="w-7 h-7 text-black" />
+                  <div className="relative z-10 flex flex-col h-full">
+                    <div className="flex items-start justify-between mb-auto">
+                      <div className="w-20 h-20 bg-gradient-to-br from-lime-400 to-green-500 rounded-3xl flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                        <Smartphone className="w-10 h-10 text-black" />
                       </div>
-                      <div className="w-10 h-10 rounded-full bg-white/[0.04] group-hover:bg-lime-400 flex items-center justify-center transition-all duration-300">
-                        <ArrowUpRight className="w-5 h-5 text-zinc-600 group-hover:text-black transition-colors" />
+                      <div className="w-12 h-12 rounded-full bg-white/[0.04] group-hover:bg-lime-400 flex items-center justify-center transition-all duration-300">
+                        <ArrowUpRight className="w-6 h-6 text-zinc-600 group-hover:text-black transition-colors" />
                       </div>
                     </div>
 
-                    <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-lime-400 transition-colors">
-                      Story para Instagram
-                    </h3>
-                    
-                    <span className="inline-flex items-center gap-2 text-sm font-medium text-zinc-600 group-hover:text-lime-400 transition-colors">
-                      <Wand2 className="w-4 h-4" />
-                      Acessar ferramenta
-                    </span>
+                    <div className="mt-auto">
+                      <h3 className="text-3xl font-bold text-white mb-4 group-hover:text-lime-400 transition-colors">
+                        Story para Instagram
+                      </h3>
+                      
+                      <span className="inline-flex items-center gap-3 text-lg font-medium text-zinc-500 group-hover:text-lime-400 transition-colors">
+                        <Wand2 className="w-5 h-5" />
+                        Acessar ferramenta
+                      </span>
+                    </div>
                   </div>
 
                   {/* Progress bar animada */}
@@ -203,24 +205,26 @@ export default function PrefeituraVIP() {
                   onClick={() => setView('carrossel')}
                   className="group relative aspect-square bg-[#131313] rounded-[2rem] p-8 text-left transition-all duration-500 border border-white/[0.06] hover:border-indigo-400/30 hover:shadow-[0_0_60px_-15px_rgba(129,140,248,0.25)] hover:-translate-y-1 overflow-hidden flex flex-col"
                 >
-                  <div className="relative z-10">
-                    <div className="flex items-start justify-between mb-6">
-                      <div className="w-14 h-14 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
-                        <Layers className="w-7 h-7 text-white" />
+                  <div className="relative z-10 flex flex-col h-full">
+                    <div className="flex items-start justify-between mb-auto">
+                      <div className="w-20 h-20 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-3xl flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                        <Layers className="w-10 h-10 text-white" />
                       </div>
-                      <div className="w-10 h-10 rounded-full bg-white/[0.04] group-hover:bg-indigo-400 flex items-center justify-center transition-all duration-300">
-                        <ArrowUpRight className="w-5 h-5 text-zinc-600 group-hover:text-white transition-colors" />
+                      <div className="w-12 h-12 rounded-full bg-white/[0.04] group-hover:bg-indigo-400 flex items-center justify-center transition-all duration-300">
+                        <ArrowUpRight className="w-6 h-6 text-zinc-600 group-hover:text-white transition-colors" />
                       </div>
                     </div>
 
-                    <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-indigo-400 transition-colors">
-                      Carrossel de Interações
-                    </h3>
-                    
-                    <span className="inline-flex items-center gap-2 text-sm font-medium text-zinc-600 group-hover:text-indigo-400 transition-colors">
-                      <Wand2 className="w-4 h-4" />
-                      Acessar ferramenta
-                    </span>
+                    <div className="mt-auto">
+                      <h3 className="text-3xl font-bold text-white mb-4 group-hover:text-indigo-400 transition-colors">
+                        Carrossel de Interações
+                      </h3>
+                      
+                      <span className="inline-flex items-center gap-3 text-lg font-medium text-zinc-500 group-hover:text-indigo-400 transition-colors">
+                        <Wand2 className="w-5 h-5" />
+                        Acessar ferramenta
+                      </span>
+                    </div>
                   </div>
 
                   {/* Progress bar animada */}
