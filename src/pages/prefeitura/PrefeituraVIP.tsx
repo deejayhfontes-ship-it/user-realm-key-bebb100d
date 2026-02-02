@@ -172,7 +172,7 @@ export default function PrefeituraVIP() {
                 {/* Card Stories */}
                 <button
                   onClick={() => setView('stories')}
-                  className="group relative bg-[#131313] rounded-[2rem] p-8 text-left transition-all duration-500 border border-white/[0.06] hover:border-lime-400/30 hover:shadow-[0_0_60px_-15px_rgba(163,230,53,0.25)] hover:-translate-y-1 overflow-hidden"
+                  className="group relative aspect-square bg-[#131313] rounded-[2rem] p-8 text-left transition-all duration-500 border border-white/[0.06] hover:border-lime-400/30 hover:shadow-[0_0_60px_-15px_rgba(163,230,53,0.25)] hover:-translate-y-1 overflow-hidden flex flex-col"
                 >
                   <div className="relative z-10">
                     <div className="flex items-start justify-between mb-6">
@@ -201,7 +201,7 @@ export default function PrefeituraVIP() {
                 {/* Card Carrossel */}
                 <button
                   onClick={() => setView('carrossel')}
-                  className="group relative bg-[#131313] rounded-[2rem] p-8 text-left transition-all duration-500 border border-white/[0.06] hover:border-indigo-400/30 hover:shadow-[0_0_60px_-15px_rgba(129,140,248,0.25)] hover:-translate-y-1 overflow-hidden"
+                  className="group relative aspect-square bg-[#131313] rounded-[2rem] p-8 text-left transition-all duration-500 border border-white/[0.06] hover:border-indigo-400/30 hover:shadow-[0_0_60px_-15px_rgba(129,140,248,0.25)] hover:-translate-y-1 overflow-hidden flex flex-col"
                 >
                   <div className="relative z-10">
                     <div className="flex items-start justify-between mb-6">
