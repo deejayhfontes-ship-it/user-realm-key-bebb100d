@@ -41,9 +41,13 @@ export default function Login() {
       console.log('✅ Login OK! Role:', role);
       toast.success('Login realizado com sucesso!');
       
+      // Redirecionamento baseado na role
       if (role === 'admin') {
         console.log('➡️ Redirecionando para /admin/dashboard');
         navigate('/admin/dashboard');
+      } else if (role === 'prefeitura_vip') {
+        console.log('➡️ Redirecionando para /prefeitura');
+        navigate('/prefeitura');
       } else {
         console.log('➡️ Redirecionando para /client/dashboard');
         navigate('/client/dashboard');
