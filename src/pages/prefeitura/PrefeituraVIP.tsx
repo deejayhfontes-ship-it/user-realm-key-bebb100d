@@ -170,8 +170,10 @@ export default function PrefeituraVIP() {
               {/* Grid Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
                 {/* Card Stories */}
-                <button
-                  onClick={() => setView('external-stories')}
+                <a
+                  href="https://teste-theta-wheat.vercel.app/prefeituramaisfacil"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="group relative aspect-square bg-[#131313] rounded-[2rem] p-8 text-left transition-all duration-500 border border-white/[0.06] hover:border-lime-400/30 hover:shadow-[0_0_60px_-15px_rgba(163,230,53,0.25)] hover:-translate-y-1 overflow-hidden flex flex-col"
                 >
                   <div className="relative z-10 flex flex-col h-full">
@@ -198,7 +200,7 @@ export default function PrefeituraVIP() {
 
                   {/* Progress bar animada */}
                   <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-lime-400 to-green-400 w-0 group-hover:w-full transition-all duration-700" />
-                </button>
+                </a>
 
                 {/* Card Carrossel */}
                 <button
@@ -390,32 +392,6 @@ export default function PrefeituraVIP() {
                   </div>
                 </div>
               </div>
-            </motion.div>
-          )}
-
-          {/* EXTERNAL STORIES (iframe) */}
-          {view === 'external-stories' && (
-            <motion.div
-              key="external-stories"
-              initial={{ opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.98 }}
-              transition={{ duration: 0.4, ease: 'easeOut' }}
-              className="fixed inset-0 z-[60] bg-[#050505]"
-            >
-              <iframe
-                src="https://teste-theta-wheat.vercel.app/prefeituramaisfacil"
-                className="w-full h-full border-0"
-                title="Story para Instagram"
-              />
-              {/* Floating back button */}
-              <button
-                onClick={() => setView('list')}
-                className="fixed top-6 left-6 z-[70] flex items-center gap-2 px-5 py-3 bg-black/80 backdrop-blur-xl border border-white/10 text-white rounded-full shadow-2xl hover:bg-lime-400 hover:text-black hover:border-lime-400 transition-all duration-300 group"
-              >
-                <ArrowLeft className="w-5 h-5" />
-                <span className="font-semibold text-sm">Voltar</span>
-              </button>
             </motion.div>
           )}
         </AnimatePresence>
