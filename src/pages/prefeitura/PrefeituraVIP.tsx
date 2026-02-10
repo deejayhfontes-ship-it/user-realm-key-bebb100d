@@ -170,8 +170,10 @@ export default function PrefeituraVIP() {
               {/* Grid Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
                 {/* Card Stories */}
-                <button
-                  onClick={() => setView('stories')}
+                <a
+                  href="https://teste-theta-wheat.vercel.app/prefeituramaisfacil"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="group relative aspect-square bg-[#131313] rounded-[2rem] p-8 text-left transition-all duration-500 border border-white/[0.06] hover:border-lime-400/30 hover:shadow-[0_0_60px_-15px_rgba(163,230,53,0.25)] hover:-translate-y-1 overflow-hidden flex flex-col"
                 >
                   <div className="relative z-10 flex flex-col h-full">
@@ -198,7 +200,7 @@ export default function PrefeituraVIP() {
 
                   {/* Progress bar animada */}
                   <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-lime-400 to-green-400 w-0 group-hover:w-full transition-all duration-700" />
-                </button>
+                </a>
 
                 {/* Card Carrossel */}
                 <button
