@@ -41,9 +41,14 @@ export default function ClientLogin() {
 
       console.log('✅ Login OK! Role:', role);
       
+      const isPrefeitura = email.toLowerCase().includes('@prefeitura');
+      
       if (role === 'admin') {
         toast.info('Redirecionando para área administrativa...');
         navigate('/admin/dashboard');
+      } else if (isPrefeitura) {
+        toast.success('Bem-vindo! Redirecionando para área VIP...');
+        navigate('/prefeitura');
       } else {
         toast.success('Bem-vindo de volta!');
         navigate('/client/dashboard');

@@ -41,9 +41,15 @@ export default function Login() {
       console.log('✅ Login OK! Role:', role);
       toast.success('Login realizado com sucesso!');
       
+      // Check if user is a prefeitura VIP user
+      const isPrefeitura = email.toLowerCase().includes('@prefeitura');
+      
       if (role === 'admin') {
         console.log('➡️ Redirecionando para /admin/dashboard');
         navigate('/admin/dashboard');
+      } else if (isPrefeitura) {
+        console.log('➡️ Redirecionando para /prefeitura');
+        navigate('/prefeitura');
       } else {
         console.log('➡️ Redirecionando para /client/dashboard');
         navigate('/client/dashboard');
