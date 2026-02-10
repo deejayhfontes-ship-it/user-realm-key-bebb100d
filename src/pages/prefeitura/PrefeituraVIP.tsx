@@ -172,8 +172,6 @@ export default function PrefeituraVIP() {
                 {/* Card Stories */}
                 <a
                   href="https://teste-theta-wheat.vercel.app/prefeituramaisfacil"
-                  target="_blank"
-                  rel="noopener noreferrer"
                   className="group relative aspect-square bg-[#131313] rounded-[2rem] p-8 text-left transition-all duration-500 border border-white/[0.06] hover:border-lime-400/30 hover:shadow-[0_0_60px_-15px_rgba(163,230,53,0.25)] hover:-translate-y-1 overflow-hidden flex flex-col"
                 >
                   <div className="relative z-10 flex flex-col h-full">
