@@ -1,0 +1,1 @@
+{"message":"Repository rule violations found\n\nSecret detected in content\n\n","metadata":{"secret_scanning":{"bypass_placeholders":[{"placeholder_id":"39mipCxXPT4edtch7JwcRvZCUqA","token_type":"ATLASSIAN_API_TOKEN_V2"}]}},"documentation_url":"https://docs.github.com/rest/git/blobs#create-a-blob","status":"422"}

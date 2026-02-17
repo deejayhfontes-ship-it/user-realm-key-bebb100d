@@ -1,0 +1,25 @@
+project_id = "nzngwbknezmfthbyfjmx"
+
+[functions.register]
+verify_jwt = false
+
+[functions.sync-user]
+verify_jwt = false
+
+[functions.ai-edit]
+verify_jwt = false
+
+[functions.test-ai-provider]
+verify_jwt = false
+
+[functions.ai-generate]
+verify_jwt = false
+
+[functions.webhook-mercado-pago]
+verify_jwt = false
+
+[functions.webhook-pagseguro]
+verify_jwt = false
+
+[functions.webhook-stripe]
+verify_jwt = false
