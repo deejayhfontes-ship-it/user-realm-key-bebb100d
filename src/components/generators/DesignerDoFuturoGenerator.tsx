@@ -250,7 +250,7 @@ export function DesignerDoFuturoGenerator() {
                 useGradient: config.useGradient,
                 useFloatingElements: config.useFloatingElements,
                 floatingElementsDescription: '',
-                shotType: config.framing,
+                shotType: config.framing || 'MEDIUM',
                 additionalInstructions: config.useExtraPrompt ? config.extraPrompt : '',
                 dimension: dimensionMap[config.dimension] || '1080x1920',
                 safeAreaSide: config.position as 'LEFT' | 'RIGHT' | 'CENTER',
