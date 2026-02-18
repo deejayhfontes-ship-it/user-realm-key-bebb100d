@@ -32,6 +32,7 @@ import AdminChat from "@/pages/admin/Chat";
 import AdminAgenda from "@/pages/admin/Agenda";
 import NotFound from "@/pages/NotFound";
 import Platform from "@/pages/Platform";
+import AdminGeneratorPreview from "@/pages/admin/AdminGeneratorPreview";
 import PromptGenerator from "@/pages/PromptGenerator";
 
 // Public Pages
@@ -143,6 +144,7 @@ const App = () => (
                 <Route path="solicitacoes-prefeitura" element={<AdminSolicitacoes />} />
                 <Route path="protocolos" element={<AdminProtocols />} />
                 <Route path="prompt-generator" element={<PromptGenerator />} />
+                <Route path="gerador/:slug" element={<AdminGeneratorPreview />} />
                 <Route path="settings" element={<AdminSettings />} />
               </Route>
 

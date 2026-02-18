@@ -62,3 +62,5 @@ dist-ssr
 fontesgraphics-*.json
 *.service-account.json
 >>>>>>> 156f36cf0eee94361ff12bfb77e006213e68283d
+
+scripts/

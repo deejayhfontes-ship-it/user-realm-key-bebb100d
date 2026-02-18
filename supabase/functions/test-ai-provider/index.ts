@@ -12,24 +12,24 @@ serve(async (req) => {
   }
 
   try {
-    const { 
-      providerId, 
-      apiType, 
-      endpointUrl, 
-      apiKey, 
-      modelName, 
-      customHeaders 
+    const {
+      providerId,
+      apiType,
+      endpointUrl,
+      apiKey,
+      modelName,
+      customHeaders
     } = await req.json();
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
-    
+
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Se providerId foi passado, buscar do banco
     let testConfig = { apiType, endpointUrl, apiKey, modelName, customHeaders };
-    
+
     if (providerId) {
       const { data: provider, error } = await supabase
         .from('ai_providers')
@@ -119,6 +119,11 @@ serve(async (req) => {
     // Endpoint
     let endpoint = testConfig.endpointUrl;
     if (testConfig.apiType === 'google') {
+      // Se o endpoint não inclui o caminho do modelo, construir automaticamente
+      if (!endpoint.includes(':generateContent') && !endpoint.includes(':streamGenerateContent')) {
+        const model = testConfig.modelName || 'gemini-2.5-flash';
+        endpoint = `${endpoint}/models/${model}:generateContent`;
+      }
       endpoint = `${endpoint}?key=${testConfig.apiKey}`;
     }
 
@@ -135,7 +140,7 @@ serve(async (req) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      
+
       // Atualizar status do provider se existir
       if (providerId) {
         await supabase
@@ -149,8 +154,8 @@ serve(async (req) => {
       }
 
       return new Response(
-        JSON.stringify({ 
-          success: false, 
+        JSON.stringify({
+          success: false,
           error: `Erro ${response.status}: ${errorText.substring(0, 200)}`,
           latency,
         }),
@@ -173,8 +178,8 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
+      JSON.stringify({
+        success: true,
         message: "Conexão bem sucedida!",
         latency,
         response: data,
@@ -185,9 +190,9 @@ serve(async (req) => {
   } catch (error) {
     console.error("test-ai-provider error:", error);
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         success: false,
-        error: error instanceof Error ? error.message : "Erro de conexão" 
+        error: error instanceof Error ? error.message : "Erro de conexão"
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

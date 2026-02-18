@@ -1,6 +1,7 @@
 import { useParams, Navigate } from 'react-router-dom';
 import { StoriesGenerator } from '@/components/generators/StoriesGenerator';
 import { CarrosselGenerator } from '@/components/generators/CarrosselGenerator';
+import { DesignerDoFuturoGenerator } from '@/components/generators/DesignerDoFuturoGenerator';
 
 /**
  * ═══════════════════════════════════════════════
@@ -11,18 +12,13 @@ import { CarrosselGenerator } from '@/components/generators/CarrosselGenerator';
  * 
  * Carrega o gerador correto baseado no slug da URL.
  * Cada gerador é um componente modular que usa o GeneratorBase.
- * 
- * TODO: Verificar se cliente tem acesso ao gerador
- * TODO: Adicionar mais geradores (avisos, derivações, etc.)
  */
 
 // Mapeamento de slugs para componentes
 const generatorComponents: Record<string, React.ComponentType> = {
   stories: StoriesGenerator,
   carrossel: CarrosselGenerator,
-  // TODO: Adicionar novos geradores aqui
-  // 'derivacoes': DerivacoesGenerator,
-  // 'avisos': AvisosGenerator,
+  'designer-do-futuro': DesignerDoFuturoGenerator,
 };
 
 export function GeneratorPage() {

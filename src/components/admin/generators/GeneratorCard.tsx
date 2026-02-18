@@ -1,4 +1,5 @@
-import { Eye, Pencil, Power, PowerOff, Wand2, LayoutGrid, Layers, Bell, Sparkles } from 'lucide-react';
+import { Eye, Pencil, Power, PowerOff, Wand2, LayoutGrid, Layers, Bell, Sparkles, Play } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -63,37 +64,51 @@ export function GeneratorCard({ generator, onView, onEdit, onToggleStatus }: Gen
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="flex-1 rounded-full h-10 hover:bg-muted"
-          onClick={() => onView(generator)}
-        >
-          <Eye className="w-4 h-4 mr-2" />
-          Ver
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="flex-1 rounded-full h-10 hover:bg-muted"
-          onClick={() => onEdit(generator)}
-        >
-          <Pencil className="w-4 h-4 mr-2" />
-          Editar
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          className={cn(
-            "h-10 w-10 rounded-full",
-            isDisabled ? "hover:bg-primary/10 hover:text-primary" : "hover:bg-destructive/10 hover:text-destructive"
-          )}
-          onClick={() => onToggleStatus(generator)}
-          title={isDisabled ? 'Ativar' : 'Desativar'}
-        >
-          {isDisabled ? <Power className="w-4 h-4" /> : <PowerOff className="w-4 h-4" />}
-        </Button>
+      <div className="space-y-2">
+        {/* Botão principal - Usar Gerador */}
+        <Link to={`/admin/gerador/${generator.slug}`} className="block">
+          <Button
+            className="w-full rounded-full h-10 bg-primary text-primary-foreground hover:brightness-105 shadow-sm shadow-primary/20 gap-2"
+            disabled={isDisabled}
+          >
+            <Play className="w-4 h-4" />
+            Usar Gerador
+          </Button>
+        </Link>
+
+        {/* Ações secundárias */}
+        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="flex-1 rounded-full h-9 hover:bg-muted"
+            onClick={() => onView(generator)}
+          >
+            <Eye className="w-4 h-4 mr-2" />
+            Ver
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="flex-1 rounded-full h-9 hover:bg-muted"
+            onClick={() => onEdit(generator)}
+          >
+            <Pencil className="w-4 h-4 mr-2" />
+            Editar
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className={cn(
+              "h-9 w-9 rounded-full",
+              isDisabled ? "hover:bg-primary/10 hover:text-primary" : "hover:bg-destructive/10 hover:text-destructive"
+            )}
+            onClick={() => onToggleStatus(generator)}
+            title={isDisabled ? 'Ativar' : 'Desativar'}
+          >
+            {isDisabled ? <Power className="w-4 h-4" /> : <PowerOff className="w-4 h-4" />}
+          </Button>
+        </div>
       </div>
     </div>
   );

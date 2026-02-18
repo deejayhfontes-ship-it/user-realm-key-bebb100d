@@ -27,14 +27,16 @@ const typeConfig: Record<string, { label: string; className: string }> = {
   derivacoes: { label: 'Derivações IA', className: 'bg-accent text-accent-foreground' },
   carrossel: { label: 'Carrossel', className: 'bg-secondary text-secondary-foreground' },
   avisos: { label: 'Avisos', className: 'bg-muted text-muted-foreground' },
+  image: { label: 'Imagem IA', className: 'bg-accent text-accent-foreground' },
+  'designer-do-futuro': { label: 'Designer do Futuro', className: 'bg-primary text-primary-foreground' },
   outro: { label: 'Outro', className: 'bg-muted text-muted-foreground' }
 };
 
 export function GeneratorDetailsDrawer({ generator, open, onOpenChange, onEdit }: GeneratorDetailsDrawerProps) {
   const { data: details, isLoading } = useGeneratorDetails(generator?.id || null);
 
-  const status = statusConfig[generator?.status || 'development'];
-  const type = typeConfig[generator?.type || 'outro'];
+  const status = statusConfig[generator?.status || 'development'] ?? statusConfig['development'];
+  const type = typeConfig[generator?.type || 'outro'] ?? typeConfig['outro'];
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -68,7 +70,7 @@ export function GeneratorDetailsDrawer({ generator, open, onOpenChange, onEdit }
                   <h2 className="text-xl font-semibold text-foreground">{details.name}</h2>
                   <p className="text-sm text-muted-foreground font-mono mt-1">/{details.slug}</p>
                 </div>
-                
+
                 <div className="flex gap-2 flex-wrap">
                   <Badge className={cn("rounded-full px-3 py-1 text-xs font-medium border-0", type.className)}>
                     {type.label}
@@ -129,7 +131,10 @@ export function GeneratorDetailsDrawer({ generator, open, onOpenChange, onEdit }
                     <span className="text-xs font-medium uppercase tracking-wide opacity-70">Config JSON</span>
                   </div>
                   <pre className="text-xs overflow-auto max-h-48 font-mono">
-                    {JSON.stringify(details.config, null, 2)}
+                    {details.config != null
+                      ? JSON.stringify(details.config, null, 2)
+                      : <span className="opacity-50 italic">Sem configuração definida</span>
+                    }
                   </pre>
                 </div>
               </div>

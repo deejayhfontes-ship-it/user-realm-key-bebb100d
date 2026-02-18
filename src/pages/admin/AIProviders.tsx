@@ -1,5 +1,7 @@
 import { useState, useMemo } from 'react';
-import { Plus, Zap, Settings2, Trash2, Power, PowerOff, Star, TestTube, Loader2, ExternalLink, Eye, EyeOff, Image, Type, Layers, Key, Activity } from 'lucide-react';
+import { Plus, Zap, Settings2, Trash2, Power, PowerOff, Star, TestTube, Loader2, ExternalLink, Eye, EyeOff, Image, Type, Layers, Key, Activity, Sparkles } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DesignerDoFuturoProviderPanel } from '@/components/admin/ai-providers/DesignerDoFuturoProviderPanel';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -130,244 +132,269 @@ export default function AIProvidersPage() {
       />
 
       <div className="flex-1 p-4 md:p-8">
-        {/* Filter Tabs */}
-        <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
-          {filterTabs.map((tab) => {
-            const count = providers
-              ? tab.key === 'all'
-                ? providers.length
-                : providers.filter(p => p.category === tab.key).length
-              : 0;
-            return (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                className={cn(
-                  'flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap',
-                  activeTab === tab.key
-                    ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20'
-                    : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground'
-                )}
-              >
-                {tab.icon}
-                {tab.label}
-                <span className={cn(
-                  'text-[10px] px-1.5 py-0.5 rounded-full font-bold',
-                  activeTab === tab.key ? 'bg-white/20' : 'bg-muted-foreground/10'
-                )}>
-                  {count}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+        <Tabs defaultValue="geral" className="space-y-6">
+          <TabsList className="bg-muted/50 p-1 rounded-2xl h-auto gap-1">
+            <TabsTrigger
+              value="geral"
+              className="rounded-xl px-5 py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-sm gap-2"
+            >
+              <Zap className="h-4 w-4" />
+              Provedores Gerais
+            </TabsTrigger>
+            <TabsTrigger
+              value="designer-do-futuro"
+              className="rounded-xl px-5 py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-sm gap-2"
+            >
+              <Sparkles className="h-4 w-4" />
+              Designer do Futuro
+            </TabsTrigger>
+          </TabsList>
 
-        {isLoading ? (
-          <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-            {[1, 2, 3].map((i) => (
-              <Card key={i} className="soft-card border-0">
-                <CardHeader>
-                  <Skeleton className="h-6 w-32" />
-                </CardHeader>
-                <CardContent>
-                  <Skeleton className="h-4 w-full mb-2" />
-                  <Skeleton className="h-4 w-3/4" />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : filteredProviders.length > 0 ? (
-          <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-            {filteredProviders.map((provider) => (
-              <Card
-                key={provider.id}
-                className={cn(
-                  'soft-card border-0 transition-all hover:shadow-lg',
-                  !provider.is_active && 'opacity-60'
-                )}
-              >
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2 min-w-0">
-                      {getStatusIcon(provider)}
-                      <CardTitle className="text-lg truncate">{provider.name}</CardTitle>
-                    </div>
-                    <div className="flex gap-1 flex-shrink-0">
-                      {provider.is_default && (
-                        <Badge className="bg-primary/10 text-primary border-primary/20">
-                          <Star className="h-3 w-3 mr-1 fill-current" />
-                          Padrão
-                        </Badge>
-                      )}
-                      <Badge variant={provider.is_active ? 'default' : 'secondary'}>
-                        {provider.is_active ? 'Ativo' : 'Inativo'}
-                      </Badge>
-                    </div>
-                  </div>
-                  {/* Category badge */}
-                  <div className="flex gap-1.5 mt-2">
-                    {getCategoryBadge(provider.category || 'both')}
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-1.5 text-sm">
-                    <p className="text-muted-foreground">
-                      <span className="font-medium text-foreground">Tipo:</span>{' '}
-                      <span className="uppercase text-xs tracking-wider">{provider.api_type}</span>
-                    </p>
-                    <p className="text-muted-foreground truncate">
-                      <span className="font-medium text-foreground">Endpoint:</span>{' '}
-                      {provider.endpoint_url}
-                    </p>
-                    {provider.model_name && (
-                      <p className="text-muted-foreground">
-                        <span className="font-medium text-foreground">Modelo:</span>{' '}
-                        {provider.model_name}
-                      </p>
+          <TabsContent value="geral" className="space-y-6 mt-0">
+            {/* Filter Tabs */}
+            <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
+              {filterTabs.map((tab) => {
+                const count = providers
+                  ? tab.key === 'all'
+                    ? providers.length
+                    : providers.filter(p => p.category === tab.key).length
+                  : 0;
+                return (
+                  <button
+                    key={tab.key}
+                    onClick={() => setActiveTab(tab.key)}
+                    className={cn(
+                      'flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap',
+                      activeTab === tab.key
+                        ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20'
+                        : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground'
                     )}
-                    <p className="text-muted-foreground flex items-center gap-1.5">
-                      <Key className="h-3 w-3" />
-                      <span className="font-medium text-foreground">API Key:</span>{' '}
-                      <code className="text-[11px] bg-muted px-1.5 py-0.5 rounded font-mono">
-                        {maskApiKey(provider.api_key_encrypted)}
-                      </code>
-                    </p>
-                  </div>
+                  >
+                    {tab.icon}
+                    {tab.label}
+                    <span className={cn(
+                      'text-[10px] px-1.5 py-0.5 rounded-full font-bold',
+                      activeTab === tab.key ? 'bg-white/20' : 'bg-muted-foreground/10'
+                    )}>
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
 
-                  {/* Stats */}
-                  {(provider.total_requests > 0 || provider.total_tokens_used > 0) && (
-                    <div className="flex gap-3 text-[11px] text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <Activity className="h-3 w-3" />
-                        {provider.total_requests.toLocaleString('pt-BR')} requests
-                      </span>
-                      <span>
-                        {provider.total_tokens_used.toLocaleString('pt-BR')} tokens
-                      </span>
-                    </div>
-                  )}
-
-                  {provider.last_test_at && (
-                    <div className="text-xs text-muted-foreground">
-                      Último teste:{' '}
-                      {format(new Date(provider.last_test_at), "dd/MM/yy HH:mm", { locale: ptBR })}
-                      {provider.last_test_success === false && provider.last_error && (
-                        <p className="text-destructive mt-1 truncate" title={provider.last_error}>
-                          {provider.last_error}
+            {isLoading ? (
+              <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                {[1, 2, 3].map((i) => (
+                  <Card key={i} className="soft-card border-0">
+                    <CardHeader>
+                      <Skeleton className="h-6 w-32" />
+                    </CardHeader>
+                    <CardContent>
+                      <Skeleton className="h-4 w-full mb-2" />
+                      <Skeleton className="h-4 w-3/4" />
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : filteredProviders.length > 0 ? (
+              <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                {filteredProviders.map((provider) => (
+                  <Card
+                    key={provider.id}
+                    className={cn(
+                      'soft-card border-0 transition-all hover:shadow-lg',
+                      !provider.is_active && 'opacity-60'
+                    )}
+                  >
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-2 min-w-0">
+                          {getStatusIcon(provider)}
+                          <CardTitle className="text-lg truncate">{provider.name}</CardTitle>
+                        </div>
+                        <div className="flex gap-1 flex-shrink-0">
+                          {provider.is_default && (
+                            <Badge className="bg-primary/10 text-primary border-primary/20">
+                              <Star className="h-3 w-3 mr-1 fill-current" />
+                              Padrão
+                            </Badge>
+                          )}
+                          <Badge variant={provider.is_active ? 'default' : 'secondary'}>
+                            {provider.is_active ? 'Ativo' : 'Inativo'}
+                          </Badge>
+                        </div>
+                      </div>
+                      {/* Category badge */}
+                      <div className="flex gap-1.5 mt-2">
+                        {getCategoryBadge(provider.category || 'both')}
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-1.5 text-sm">
+                        <p className="text-muted-foreground">
+                          <span className="font-medium text-foreground">Tipo:</span>{' '}
+                          <span className="uppercase text-xs tracking-wider">{provider.api_type}</span>
                         </p>
-                      )}
-                    </div>
-                  )}
+                        <p className="text-muted-foreground truncate">
+                          <span className="font-medium text-foreground">Endpoint:</span>{' '}
+                          {provider.endpoint_url}
+                        </p>
+                        {provider.model_name && (
+                          <p className="text-muted-foreground">
+                            <span className="font-medium text-foreground">Modelo:</span>{' '}
+                            {provider.model_name}
+                          </p>
+                        )}
+                        <p className="text-muted-foreground flex items-center gap-1.5">
+                          <Key className="h-3 w-3" />
+                          <span className="font-medium text-foreground">API Key:</span>{' '}
+                          <code className="text-[11px] bg-muted px-1.5 py-0.5 rounded font-mono">
+                            {maskApiKey(provider.api_key_encrypted)}
+                          </code>
+                        </p>
+                      </div>
 
-                  <div className="flex flex-wrap gap-2 pt-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleTest(provider)}
-                      disabled={testMutation.isPending}
-                      className="rounded-lg gap-1"
-                    >
-                      {testMutation.isPending ? (
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                      ) : (
-                        <TestTube className="h-3 w-3" />
+                      {/* Stats */}
+                      {(provider.total_requests > 0 || provider.total_tokens_used > 0) && (
+                        <div className="flex gap-3 text-[11px] text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <Activity className="h-3 w-3" />
+                            {provider.total_requests.toLocaleString('pt-BR')} requests
+                          </span>
+                          <span>
+                            {provider.total_tokens_used.toLocaleString('pt-BR')} tokens
+                          </span>
+                        </div>
                       )}
-                      Testar
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setEditProvider(provider)}
-                      className="rounded-lg gap-1"
-                    >
-                      <Settings2 className="h-3 w-3" />
-                      Editar
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleToggleActive(provider)}
-                      className="rounded-lg gap-1"
-                    >
-                      {provider.is_active ? (
-                        <>
-                          <PowerOff className="h-3 w-3" />
-                          Desativar
-                        </>
-                      ) : (
-                        <>
-                          <Power className="h-3 w-3" />
-                          Ativar
-                        </>
+
+                      {provider.last_test_at && (
+                        <div className="text-xs text-muted-foreground">
+                          Último teste:{' '}
+                          {format(new Date(provider.last_test_at), "dd/MM/yy HH:mm", { locale: ptBR })}
+                          {provider.last_test_success === false && provider.last_error && (
+                            <p className="text-destructive mt-1 truncate" title={provider.last_error}>
+                              {provider.last_error}
+                            </p>
+                          )}
+                        </div>
                       )}
-                    </Button>
-                    {!provider.is_default && provider.is_active && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleSetDefault(provider)}
-                        className="rounded-lg gap-1"
-                      >
-                        <Star className="h-3 w-3" />
-                        Definir padrão
-                      </Button>
-                    )}
-                    {provider.slug !== 'lovable' && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setDeleteProvider(provider)}
-                        className="rounded-lg gap-1 text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                        Remover
-                      </Button>
-                    )}
-                  </div>
+
+                      <div className="flex flex-wrap gap-2 pt-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleTest(provider)}
+                          disabled={testMutation.isPending}
+                          className="rounded-lg gap-1"
+                        >
+                          {testMutation.isPending ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <TestTube className="h-3 w-3" />
+                          )}
+                          Testar
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setEditProvider(provider)}
+                          className="rounded-lg gap-1"
+                        >
+                          <Settings2 className="h-3 w-3" />
+                          Editar
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleToggleActive(provider)}
+                          className="rounded-lg gap-1"
+                        >
+                          {provider.is_active ? (
+                            <>
+                              <PowerOff className="h-3 w-3" />
+                              Desativar
+                            </>
+                          ) : (
+                            <>
+                              <Power className="h-3 w-3" />
+                              Ativar
+                            </>
+                          )}
+                        </Button>
+                        {!provider.is_default && provider.is_active && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleSetDefault(provider)}
+                            className="rounded-lg gap-1"
+                          >
+                            <Star className="h-3 w-3" />
+                            Definir padrão
+                          </Button>
+                        )}
+                        {provider.slug !== 'lovable' && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setDeleteProvider(provider)}
+                            className="rounded-lg gap-1 text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                            Remover
+                          </Button>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card className="soft-card border-0">
+                <CardContent className="flex flex-col items-center justify-center py-16">
+                  <Zap className="h-12 w-12 text-muted-foreground/30 mb-4" />
+                  <p className="text-muted-foreground mb-4">
+                    {activeTab === 'all'
+                      ? 'Nenhum provedor de IA configurado'
+                      : `Nenhum provedor de categoria "${categoryConfig[activeTab]?.label || activeTab}" encontrado`
+                    }
+                  </p>
+                  <Button onClick={() => setIsAddModalOpen(true)} className="rounded-full gap-2">
+                    <Plus className="h-4 w-4" />
+                    Adicionar Provedor
+                  </Button>
                 </CardContent>
               </Card>
-            ))}
-          </div>
-        ) : (
-          <Card className="soft-card border-0">
-            <CardContent className="flex flex-col items-center justify-center py-16">
-              <Zap className="h-12 w-12 text-muted-foreground/30 mb-4" />
-              <p className="text-muted-foreground mb-4">
-                {activeTab === 'all'
-                  ? 'Nenhum provedor de IA configurado'
-                  : `Nenhum provedor de categoria "${categoryConfig[activeTab]?.label || activeTab}" encontrado`
-                }
-              </p>
-              <Button onClick={() => setIsAddModalOpen(true)} className="rounded-full gap-2">
-                <Plus className="h-4 w-4" />
-                Adicionar Provedor
-              </Button>
-            </CardContent>
-          </Card>
-        )}
+            )}
 
-        {/* Info card */}
-        <Card className="soft-card border-0 mt-6">
-          <CardHeader>
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Zap className="h-4 w-4 text-primary" />
-              Como Adicionar Sua Própria IA
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm text-muted-foreground space-y-2">
-            <ol className="list-decimal list-inside space-y-1">
-              <li>Clique em "Adicionar Provedor"</li>
-              <li>Selecione o tipo (OpenAI, Claude, Google, etc) ou "Custom"</li>
-              <li>Escolha a <strong>categoria</strong>: Visão (imagens), Texto ou Ambos</li>
-              <li>Preencha o endpoint e a API key</li>
-              <li>Teste a conexão e salve</li>
-            </ol>
-            <p className="pt-2 flex items-center gap-1.5">
-              <Key className="h-3.5 w-3.5" />
-              <span>Suas API keys são armazenadas de forma segura e nunca são expostas publicamente.</span>
-            </p>
-          </CardContent>
-        </Card>
+            {/* Info card */}
+            <Card className="soft-card border-0 mt-6">
+              <CardHeader>
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  <Zap className="h-4 w-4 text-primary" />
+                  Como Adicionar Sua Própria IA
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="text-sm text-muted-foreground space-y-2">
+                <ol className="list-decimal list-inside space-y-1">
+                  <li>Clique em "Adicionar Provedor"</li>
+                  <li>Selecione o tipo (OpenAI, Claude, Google, etc) ou "Custom"</li>
+                  <li>Escolha a <strong>categoria</strong>: Visão (imagens), Texto ou Ambos</li>
+                  <li>Preencha o endpoint e a API key</li>
+                  <li>Teste a conexão e salve</li>
+                </ol>
+                <p className="pt-2 flex items-center gap-1.5">
+                  <Key className="h-3.5 w-3.5" />
+                  <span>Suas API keys são armazenadas de forma segura e nunca são expostas publicamente.</span>
+                </p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="designer-do-futuro" className="mt-0">
+            <DesignerDoFuturoProviderPanel />
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* Modals */}
