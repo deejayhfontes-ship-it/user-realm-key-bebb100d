@@ -813,10 +813,27 @@ export function DesignerDoFuturoGenerator() {
                                 <div className="absolute inset-0 bg-gradient-to-input from-transparent via-black/20 to-black/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2.5 gap-2">
                                     <button
                                         onClick={() => {
-                                            const a = document.createElement('a');
-                                            a.href = img.src;
-                                            a.download = `design-${img.timestamp}.png`;
-                                            a.click();
+                                            // Converter data URI para Blob para download correto
+                                            const dataUri = img.src;
+                                            if (dataUri.startsWith('data:')) {
+                                                const [header, b64] = dataUri.split(',');
+                                                const mime = header.match(/data:([^;]+)/)?.[1] || 'image/png';
+                                                const binary = atob(b64);
+                                                const bytes = new Uint8Array(binary.length);
+                                                for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+                                                const blob = new Blob([bytes], { type: mime });
+                                                const url = URL.createObjectURL(blob);
+                                                const a = document.createElement('a');
+                                                a.href = url;
+                                                a.download = `design-${img.timestamp}.png`;
+                                                a.click();
+                                                URL.revokeObjectURL(url);
+                                            } else {
+                                                const a = document.createElement('a');
+                                                a.href = dataUri;
+                                                a.download = `design-${img.timestamp}.png`;
+                                                a.click();
+                                            }
                                         }}
                                         className="flex-1 py-1.5 rounded-lg bg-white text-black text-[9px] font-extrabold uppercase hover:scale-105 transition-transform"
                                     >
