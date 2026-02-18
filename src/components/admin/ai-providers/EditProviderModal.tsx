@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Loader2, Upload, X, Image, ImageIcon } from 'lucide-react';
+import { Loader2, Upload, X, Image, ImageIcon, Key } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -12,12 +12,20 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { useUpdateAIProvider, useTestAIProvider, type AIProvider } from '@/hooks/useAIProviders';
+import type { ProviderCategory } from '@/lib/ai-engine/types';
 
 interface EditProviderModalProps {
   provider: AIProvider | null;
@@ -37,6 +45,7 @@ export function EditProviderModal({ provider, open, onOpenChange }: EditProvider
     max_tokens: 4000,
     temperature: 0.7,
     supports_images: true,
+    category: 'both' as ProviderCategory,
   });
   const [iconFile, setIconFile] = useState<File | null>(null);
   const [iconPreview, setIconPreview] = useState<string | null>(null);
@@ -58,6 +67,7 @@ export function EditProviderModal({ provider, open, onOpenChange }: EditProvider
         max_tokens: provider.max_tokens,
         temperature: Number(provider.temperature),
         supports_images: provider.supports_images ?? true,
+        category: provider.category || 'both',
       });
     }
   }, [provider]);
@@ -103,6 +113,7 @@ export function EditProviderModal({ provider, open, onOpenChange }: EditProvider
       max_tokens: form.max_tokens,
       temperature: form.temperature,
       supports_images: form.supports_images,
+      category: form.category,
     };
 
     // Only update API key if a new one was provided
@@ -219,6 +230,34 @@ export function EditProviderModal({ provider, open, onOpenChange }: EditProvider
                 />
               </div>
             )}
+
+            {/* Category */}
+            <div className="space-y-2">
+              <Label>Categoria</Label>
+              <Select
+                value={form.category}
+                onValueChange={(value) => setForm({ ...form, category: value as ProviderCategory })}
+              >
+                <SelectTrigger className="rounded-xl">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="vision">🖼️ Visão (Análise de Imagens)</SelectItem>
+                  <SelectItem value="text">📝 Texto (Geração de Texto)</SelectItem>
+                  <SelectItem value="both">🔄 Ambos (Imagem + Texto)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* API Key indicator */}
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-muted/50 text-sm">
+              <Key className="h-4 w-4" />
+              {provider?.api_key_encrypted ? (
+                <span className="text-emerald-600">🔒 API Key configurada</span>
+              ) : (
+                <span className="text-amber-600">⚠️ Sem API Key configurada</span>
+              )}
+            </div>
 
             <div className="space-y-2">
               <Label>Modelo</Label>

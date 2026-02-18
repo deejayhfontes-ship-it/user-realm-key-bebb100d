@@ -25,7 +25,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { useCreateAIProvider, useTestAIProvider } from '@/hooks/useAIProviders';
-import { providerTemplates, type APIType } from '@/lib/ai-engine/types';
+import { providerTemplates, type APIType, type ProviderCategory } from '@/lib/ai-engine/types';
 
 interface AddProviderModalProps {
   open: boolean;
@@ -54,6 +54,7 @@ export function AddProviderModal({ open, onOpenChange }: AddProviderModalProps) 
     max_tokens: 4000,
     temperature: 0.7,
     supports_images: true,
+    category: 'both' as ProviderCategory,
   });
   const [iconFile, setIconFile] = useState<File | null>(null);
   const [iconPreview, setIconPreview] = useState<string | null>(null);
@@ -73,6 +74,7 @@ export function AddProviderModal({ open, onOpenChange }: AddProviderModalProps) 
         model_name: template.modelName || '',
         response_path: template.responsePath || '',
         system_prompt: template.systemPrompt || '',
+        category: form.api_type === 'google' ? 'vision' : 'both',
       }));
     }
   }, [form.api_type]);
@@ -135,6 +137,7 @@ export function AddProviderModal({ open, onOpenChange }: AddProviderModalProps) 
           max_tokens: 4000,
           temperature: 0.7,
           supports_images: true,
+          category: 'both',
         });
       },
     });
@@ -235,6 +238,25 @@ export function AddProviderModal({ open, onOpenChange }: AddProviderModalProps) 
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          {/* Category */}
+          <div className="space-y-2">
+            <Label>Categoria *</Label>
+            <Select
+              value={form.category}
+              onValueChange={(value) => setForm({ ...form, category: value as ProviderCategory })}
+            >
+              <SelectTrigger className="rounded-xl">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="vision">🖼️ Visão (Análise de Imagens)</SelectItem>
+                <SelectItem value="text">📝 Texto (Geração de Texto)</SelectItem>
+                <SelectItem value="both">🔄 Ambos (Imagem + Texto)</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">Define para que tipo de tarefa este provedor será usado.</p>
           </div>
 
           {/* Endpoint & Key */}

@@ -1,6 +1,7 @@
 // Tipos para o sistema de IA agnóstico
 
 export type APIType = 'openai' | 'anthropic' | 'google' | 'lovable' | 'custom';
+export type ProviderCategory = 'vision' | 'text' | 'both';
 
 export interface AIProviderConfig {
   id: string;
@@ -59,6 +60,7 @@ export interface AIProviderFromDB {
   is_active: boolean;
   is_default: boolean;
   supports_images: boolean;
+  category: ProviderCategory;
   last_test_at: string | null;
   last_test_success: boolean | null;
   last_error: string | null;

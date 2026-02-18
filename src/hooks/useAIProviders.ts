@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import type { AIProviderFromDB } from '@/lib/ai-engine/types';
+import type { AIProviderFromDB, ProviderCategory } from '@/lib/ai-engine/types';
 import type { Json } from '@/integrations/supabase/types';
 
 export type AIProvider = AIProviderFromDB;
@@ -61,6 +61,7 @@ export function useCreateAIProvider() {
         temperature: provider.temperature || 0.7,
         is_active: provider.is_active ?? true,
         is_default: provider.is_default ?? false,
+        category: provider.category || 'both',
       };
 
       const { data, error } = await supabase
@@ -202,11 +203,11 @@ export function useSetDefaultProvider() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (id: string) => {
-      // Primeiro remove default de todos
+    mutationFn: async ({ id, category }: { id: string; category?: ProviderCategory }) => {
+      // Primeiro remove default de todos os outros
       await supabase
         .from('ai_providers')
-        .update({ is_default: false })
+        .update({ is_default: false } as any)
         .neq('id', id);
 
       // Define o novo default

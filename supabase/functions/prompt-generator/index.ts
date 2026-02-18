@@ -64,14 +64,36 @@ function getAuthHeaders(provider: AIProvider, apiKey: string): Record<string, st
     return headers;
 }
 
-// Obtém provider ativo do banco — SEM fallback
-async function getProvider(supabase: any) {
-    const { data: provider, error } = await supabase
-        .from('ai_providers')
-        .select('*')
-        .eq('is_active', true)
-        .eq('is_default', true)
-        .single();
+// Obtém provider ativo do banco — busca por categoria com fallback
+async function getProvider(supabase: any, category?: 'vision' | 'text') {
+    let provider = null;
+    let error = null;
+
+    // 1. Tentar buscar provider específico da categoria
+    if (category) {
+        const result = await supabase
+            .from('ai_providers')
+            .select('*')
+            .eq('is_active', true)
+            .in('category', [category, 'both'])
+            .order('is_default', { ascending: false })
+            .limit(1)
+            .single();
+        provider = result.data;
+        error = result.error;
+    }
+
+    // 2. Fallback: buscar provider padrão
+    if (!provider) {
+        const result = await supabase
+            .from('ai_providers')
+            .select('*')
+            .eq('is_active', true)
+            .eq('is_default', true)
+            .single();
+        provider = result.data;
+        error = result.error;
+    }
 
     if (error || !provider) {
         throw new Error("Nenhum provedor de IA configurado. Configure em /admin/ai-providers e marque como ativo e padrão.");
@@ -261,7 +283,9 @@ serve(async (req) => {
         const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
         const supabase = createClient(supabaseUrl, supabaseKey);
 
-        const { provider, apiKey, endpoint } = await getProvider(supabase);
+        // Determinar categoria de provider baseada na ação
+        const providerCategory = (action === 'analyze' || action === 'analyze-cross') ? 'vision' : 'text';
+        const { provider, apiKey, endpoint } = await getProvider(supabase, providerCategory);
 
         // ===== ACTION: GENERATE IMAGE (desabilitado na v1) =====
         if (action === "generate-image") {
@@ -346,7 +370,10 @@ FORMATO DE RESPOSTA: Escreva uma descrição CONTÍNUA e FLUIDA em português br
                 console.error("Vision error:", response.status, errorText);
                 if (response.status === 429) return new Response(JSON.stringify({ error: "Rate limit. Aguarde." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
                 if (response.status === 402) return new Response(JSON.stringify({ error: "Créditos insuficientes." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-                throw new Error(`API error: ${response.status}`);
+                // Parse error detail from Google API
+                let errorDetail = `API error: ${response.status}`;
+                try { const errJson = JSON.parse(errorText); errorDetail = errJson?.error?.message || errorDetail; } catch (_) { }
+                throw new Error(errorDetail);
             }
 
             const data = await response.json();
@@ -420,7 +447,9 @@ FORMATO DE RESPOSTA: Escreva em parágrafos fluidos em português brasileiro, co
                 console.error("Cross-vision error:", response.status, errorText);
                 if (response.status === 429) return new Response(JSON.stringify({ error: "Rate limit. Aguarde." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
                 if (response.status === 402) return new Response(JSON.stringify({ error: "Créditos insuficientes." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-                throw new Error(`API error: ${response.status}`);
+                let errorDetail = `API error: ${response.status}`;
+                try { const errJson = JSON.parse(errorText); errorDetail = errJson?.error?.message || errorDetail; } catch (_) { }
+                throw new Error(errorDetail);
             }
 
             const data = await response.json();
@@ -541,7 +570,9 @@ Agora gere o prompt final. Lembre-se: APENAS o prompt, sem explicações. Máxim
                 console.error("Generate error:", response.status, errorText);
                 if (response.status === 429) return new Response(JSON.stringify({ error: "Rate limit. Aguarde." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
                 if (response.status === 402) return new Response(JSON.stringify({ error: "Créditos insuficientes." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-                throw new Error(`API error: ${response.status}`);
+                let errorDetail = `API error: ${response.status}`;
+                try { const errJson = JSON.parse(errorText); errorDetail = errJson?.error?.message || errorDetail; } catch (_) { }
+                throw new Error(errorDetail);
             }
 
             const data = await response.json();
