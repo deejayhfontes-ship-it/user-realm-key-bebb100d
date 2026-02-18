@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { Plus, Zap, Settings2, Trash2, Power, PowerOff, Star, TestTube, Loader2, ExternalLink, Eye, EyeOff, Image, Type, Layers, Key, Activity, Sparkles } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DesignerDoFuturoProviderPanel } from '@/components/admin/ai-providers/DesignerDoFuturoProviderPanel';
+import { PremiumProMaxProviderPanel } from '@/components/admin/ai-providers/PremiumProMaxProviderPanel';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -147,6 +148,13 @@ export default function AIProvidersPage() {
             >
               <Sparkles className="h-4 w-4" />
               Designer do Futuro
+            </TabsTrigger>
+            <TabsTrigger
+              value="premium-pro-max"
+              className="rounded-xl px-5 py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-sm gap-2"
+            >
+              <Sparkles className="h-4 w-4" />
+              Premium Pro Max
             </TabsTrigger>
           </TabsList>
 
@@ -393,6 +401,10 @@ export default function AIProvidersPage() {
 
           <TabsContent value="designer-do-futuro" className="mt-0">
             <DesignerDoFuturoProviderPanel />
+          </TabsContent>
+
+          <TabsContent value="premium-pro-max" className="mt-0">
+            <PremiumProMaxProviderPanel />
           </TabsContent>
         </Tabs>
       </div>

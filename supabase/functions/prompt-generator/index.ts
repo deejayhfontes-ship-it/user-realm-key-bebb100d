@@ -64,13 +64,26 @@ function getAuthHeaders(provider: AIProvider, apiKey: string): Record<string, st
     return headers;
 }
 
-// Obtém provider ativo do banco — busca por categoria com fallback
+// Obtém provider ativo do banco — busca por slug específico, depois categoria com fallback
 async function getProvider(supabase: any, category?: 'vision' | 'text') {
     let provider = null;
     let error = null;
 
-    // 1. Tentar buscar provider específico da categoria
-    if (category) {
+    // 1. Tentar buscar provider específico por slug 'premium-pro-max'
+    const slugResult = await supabase
+        .from('ai_providers')
+        .select('*')
+        .eq('slug', 'premium-pro-max')
+        .eq('is_active', true)
+        .limit(1)
+        .single();
+
+    if (slugResult.data) {
+        provider = slugResult.data;
+    }
+
+    // 2. Fallback: buscar provider específico da categoria
+    if (!provider && category) {
         const result = await supabase
             .from('ai_providers')
             .select('*')
@@ -83,7 +96,7 @@ async function getProvider(supabase: any, category?: 'vision' | 'text') {
         error = result.error;
     }
 
-    // 2. Fallback: buscar provider padrão
+    // 3. Fallback final: buscar provider padrão
     if (!provider) {
         const result = await supabase
             .from('ai_providers')
@@ -96,7 +109,7 @@ async function getProvider(supabase: any, category?: 'vision' | 'text') {
     }
 
     if (error || !provider) {
-        throw new Error("Nenhum provedor de IA configurado. Configure em /admin/ai-providers e marque como ativo e padrão.");
+        throw new Error("Nenhum provedor de IA configurado. Configure em Provedores IA > Premium Pro Max.");
     }
 
     const typed = provider as AIProvider;
