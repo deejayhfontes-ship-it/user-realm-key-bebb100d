@@ -13,13 +13,15 @@ import { toast } from 'sonner';
 const SLUG = 'premium-pro-max';
 
 const MODELS = [
-    { value: 'grok-3-mini', label: 'Grok 3 Mini (Rápido)' },
-    { value: 'grok-3', label: 'Grok 3 (Poderoso)' },
-    { value: 'grok-2', label: 'Grok 2' },
+    { value: 'llama-3.3-70b-versatile', label: 'Llama 3.3 70B (Recomendado)' },
+    { value: 'llama-3.1-8b-instant', label: 'Llama 3.1 8B Instant (Ultra-rápido)' },
+    { value: 'gemma2-9b-it', label: 'Gemma 2 9B' },
+    { value: 'mixtral-8x7b-32768', label: 'Mixtral 8x7B' },
+    { value: 'openai/gpt-oss-20b', label: 'GPT-OSS 20B' },
 ];
 
 const API_TYPES = [
-    { value: 'openai', label: 'OpenAI-Compatible (Grok, OpenAI, etc.)' },
+    { value: 'openai', label: 'OpenAI-Compatible (Groq, OpenAI, etc.)' },
     { value: 'google', label: 'Google AI (Gemini)' },
     { value: 'anthropic', label: 'Anthropic (Claude)' },
 ];
@@ -34,9 +36,9 @@ export function PremiumProMaxProviderPanel() {
 
     const [config, setConfig] = useState({
         apiKey: '',
-        model: 'grok-3-mini',
+        model: 'llama-3.3-70b-versatile',
         apiType: 'openai',
-        endpoint: 'https://api.x.ai/v1/chat/completions',
+        endpoint: 'https://api.groq.com/openai/v1/chat/completions',
         isActive: true,
     });
 
@@ -57,9 +59,9 @@ export function PremiumProMaxProviderPanel() {
                 setProviderId(data.id);
                 setConfig({
                     apiKey: (data as any).api_key_encrypted || '',
-                    model: (data as any).model_name || 'grok-3-mini',
+                    model: (data as any).model_name || 'llama-3.3-70b-versatile',
                     apiType: (data as any).api_type || 'openai',
-                    endpoint: (data as any).endpoint_url || 'https://api.x.ai/v1/chat/completions',
+                    endpoint: (data as any).endpoint_url || 'https://api.groq.com/openai/v1/chat/completions',
                     isActive: (data as any).is_active ?? true,
                 });
             }
@@ -79,7 +81,7 @@ export function PremiumProMaxProviderPanel() {
         setSaving(true);
         try {
             const providerData = {
-                name: 'Premium Pro Max (Grok)',
+                name: 'Premium Pro Max (Groq)',
                 slug: SLUG,
                 api_type: config.apiType,
                 endpoint_url: config.endpoint,
@@ -183,12 +185,12 @@ export function PremiumProMaxProviderPanel() {
 
     const handleApiTypeChange = (type: string) => {
         const endpoints: Record<string, string> = {
-            openai: 'https://api.x.ai/v1/chat/completions',
+            openai: 'https://api.groq.com/openai/v1/chat/completions',
             google: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
             anthropic: 'https://api.anthropic.com/v1/messages',
         };
         const defaultModels: Record<string, string> = {
-            openai: 'grok-3-mini',
+            openai: 'llama-3.3-70b-versatile',
             google: 'gemini-2.5-flash',
             anthropic: 'claude-sonnet-4-20250514',
         };
@@ -235,9 +237,9 @@ export function PremiumProMaxProviderPanel() {
                         <div className="text-sm text-muted-foreground space-y-1">
                             <p><strong>Como funciona:</strong> O Gerador Premium Pro Max usa essa API para analisar imagens e gerar prompts cinematográficos para plataformas como Veo 3, Runway, Kling e Pika.</p>
                             <p>
-                                <strong>Grok API (recomendado):</strong> Crie sua key em{' '}
-                                <a href="https://console.x.ai" target="_blank" rel="noopener" className="text-orange-500 hover:underline inline-flex items-center gap-1">
-                                    console.x.ai <ExternalLink className="w-3 h-3" />
+                                <strong>Groq API (recomendado):</strong> Crie sua key em{' '}
+                                <a href="https://console.groq.com/keys" target="_blank" rel="noopener" className="text-orange-500 hover:underline inline-flex items-center gap-1">
+                                    console.groq.com <ExternalLink className="w-3 h-3" />
                                 </a>
                             </p>
                             <p className="text-xs">Também suporta OpenAI, Google Gemini e Anthropic Claude.</p>
@@ -275,7 +277,7 @@ export function PremiumProMaxProviderPanel() {
                                 type={showKey ? 'text' : 'password'}
                                 value={config.apiKey}
                                 onChange={e => setConfig(prev => ({ ...prev, apiKey: e.target.value }))}
-                                placeholder={config.apiType === 'openai' ? 'xai-...' : 'Sua API key...'}
+                                placeholder={config.apiType === 'openai' ? 'gsk_...' : 'Sua API key...'}
                                 className="pr-10"
                             />
                             <button
@@ -317,7 +319,7 @@ export function PremiumProMaxProviderPanel() {
                         <Input
                             value={config.endpoint}
                             onChange={e => setConfig(prev => ({ ...prev, endpoint: e.target.value }))}
-                            placeholder="https://api.x.ai/v1/chat/completions"
+                            placeholder="https://api.groq.com/openai/v1/chat/completions"
                         />
                     </div>
 
