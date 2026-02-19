@@ -80,11 +80,20 @@ export interface GenerationConfig {
     dimension: string;
     safeAreaSide?: 'LEFT' | 'RIGHT' | 'CENTER';
     personCount?: number;
+    textOverlay?: {
+        h1: string;
+        h2: string;
+        cta: string;
+        position: string;
+        useGradient?: boolean;
+    };
 }
 
 export interface ReferenceImage {
     data: string;
     mimeType: string;
+    description?: string;
+    category?: 'style' | 'environment';
 }
 
 export interface GenerationResult {
@@ -232,7 +241,22 @@ function buildUserMessage(config: GenerationConfig): string {
     - Estilo Escolhido: ${styleLabel}
     - Instruções Adicionais: ${config.additionalInstructions || 'Nenhuma'}
     
-    Nenhum texto especificado.
+    ${config.textOverlay && (config.textOverlay.h1 || config.textOverlay.h2) ? `
+    INSERÇÃO DE TEXTO OBRIGATÓRIA:
+    O usuário solicitou que a imagem tenha espaço para:
+    - "${config.textOverlay.h1}"
+    - "${config.textOverlay.h2}"
+    - "${config.textOverlay.cta}"
+    - Posição: ${config.textOverlay.position}
+
+    CRITICAL INSTRUCTION - TEXT GENERATION:
+    You are a visual artist, NOT a writer.
+    DO NOT WRITE labels like "H1:", "Header:", "CTA Button:" inside the image.
+    ONLY render the CONTENT of the text provided above (e.g. if H1 is "SALE", write "SALE", do not write "H1: SALE").
+    If you cannot render perfect text, leave specific negative space.
+    
+    NEGATIVE PROMPT (TEXT): Avoid writing: "H1", "H2", "CTA", "Header", "Subheader", "Button", "Lorem Ipsum", placeholder text.
+    ` : 'Nenhum texto especificado.'}
     
     CONFIGURAÇÃO DE CORES:
     - Usar Cor Fundo: ${config.colorFlags.ambient ? 'SIM' : 'NÃO'} (Cor: ${config.colors.ambient}, Opacidade: ${config.ambientOpacity}%)
@@ -266,11 +290,19 @@ function buildCompositionRules(config: GenerationConfig, referenceImages: Refere
     const h = parseInt(parts[1]) || 800;
     const rules: string[] = [];
 
-    // Style references
-    if (referenceImages.length > 1) {
-        rules.push(`STYLE REFERENCES: Use the provided reference images as style inspiration and blend these elements with the requested ${config.niche} theme.`);
+    // Style references com description individual (lógica exata do concorrente)
+    const styleRefs = referenceImages.filter(r => r.category === 'style' || !r.category);
+    const envRefs = referenceImages.filter(r => r.category === 'environment');
+    if (styleRefs.length > 0) {
+        const withDesc = styleRefs.filter(r => r.description?.trim());
+        if (withDesc.length > 0) {
+            const descList = withDesc.map(r => `- ${r.description}`).join('\n');
+            rules.push(`STYLE REFERENCES: Use the provided reference images with these specific instructions:\n${descList}\nBlend these elements with the requested ${config.niche} theme.`);
+        } else {
+            rules.push(`STYLE REFERENCES: Use the provided reference images as style inspiration and blend these elements with the requested ${config.niche} theme.`);
+        }
     }
-    if (referenceImages.length > 0) {
+    if (envRefs.length > 0) {
         rules.push('ENVIRONMENT INSTRUCTION: Use the provided environment images to understand the architectural style/texture of the background, but render it according to the requested blur/sharpness settings.');
     }
 
@@ -302,6 +334,19 @@ function buildCompositionRules(config: GenerationConfig, referenceImages: Refere
     // XR — DEPTH ATTRIBUTE / RACK FOCUS
     if (config.useBlur) {
         rules.push(XR_RACK_FOCUS);
+    }
+
+    // TEXT LAYOUT REQUIREMENT (lógica exata do concorrente)
+    if (config.textOverlay && (config.textOverlay.h1 || config.textOverlay.h2)) {
+        rules.push(`TEXT LAYOUT REQUIREMENT:
+      The image MUST include the following text rendered in a high-quality, readable font matching the style:
+      - HEADER: "${config.textOverlay.h1}"
+      - SUBHEADER: "${config.textOverlay.h2}"
+      - BUTTON: "${config.textOverlay.cta}"
+      
+      POSITION: Place text on the ${config.textOverlay.position}.
+      ${config.textOverlay.useGradient ? 'BACKGROUND: Add a subtle gradient/scrim behind the text area to ensure readability.' : ''}
+      Ensure the text does not overlap the subject's face.`);
     }
 
     return rules;
@@ -555,7 +600,7 @@ export function useGeminiImageGeneration() {
                 config: {
                     imageConfig: {
                         aspectRatio,
-                        imageSize: '2K', // ✅ 2K (confirmado no bundle do concorrente)
+                        imageSize: '4K', // ✅ 4K (confirmado no bundle do concorrente)
                     },
                 },
             });

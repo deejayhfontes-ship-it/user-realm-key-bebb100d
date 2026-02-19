@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { X, Download, ChevronLeft, ChevronRight, Copy, Check, ZoomIn, ZoomOut } from 'lucide-react';
+import { X, Download, ChevronLeft, ChevronRight, Copy, Check, ZoomIn, ZoomOut, Paintbrush, RectangleVertical, RectangleHorizontal, Type, Wand2, Send, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { MaskPainter } from './MaskPainter';
+import { TextOverlayEditor } from './TextOverlayEditor';
 
 interface LightboxImage {
     src: string;
@@ -14,12 +16,21 @@ interface ImageLightboxProps {
     isOpen: boolean;
     onClose: () => void;
     onIndexChange: (index: number) => void;
+    onInpaint?: (imageSrc: string, maskBase64: string, editPrompt: string) => void;
+    onReframe?: (imageSrc: string, targetRatio: string, direction: 'vertical' | 'horizontal') => void;
+    onTextOverlay?: (resultBase64: string) => void;
+    onRefine?: (imageSrc: string, refinePrompt: string) => Promise<void>;
+    initialTexts?: { h1?: string; h2?: string; cta?: string };
 }
 
-export function ImageLightbox({ images, currentIndex, isOpen, onClose, onIndexChange }: ImageLightboxProps) {
+export function ImageLightbox({ images, currentIndex, isOpen, onClose, onIndexChange, onInpaint, onReframe, onTextOverlay, onRefine, initialTexts }: ImageLightboxProps) {
     const [zoom, setZoom] = useState(1);
     const [copied, setCopied] = useState(false);
     const [downloadFormat, setDownloadFormat] = useState<'png' | 'jpg'>('png');
+    const [showMaskPainter, setShowMaskPainter] = useState(false);
+    const [showTextOverlay, setShowTextOverlay] = useState(false);
+    const [refineText, setRefineText] = useState('');
+    const [refineLoading, setRefineLoading] = useState(false);
 
     const image = images[currentIndex];
 
@@ -51,7 +62,6 @@ export function ImageLightbox({ images, currentIndex, isOpen, onClose, onIndexCh
             const safeName = `design-${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}`;
 
             if (format === 'jpg') {
-                // Converter para JPG via Canvas
                 const img = new Image();
                 img.crossOrigin = 'anonymous';
                 await new Promise<void>((resolve, reject) => {
@@ -77,10 +87,8 @@ export function ImageLightbox({ images, currentIndex, isOpen, onClose, onIndexCh
                     toast({ title: `📥 Baixando ${safeName}.jpg` });
                 }, 'image/jpeg', 0.95);
             } else {
-                // PNG direto — com fallback MIME robusto
                 const response = await fetch(image.src);
                 let blob = await response.blob();
-                // Fallback: se blob.type vazio (data URI base64), força image/png
                 if (!blob.type || blob.type === 'application/octet-stream') {
                     blob = new Blob([blob], { type: 'image/png' });
                 }
@@ -109,7 +117,40 @@ export function ImageLightbox({ images, currentIndex, isOpen, onClose, onIndexCh
         setTimeout(() => setCopied(false), 2000);
     }, [image]);
 
+    // Inpainting handler
+    const handleMaskApply = useCallback((maskBase64: string, editPrompt: string) => {
+        if (!image || !onInpaint) return;
+        setShowMaskPainter(false);
+        onInpaint(image.src, maskBase64, editPrompt);
+    }, [image, onInpaint]);
+
     if (!isOpen || !image) return null;
+
+    // TextOverlay editor
+    if (showTextOverlay) {
+        return (
+            <TextOverlayEditor
+                imageSrc={image.src}
+                initialTexts={initialTexts}
+                onSave={(resultBase64) => {
+                    setShowTextOverlay(false);
+                    onTextOverlay?.(resultBase64);
+                }}
+                onClose={() => setShowTextOverlay(false)}
+            />
+        );
+    }
+
+    // MaskPainter overlay
+    if (showMaskPainter) {
+        return (
+            <MaskPainter
+                imageSrc={image.src}
+                onApply={handleMaskApply}
+                onClose={() => setShowMaskPainter(false)}
+            />
+        );
+    }
 
     return (
         <div
@@ -159,7 +200,7 @@ export function ImageLightbox({ images, currentIndex, isOpen, onClose, onIndexCh
             </div>
 
             {/* Bottom toolbar */}
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[110] flex items-center gap-2 bg-black/60 backdrop-blur-lg rounded-2xl px-4 py-2.5 border border-white/10">
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[110] flex items-center gap-2 bg-black/60 backdrop-blur-lg rounded-2xl px-4 py-2.5 border border-white/10 flex-wrap justify-center">
 
                 {/* Counter */}
                 <span className="text-white/60 text-xs font-medium px-2">
@@ -183,6 +224,52 @@ export function ImageLightbox({ images, currentIndex, isOpen, onClose, onIndexCh
                     title="Aumentar zoom"
                 >
                     <ZoomIn className="w-4 h-4" />
+                </button>
+
+                <div className="w-px h-6 bg-white/20" />
+
+                {/* ── Reframe buttons ── */}
+                {onReframe && (
+                    <>
+                        <button
+                            onClick={() => onReframe(image.src, '9:16', 'vertical')}
+                            className="flex items-center gap-1 px-3 py-2 rounded-lg bg-indigo-600/40 hover:bg-indigo-500/50 text-white text-[10px] font-bold uppercase tracking-wider transition-colors"
+                            title="Reframe vertical (Stories 9:16)"
+                        >
+                            <RectangleVertical className="w-3.5 h-3.5" />
+                            9:16
+                        </button>
+                        <button
+                            onClick={() => onReframe(image.src, '16:9', 'horizontal')}
+                            className="flex items-center gap-1 px-3 py-2 rounded-lg bg-indigo-600/40 hover:bg-indigo-500/50 text-white text-[10px] font-bold uppercase tracking-wider transition-colors"
+                            title="Reframe horizontal (Widescreen 16:9)"
+                        >
+                            <RectangleHorizontal className="w-3.5 h-3.5" />
+                            16:9
+                        </button>
+                    </>
+                )}
+
+                {/* ── Mask / Inpaint button ── */}
+                {onInpaint && (
+                    <button
+                        onClick={() => setShowMaskPainter(true)}
+                        className="flex items-center gap-1 px-3 py-2 rounded-lg bg-violet-600/40 hover:bg-violet-500/50 text-white text-[10px] font-bold uppercase tracking-wider transition-colors"
+                        title="Editar área com máscara"
+                    >
+                        <Paintbrush className="w-3.5 h-3.5" />
+                        Máscara
+                    </button>
+                )}
+
+                {/* ── Text Overlay button ── */}
+                <button
+                    onClick={() => setShowTextOverlay(true)}
+                    className="flex items-center gap-1 px-3 py-2 rounded-lg bg-amber-600/40 hover:bg-amber-500/50 text-white text-[10px] font-bold uppercase tracking-wider transition-colors"
+                    title="Adicionar textos (H1, H2, CTA)"
+                >
+                    <Type className="w-3.5 h-3.5" />
+                    Texto
                 </button>
 
                 <div className="w-px h-6 bg-white/20" />
@@ -222,6 +309,49 @@ export function ImageLightbox({ images, currentIndex, isOpen, onClose, onIndexCh
                     {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
                     {copied ? 'Copiado' : 'Prompt'}
                 </button>
+
+                {/* ── Refine inline (lógica do concorrente) ── */}
+                {onRefine && (
+                    <>
+                        <div className="w-px h-6 bg-white/20" />
+                        <div className="flex items-center gap-1.5">
+                            <Wand2 className="w-3.5 h-3.5 text-fuchsia-400" />
+                            <input
+                                type="text"
+                                value={refineText}
+                                onChange={e => setRefineText(e.target.value)}
+                                onKeyDown={e => {
+                                    if (e.key === 'Enter' && refineText.trim() && !refineLoading) {
+                                        setRefineLoading(true);
+                                        onRefine(image.src, refineText.trim()).finally(() => {
+                                            setRefineLoading(false);
+                                            setRefineText('');
+                                        });
+                                    }
+                                }}
+                                placeholder="Refinar: ex. mais luz, trocar fundo..."
+                                disabled={refineLoading}
+                                className="w-48 h-8 px-2 py-1 rounded-lg bg-white/10 border border-white/20 text-white text-[10px] placeholder:text-white/30 focus:outline-none focus:border-fuchsia-400 disabled:opacity-50"
+                            />
+                            <button
+                                onClick={() => {
+                                    if (refineText.trim() && !refineLoading) {
+                                        setRefineLoading(true);
+                                        onRefine(image.src, refineText.trim()).finally(() => {
+                                            setRefineLoading(false);
+                                            setRefineText('');
+                                        });
+                                    }
+                                }}
+                                disabled={!refineText.trim() || refineLoading}
+                                className="w-8 h-8 rounded-lg bg-fuchsia-600/60 hover:bg-fuchsia-500/70 disabled:opacity-30 flex items-center justify-center text-white transition-colors"
+                                title="Enviar refinamento"
+                            >
+                                {refineLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                            </button>
+                        </div>
+                    </>
+                )}
             </div>
         </div>
     );

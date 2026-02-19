@@ -26,6 +26,11 @@ import {
     Compass,
     Brush,
     GalleryHorizontal,
+    Bot,
+    PackageOpen,
+    FolderPlus,
+    Pencil,
+    Trash2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,18 +43,30 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useGeminiImageGeneration } from '@/hooks/useGeminiImageGeneration';
 import { ForensicPanel } from './ForensicPanel';
 import { ImageLightbox } from './ImageLightbox';
+import { AIChatPanel } from './AIChatPanel';
+import JSZip from 'jszip';
+import { saveAs } from 'file-saver';
 
 // ── Tipos ──
 interface ReferenceImage {
     base64: string;
     mimeType: string;
     preview: string;
+    description?: string;
+    category?: 'style' | 'environment';
 }
 
 interface GeneratedImage {
     src: string;
     prompt: string;
     timestamp: number;
+}
+
+interface Project {
+    id: string;
+    name: string;
+    config: DesignerConfig;
+    gallery: GeneratedImage[];
 }
 
 interface DesignerConfig {
@@ -166,7 +183,15 @@ const STYLES = [
 ];
 
 const GALLERY_STORAGE_KEY = 'designer-gallery';
+const PROJECTS_STORAGE_KEY = 'designer-projects';
 const MAX_GALLERY_ITEMS = 50;
+
+const createProject = (name: string): Project => ({
+    id: crypto.randomUUID(),
+    name,
+    config: { ...DEFAULT_CONFIG },
+    gallery: [],
+});
 
 export function DesignerDoFuturoGenerator() {
     const [config, setConfig] = useState<DesignerConfig>(DEFAULT_CONFIG);
@@ -178,7 +203,7 @@ export function DesignerDoFuturoGenerator() {
     });
     const fileInputRef = useRef<HTMLInputElement>(null);
     const refInputRef = useRef<HTMLInputElement>(null);
-    const { generate, extractPromptFromImage, brainstormScenes, isGenerating, progress, lastForensicLog } = useGeminiImageGeneration();
+    const { generate, inpaintImage, reframeImage, extractPromptFromImage, brainstormScenes, isGenerating, progress, lastForensicLog } = useGeminiImageGeneration();
     const [refinementText, setRefinementText] = useState('');
     const [forensicOpen, setForensicOpen] = useState(false);
     const [isExtracting, setIsExtracting] = useState(false);
@@ -187,6 +212,215 @@ export function DesignerDoFuturoGenerator() {
     const [sidebarTab, setSidebarTab] = useState<'create' | 'explore' | 'gallery'>('create');
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const [lightboxIndex, setLightboxIndex] = useState(0);
+    const [chatOpen, setChatOpen] = useState(false);
+    const [isRefining, setIsRefining] = useState(false);
+
+    // ── Projetos ──
+    const [projects, setProjects] = useState<Project[]>(() => {
+        try {
+            const saved = localStorage.getItem(PROJECTS_STORAGE_KEY);
+            if (saved) return JSON.parse(saved);
+        } catch { }
+        return [createProject('Projeto Alpha')];
+    });
+    const [activeProjectId, setActiveProjectId] = useState<string>(() => {
+        try {
+            const saved = localStorage.getItem(PROJECTS_STORAGE_KEY);
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                return parsed[0]?.id || '';
+            }
+        } catch { }
+        return '';
+    });
+    const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
+    const [editingName, setEditingName] = useState('');
+
+    // Sync activeProjectId on first render
+    useEffect(() => {
+        if (!activeProjectId && projects.length > 0) {
+            setActiveProjectId(projects[0].id);
+        }
+    }, [projects, activeProjectId]);
+
+    // Persist projects
+    useEffect(() => {
+        localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(projects));
+    }, [projects]);
+
+    const addProject = () => {
+        const newProject = createProject(`Projeto ${projects.length + 1}`);
+        setProjects(prev => [...prev, newProject]);
+        setActiveProjectId(newProject.id);
+        setConfig({ ...DEFAULT_CONFIG });
+        setGallery([]);
+        toast({ title: `✨ ${newProject.name} criado!` });
+    };
+
+    const deleteProject = (projectId: string) => {
+        if (projects.length <= 1) {
+            toast({ title: 'Não é possível excluir o único projeto.', variant: 'destructive' });
+            return;
+        }
+        setProjects(prev => {
+            const filtered = prev.filter(p => p.id !== projectId);
+            if (activeProjectId === projectId) {
+                setActiveProjectId(filtered[0].id);
+                setConfig(filtered[0].config);
+                setGallery(filtered[0].gallery);
+            }
+            return filtered;
+        });
+        toast({ title: '🗑️ Projeto removido.' });
+    };
+
+    const switchProject = (projectId: string) => {
+        // Save current project state
+        setProjects(prev => prev.map(p =>
+            p.id === activeProjectId ? { ...p, config: { ...config }, gallery: [...gallery] } : p
+        ));
+        // Load new project
+        const target = projects.find(p => p.id === projectId);
+        if (target) {
+            setActiveProjectId(projectId);
+            setConfig({ ...target.config });
+            setGallery([...target.gallery]);
+        }
+    };
+
+    const renameProject = (projectId: string, newName: string) => {
+        setProjects(prev => prev.map(p =>
+            p.id === projectId ? { ...p, name: newName } : p
+        ));
+        setEditingProjectId(null);
+    };
+
+    // Sync current project on config/gallery changes
+    useEffect(() => {
+        if (activeProjectId) {
+            setProjects(prev => prev.map(p =>
+                p.id === activeProjectId ? { ...p, config: { ...config }, gallery: [...gallery] } : p
+            ));
+        }
+    }, [config, gallery]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // ── Handler: Refinar (inpaint sem máscara → edição global) ──
+    const handleRefine = useCallback(async () => {
+        if (!refinementText.trim() || gallery.length === 0 || isGenerating) return;
+        setIsRefining(true);
+        try {
+            // Usa a última imagem da galeria + texto como editPrompt
+            const lastImg = gallery[0];
+            const result = await inpaintImage(
+                lastImg.src,
+                '', // sem máscara = inpaint "full"
+                refinementText,
+            );
+            const refined: GeneratedImage = {
+                src: `data:${result.mimeType};base64,${result.imageBase64}`,
+                prompt: `[Refinado] ${refinementText}`,
+                timestamp: Date.now(),
+            };
+            setGallery(prev => [refined, ...prev]);
+            setRefinementText('');
+            toast({ title: '✨ Refinamento aplicado!', className: 'bg-violet-600 text-white border-none' });
+        } catch (err: any) {
+            toast({ title: 'Erro no refinamento', description: err.message, variant: 'destructive' });
+        } finally {
+            setIsRefining(false);
+        }
+    }, [refinementText, gallery, isGenerating, inpaintImage]);
+
+    // ── Handler: Refine via Lightbox (inline no lightbox) ──
+    const handleLightboxRefine = useCallback(async (imageSrc: string, refinePrompt: string) => {
+        toast({ title: '✨ Refinando imagem...', className: 'bg-fuchsia-600 text-white border-none' });
+        try {
+            const result = await inpaintImage(imageSrc, '', refinePrompt);
+            const refined: GeneratedImage = {
+                src: `data:${result.mimeType};base64,${result.imageBase64}`,
+                prompt: `[Refinado] ${refinePrompt}`,
+                timestamp: Date.now(),
+            };
+            setGallery(prev => [refined, ...prev]);
+            setLightboxIndex(0); // Move para a imagem refinada
+            toast({ title: '✨ Refinamento concluído!', className: 'bg-emerald-600 text-white border-none' });
+        } catch (err: any) {
+            toast({ title: 'Erro no refinamento', description: err.message, variant: 'destructive' });
+        }
+    }, [inpaintImage]);
+
+    // ── Handler: Inpaint (via Lightbox MaskPainter) ──
+    const handleInpaint = useCallback(async (imageSrc: string, maskBase64: string, editPrompt: string) => {
+        toast({ title: '🎨 Aplicando inpainting...', className: 'bg-violet-600 text-white border-none' });
+        try {
+            const result = await inpaintImage(imageSrc, maskBase64, editPrompt);
+            const edited: GeneratedImage = {
+                src: `data:${result.mimeType};base64,${result.imageBase64}`,
+                prompt: `[Inpaint] ${editPrompt}`,
+                timestamp: Date.now(),
+            };
+            setGallery(prev => [edited, ...prev]);
+            setLightboxOpen(false);
+            toast({ title: '🎨 Inpainting concluído!', className: 'bg-emerald-600 text-white border-none' });
+        } catch (err: any) {
+            toast({ title: 'Erro no inpainting', description: err.message, variant: 'destructive' });
+        }
+    }, [inpaintImage]);
+
+    // ── Handler: Reframe (via Lightbox) ──
+    const handleReframe = useCallback(async (imageSrc: string, targetRatio: string, direction: 'vertical' | 'horizontal') => {
+        toast({ title: `↔ Reframe ${targetRatio}...`, className: 'bg-indigo-600 text-white border-none' });
+        try {
+            const result = await reframeImage(imageSrc, targetRatio, direction);
+            const reframed: GeneratedImage = {
+                src: `data:${result.mimeType};base64,${result.imageBase64}`,
+                prompt: `[Reframe ${targetRatio}]`,
+                timestamp: Date.now(),
+            };
+            setGallery(prev => [reframed, ...prev]);
+            setLightboxOpen(false);
+            toast({ title: `✅ Reframe ${targetRatio} concluído!`, className: 'bg-emerald-600 text-white border-none' });
+        } catch (err: any) {
+            toast({ title: 'Erro no reframe', description: err.message, variant: 'destructive' });
+        }
+    }, [reframeImage]);
+
+    // ── Handler: Text Overlay Saved ──
+    const handleTextOverlay = useCallback((resultBase64: string) => {
+        const overlayed: GeneratedImage = {
+            src: resultBase64,
+            prompt: '[Texto Overlay]',
+            timestamp: Date.now(),
+        };
+        setGallery(prev => [overlayed, ...prev]);
+        setLightboxOpen(false);
+        toast({ title: '✅ Imagem salva com textos!', className: 'bg-emerald-600 text-white border-none' });
+    }, []);
+
+
+    // ── Handler: Export ZIP ──
+    const handleExportZip = useCallback(async () => {
+        if (gallery.length === 0) return;
+        toast({ title: '📦 Gerando ZIP...' });
+        try {
+            const zip = new JSZip();
+            for (let i = 0; i < gallery.length; i++) {
+                const img = gallery[i];
+                const d = new Date(img.timestamp);
+                const pad = (n: number) => String(n).padStart(2, '0');
+                const name = `design-${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}_${i + 1}.png`;
+                // Convert data URI to binary
+                const response = await fetch(img.src);
+                const blob = await response.blob();
+                zip.file(name, blob);
+            }
+            const content = await zip.generateAsync({ type: 'blob' });
+            saveAs(content, `design-gallery-${Date.now()}.zip`);
+            toast({ title: `📦 ${gallery.length} imagens exportadas!`, className: 'bg-emerald-600 text-white border-none' });
+        } catch (err: any) {
+            toast({ title: 'Erro ao exportar ZIP', description: err.message, variant: 'destructive' });
+        }
+    }, [gallery]);
 
     // Persiste galeria no localStorage
     useEffect(() => {
@@ -241,6 +475,26 @@ export function DesignerDoFuturoGenerator() {
             try {
                 const img = await processImage(file);
                 updateConfig('subjectImage', img);
+
+                // ── Auto-extract reference on upload ──
+                setIsExtracting(true);
+                toast({ title: '🔍 Analisando referência...', className: 'bg-violet-600 text-white border-none' });
+                try {
+                    const result = await extractPromptFromImage(
+                        `data:${img.mimeType};base64,${img.base64}`
+                    );
+                    updateConfig('subjectDescription', result.suggestedPrompt);
+                    toast({
+                        title: '✅ Referência extraída automaticamente!',
+                        description: `Pose: ${result.pose} | Câmera: ${result.cameraAngle}`,
+                        className: 'bg-emerald-600 text-white border-none',
+                    });
+                } catch (extractErr: any) {
+                    console.warn('Auto-extract failed:', extractErr);
+                    toast({ title: '⚠️ Não foi possível extrair referência', description: 'Descreva o sujeito manualmente', className: 'bg-amber-500 text-white border-none' });
+                } finally {
+                    setIsExtracting(false);
+                }
             } catch (err) {
                 toast({ title: 'Erro', description: 'Arquivo inválido', variant: 'destructive' });
             }
@@ -299,6 +553,16 @@ export function DesignerDoFuturoGenerator() {
                 dimension: dimensionMap[config.dimension] || '1080x1920',
                 safeAreaSide: config.position as 'LEFT' | 'RIGHT' | 'CENTER',
                 personCount: config.quantity,
+                // textOverlay — lógica exata do concorrente
+                ...(config.useText && (config.textH1 || config.textH2) ? {
+                    textOverlay: {
+                        h1: config.textH1,
+                        h2: config.textH2,
+                        cta: config.textCTA,
+                        position: config.position === 'LEFT' ? 'right side' : config.position === 'RIGHT' ? 'left side' : 'top area',
+                        useGradient: config.useGradient,
+                    }
+                } : {}),
             };
 
             // Monta o array de imagens de referência (sujeito + estilos)
@@ -313,6 +577,8 @@ export function DesignerDoFuturoGenerator() {
                 referenceImages.push({
                     data: `data:${ref.mimeType};base64,${ref.base64}`,
                     mimeType: ref.mimeType || 'image/jpeg',
+                    description: ref.description,
+                    category: ref.category || 'style',
                 });
             }
 
@@ -347,13 +613,13 @@ export function DesignerDoFuturoGenerator() {
 
     // UI Components Helpers
     const SectionTitle = ({ children }: { children: React.ReactNode }) => (
-        <div className="text-[10px] font-extrabold uppercase tracking-[0.08em] text-stone-500 mb-3.5 mt-1">
+        <div className="text-[10px] font-extrabold uppercase tracking-[0.08em] text-white/60 mb-3.5 mt-1">
             {children}
         </div>
     );
 
     const Separator = () => (
-        <div className="h-px bg-[#e0ddd7] my-5" />
+        <div className="h-px bg-white/5 my-5" />
     );
 
     const SelectionButton = ({ active, onClick, children, className }: any) => (
@@ -362,8 +628,8 @@ export function DesignerDoFuturoGenerator() {
             className={`
                 flex-1 py-1.5 px-3 rounded-lg text-[10px] uppercase font-bold text-center border transition-all
                 ${active
-                    ? 'bg-[#1a1a1a] text-white border-[#1a1a1a]'
-                    : 'bg-white text-stone-400 border-[#e0ddd7] hover:border-stone-400'
+                    ? 'bg-violet-600/20 text-violet-400 border-violet-500/50 shadow-sm shadow-violet-500/10'
+                    : 'bg-white/5 text-white/40 border-white/10 hover:bg-white/10 hover:text-white/60'
                 }
                 ${className}
             `}
@@ -437,7 +703,54 @@ export function DesignerDoFuturoGenerator() {
 
             {/* ── PAINEL ESQUERDO (CONFIGURAÇÕES) — só visível na tab Criar ── */}
             {sidebarTab === 'create' && (
-                <div className="w-full lg:w-[420px] bg-white rounded-none lg:rounded-none border-r border-[#e0ddd7] flex flex-col shadow-sm shrink-0">
+                <div className="w-full lg:w-[420px] bg-[#111111] rounded-none lg:rounded-none border-r border-white/5 flex flex-col shadow-sm shrink-0">
+
+                    {/* ── TABS DE PROJETO ── */}
+                    <div className="h-[38px] border-b border-white/5 flex items-center gap-0 px-1 overflow-x-auto scrollbar-hide">
+                        {projects.map(project => (
+                            <button
+                                key={project.id}
+                                onClick={() => switchProject(project.id)}
+                                onDoubleClick={() => {
+                                    setEditingProjectId(project.id);
+                                    setEditingName(project.name);
+                                }}
+                                className={`group relative flex items-center gap-1.5 px-3 h-full text-[9px] font-bold uppercase tracking-[0.08em] whitespace-nowrap transition-all border-b-2 ${activeProjectId === project.id
+                                        ? 'text-violet-400 border-violet-500 bg-violet-600/5'
+                                        : 'text-white/30 border-transparent hover:text-white/50 hover:bg-white/5'
+                                    }`}
+                            >
+                                {editingProjectId === project.id ? (
+                                    <input
+                                        className="bg-transparent border-b border-violet-500 text-violet-400 text-[9px] font-bold uppercase w-20 outline-none"
+                                        value={editingName}
+                                        onChange={e => setEditingName(e.target.value)}
+                                        onBlur={() => renameProject(project.id, editingName)}
+                                        onKeyDown={e => { if (e.key === 'Enter') renameProject(project.id, editingName); }}
+                                        autoFocus
+                                    />
+                                ) : (
+                                    <span>{project.name}</span>
+                                )}
+                                {projects.length > 1 && activeProjectId === project.id && (
+                                    <button
+                                        onClick={e => { e.stopPropagation(); deleteProject(project.id); }}
+                                        className="opacity-0 group-hover:opacity-100 ml-1 text-white/20 hover:text-red-400 transition-all"
+                                    >
+                                        <X className="w-2.5 h-2.5" />
+                                    </button>
+                                )}
+                            </button>
+                        ))}
+                        <button
+                            onClick={addProject}
+                            className="flex items-center justify-center w-7 h-7 rounded-lg text-white/20 hover:text-violet-400 hover:bg-violet-600/10 transition-all ml-1 shrink-0"
+                            title="Novo Projeto"
+                        >
+                            <Plus className="w-3.5 h-3.5" />
+                        </button>
+                    </div>
+
                     <ScrollArea className="flex-1">
                         <div className="p-4 space-y-1">
 
@@ -446,12 +759,12 @@ export function DesignerDoFuturoGenerator() {
 
                             {/* Upload */}
                             <div className="mb-3">
-                                <Label className="text-[9px] uppercase font-bold tracking-wider text-stone-400 mb-1.5 block">Fotos do Sujeito</Label>
+                                <Label className="text-[9px] uppercase font-bold tracking-wider text-white/40 mb-1.5 block">Fotos do Sujeito</Label>
                                 <div
                                     onClick={() => fileInputRef.current?.click()}
                                     className={`
                                     h-24 border border-dashed rounded-xl flex flex-col items-center justify-center cursor-pointer transition-colors relative overflow-hidden group
-                                    ${config.subjectImage ? 'border-violet-500 bg-violet-50' : 'border-[#e0ddd7] hover:border-stone-400 bg-stone-50'}
+                                    ${config.subjectImage ? 'border-violet-500 bg-violet-500/10' : 'border-white/10 hover:border-white/20 bg-white/5'}
                                 `}
                                 >
                                     {config.subjectImage ? (
@@ -463,8 +776,8 @@ export function DesignerDoFuturoGenerator() {
                                         </>
                                     ) : (
                                         <>
-                                            <Upload className="w-5 h-5 text-stone-300 mb-1" />
-                                            <span className="text-[10px] font-bold text-stone-300 uppercase">Upload</span>
+                                            <Upload className="w-5 h-5 text-white/30 mb-1" />
+                                            <span className="text-[10px] font-bold text-white/30 uppercase">Upload</span>
                                         </>
                                     )}
                                     <input ref={fileInputRef} type="file" className="hidden" accept="image/*" onChange={handleSubjectUpload} />
@@ -473,7 +786,7 @@ export function DesignerDoFuturoGenerator() {
 
                             {/* Quantidade */}
                             <div className="mb-3">
-                                <Label className="text-[9px] uppercase font-bold tracking-wider text-stone-400 mb-1.5 block">Quantidade</Label>
+                                <Label className="text-[9px] uppercase font-bold tracking-wider text-white/40 mb-1.5 block">Quantidade</Label>
                                 <div className="flex gap-1.5">
                                     {[1, 2, 3, 4, 5].map(n => (
                                         <SelectionButton
@@ -489,7 +802,7 @@ export function DesignerDoFuturoGenerator() {
 
                             {/* Gênero */}
                             <div className="mb-3">
-                                <Label className="text-[9px] uppercase font-bold tracking-wider text-stone-400 mb-1.5 block">Gênero</Label>
+                                <Label className="text-[9px] uppercase font-bold tracking-wider text-white/40 mb-1.5 block">Gênero</Label>
                                 <div className="flex gap-1.5">
                                     <SelectionButton
                                         active={config.gender === 'Masculino'}
@@ -509,7 +822,7 @@ export function DesignerDoFuturoGenerator() {
                             {/* Descrição */}
                             <Textarea
                                 placeholder="Descrição da pose ou roupa (opcional)..."
-                                className="bg-[#fafaf9] border-[#e0ddd7] text-xs resize-none focus:border-stone-400 focus:ring-0 min-h-[60px] rounded-xl placeholder:text-stone-300"
+                                className="bg-white/5 border-white/10 text-xs text-white resize-none focus:border-violet-500/50 focus:ring-0 min-h-[60px] rounded-xl placeholder:text-white/30"
                                 value={config.subjectDescription}
                                 onChange={e => updateConfig('subjectDescription', e.target.value)}
                             />
@@ -529,18 +842,18 @@ export function DesignerDoFuturoGenerator() {
                                         className={`
                                         flex-1 h-16 rounded-xl border flex flex-col items-center justify-end pb-1.5 gap-1.5 transition-all
                                         ${config.position === pos.id
-                                                ? 'border-[#1a1a1a] bg-stone-50'
-                                                : 'border-[#e0ddd7] hover:border-stone-300 bg-white'
+                                                ? 'border-violet-500/50 bg-violet-600/10'
+                                                : 'border-white/10 hover:border-white/20 bg-white/5'
                                             }
                                     `}
                                     >
                                         <div className="w-full px-4 flex flex-col h-full justify-center">
                                             <div className={`flex flex-col ${pos.align} w-full gap-0.5`}>
-                                                <div className={`w-3 h-3 rounded-full ${config.position === pos.id ? 'bg-[#1a1a1a]' : 'bg-stone-200'}`} />
-                                                <div className="w-full h-0.5 bg-stone-100 rounded-full" />
+                                                <div className={`w-3 h-3 rounded-full ${config.position === pos.id ? 'bg-violet-400' : 'bg-white/20'}`} />
+                                                <div className="w-full h-0.5 bg-white/10 rounded-full" />
                                             </div>
                                         </div>
-                                        <span className={`text-[8px] font-bold uppercase ${config.position === pos.id ? 'text-[#1a1a1a]' : 'text-stone-300'}`}>
+                                        <span className={`text-[8px] font-bold uppercase ${config.position === pos.id ? 'text-violet-400' : 'text-white/30'}`}>
                                             {pos.label}
                                         </span>
                                     </button>
@@ -562,8 +875,8 @@ export function DesignerDoFuturoGenerator() {
                                         className={`
                                         flex items-center gap-2 px-3 py-2.5 rounded-xl border text-left transition-all
                                         ${config.dimension === dim.id
-                                                ? 'border-[#c8e64a] bg-[#fcfef5] text-[#55691e]'
-                                                : 'border-[#e0ddd7] text-stone-500 hover:bg-stone-50'
+                                                ? 'border-violet-500/50 bg-violet-600/10 text-violet-400'
+                                                : 'border-white/10 text-white/40 hover:bg-white/10'
                                             }
                                     `}
                                     >
@@ -582,19 +895,19 @@ export function DesignerDoFuturoGenerator() {
                             {config.useText && (
                                 <div className="space-y-2 mb-4 animate-in fade-in slide-in-from-top-2 duration-300">
                                     <Input
-                                        className="h-8 text-xs border-[#e0ddd7] bg-[#fafaf9]"
+                                        className="h-8 text-xs border-white/10 bg-white/5 text-white placeholder:text-white/30"
                                         placeholder="Headline (H1)"
                                         value={config.textH1}
                                         onChange={e => updateConfig('textH1', e.target.value)}
                                     />
                                     <Input
-                                        className="h-8 text-xs border-[#e0ddd7] bg-[#fafaf9]"
+                                        className="h-8 text-xs border-white/10 bg-white/5 text-white placeholder:text-white/30"
                                         placeholder="Subheadline (H2)"
                                         value={config.textH2}
                                         onChange={e => updateConfig('textH2', e.target.value)}
                                     />
                                     <Input
-                                        className="h-8 text-xs border-[#e0ddd7] bg-[#fafaf9]"
+                                        className="h-8 text-xs border-white/10 bg-white/5 text-white placeholder:text-white/30"
                                         placeholder="Botão (CTA)"
                                         value={config.textCTA}
                                         onChange={e => updateConfig('textCTA', e.target.value)}
@@ -607,20 +920,20 @@ export function DesignerDoFuturoGenerator() {
                             {/* PROJETO & CENÁRIO */}
                             <SectionTitle>Projeto & Cenário</SectionTitle>
                             <Input
-                                className="h-9 mb-2 text-xs border-[#e0ddd7]"
+                                className="h-9 mb-2 text-xs border-white/10 bg-white/5 text-white placeholder:text-white/30"
                                 placeholder="Nicho/Projeto (Ex: Trader de Elite)"
                                 value={config.niche}
                                 onChange={e => updateConfig('niche', e.target.value)}
                             />
                             <Input
-                                className="h-9 mb-2 text-xs border-[#e0ddd7]"
+                                className="h-9 mb-2 text-xs border-white/10 bg-white/5 text-white placeholder:text-white/30"
                                 placeholder="Ambiente (Ex: Escritório Moderno)"
                                 value={config.environment}
                                 onChange={e => updateConfig('environment', e.target.value)}
                             />
 
                             <div className="flex items-center justify-between py-2">
-                                <span className="text-[10px] font-bold uppercase text-stone-400">Usar fotos de cenário?</span>
+                                <span className="text-[10px] font-bold uppercase text-white/40">Usar fotos de cenário?</span>
                                 <Switch checked={config.useSceneImages} onCheckedChange={v => updateConfig('useSceneImages', v)} />
                             </div>
 
@@ -633,12 +946,12 @@ export function DesignerDoFuturoGenerator() {
                             <div className="flex items-center gap-3 mb-2">
                                 <button
                                     onClick={() => toggleColor('ambient')}
-                                    className={`w-8 h-8 rounded-full flex items-center justify-center border transition-all ${config.activeColors.ambient ? 'bg-[#1a1a1a] text-white border-[#1a1a1a]' : 'bg-white text-stone-300 border-[#e0ddd7]'}`}
+                                    className={`w-8 h-8 rounded-full flex items-center justify-center border transition-all ${config.activeColors.ambient ? 'bg-violet-600 text-white border-violet-500' : 'bg-white/5 text-white/30 border-white/10'}`}
                                 >
                                     <Palette className="w-3.5 h-3.5" />
                                 </button>
-                                <div className="flex-1 flex items-center gap-2 px-3 py-1.5 rounded-xl border border-[#e0ddd7] bg-white">
-                                    <span className="text-[10px] font-bold text-stone-500 uppercase flex-1">Cor do Ambiente</span>
+                                <div className="flex-1 flex items-center gap-2 px-3 py-1.5 rounded-xl border border-white/10 bg-white/5">
+                                    <span className="text-[10px] font-bold text-white/50 uppercase flex-1">Cor do Ambiente</span>
                                     <input
                                         type="color"
                                         value={config.colors.ambient}
@@ -652,12 +965,12 @@ export function DesignerDoFuturoGenerator() {
                             <div className="flex items-center gap-3 mb-2">
                                 <button
                                     onClick={() => toggleColor('rim')}
-                                    className={`w-8 h-8 rounded-full flex items-center justify-center border transition-all ${config.activeColors.rim ? 'bg-[#c8e64a] text-[#55691e] border-[#c8e64a]' : 'bg-white text-stone-300 border-[#e0ddd7]'}`}
+                                    className={`w-8 h-8 rounded-full flex items-center justify-center border transition-all ${config.activeColors.rim ? 'bg-cyan-500 text-white border-cyan-400' : 'bg-white/5 text-white/30 border-white/10'}`}
                                 >
                                     <Sun className="w-3.5 h-3.5" />
                                 </button>
-                                <div className="flex-1 flex items-center gap-2 px-3 py-1.5 rounded-xl border border-[#e0ddd7] bg-white">
-                                    <span className="text-[10px] font-bold text-stone-500 uppercase flex-1">Luz de Recorte</span>
+                                <div className="flex-1 flex items-center gap-2 px-3 py-1.5 rounded-xl border border-white/10 bg-white/5">
+                                    <span className="text-[10px] font-bold text-white/50 uppercase flex-1">Luz de Recorte</span>
                                     <input
                                         type="color"
                                         value={config.colors.rim}
@@ -671,12 +984,12 @@ export function DesignerDoFuturoGenerator() {
                             <div className="flex items-center gap-3 mb-2">
                                 <button
                                     onClick={() => toggleColor('complementary')}
-                                    className={`w-8 h-8 rounded-full flex items-center justify-center border transition-all ${config.activeColors.complementary ? 'bg-[#6366f1] text-white border-[#6366f1]' : 'bg-white text-stone-300 border-[#e0ddd7]'}`}
+                                    className={`w-8 h-8 rounded-full flex items-center justify-center border transition-all ${config.activeColors.complementary ? 'bg-purple-500 text-white border-purple-400' : 'bg-white/5 text-white/30 border-white/10'}`}
                                 >
                                     <Wand2 className="w-3.5 h-3.5" />
                                 </button>
-                                <div className="flex-1 flex items-center gap-2 px-3 py-1.5 rounded-xl border border-[#e0ddd7] bg-white">
-                                    <span className="text-[10px] font-bold text-stone-500 uppercase flex-1">Luz Complementar</span>
+                                <div className="flex-1 flex items-center gap-2 px-3 py-1.5 rounded-xl border border-white/10 bg-white/5">
+                                    <span className="text-[10px] font-bold text-white/50 uppercase flex-1">Luz Complementar</span>
                                     <input
                                         type="color"
                                         value={config.colors.complementary}
@@ -687,10 +1000,10 @@ export function DesignerDoFuturoGenerator() {
                             </div>
 
                             {/* Opacidade do ambiente */}
-                            <div className="bg-stone-50 rounded-xl p-3 mb-3">
+                            <div className="bg-white/5 rounded-xl p-3 mb-3">
                                 <div className="flex justify-between mb-2">
-                                    <Label className="text-[10px] uppercase font-bold text-stone-500">Opacidade do Ambiente</Label>
-                                    <span className="text-[10px] font-bold text-[#1a1a1a]">{config.ambientOpacity}%</span>
+                                    <Label className="text-[10px] uppercase font-bold text-white/50">Opacidade do Ambiente</Label>
+                                    <span className="text-[10px] font-bold text-white">{config.ambientOpacity}%</span>
                                 </div>
                                 <Slider
                                     value={[config.ambientOpacity]}
@@ -699,7 +1012,7 @@ export function DesignerDoFuturoGenerator() {
                                     step={5}
                                     className="mb-1"
                                 />
-                                <div className="flex justify-between text-[8px] uppercase font-bold text-stone-400">
+                                <div className="flex justify-between text-[8px] uppercase font-bold text-white/30">
                                     <span>Sutil</span>
                                     <span>Intenso</span>
                                 </div>
@@ -721,59 +1034,72 @@ export function DesignerDoFuturoGenerator() {
                                         className={`
                                         flex items-center gap-3 px-3 py-2.5 rounded-xl border text-left transition-all
                                         ${config.framing === item.id
-                                                ? 'border-[#1a1a1a] bg-stone-50'
-                                                : 'border-[#e0ddd7] hover:bg-stone-50'
+                                                ? 'border-violet-500/50 bg-violet-600/10'
+                                                : 'border-white/10 hover:bg-white/10'
                                             }
                                     `}
                                     >
                                         <div className={`
                                         w-8 h-8 rounded-full flex items-center justify-center
-                                        ${config.framing === item.id ? 'bg-[#1a1a1a] text-white' : 'bg-stone-100 text-stone-400'}
+                                        ${config.framing === item.id ? 'bg-violet-600 text-white' : 'bg-white/10 text-white/40'}
                                     `}>
                                             <item.icon className="w-4 h-4" />
                                         </div>
                                         <div>
-                                            <div className="text-[11px] font-bold text-[#1a1a1a]">{item.label}</div>
-                                            <div className="text-[9px] text-stone-400">{item.desc}</div>
+                                            <div className="text-[11px] font-bold text-white">{item.label}</div>
+                                            <div className="text-[9px] text-white/40">{item.desc}</div>
                                         </div>
                                     </button>
                                 ))}
                             </div>
 
                             <div className="flex items-center justify-between py-2">
-                                <span className="text-[10px] font-bold uppercase text-stone-400">Elementos Flutuantes?</span>
+                                <span className="text-[10px] font-bold uppercase text-white/40">Elementos Flutuantes?</span>
                                 <Switch checked={config.useFloatingElements} onCheckedChange={v => updateConfig('useFloatingElements', v)} />
                             </div>
 
                             <Separator />
 
                             {/* REFERÊNCIAS DE ESTILO (Ref Upload) */}
-                            <div className="p-3 bg-[#f8f7f5] border border-[#e0ddd7] rounded-2xl mb-4">
-                                <div className="text-[10px] font-extrabold uppercase tracking-[0.08em] text-stone-500 mb-3">
+                            <div className="p-3 bg-white/5 border border-white/10 rounded-2xl mb-4">
+                                <div className="text-[10px] font-extrabold uppercase tracking-[0.08em] text-white/50 mb-3">
                                     Referências de Estilo
                                 </div>
 
                                 <div className="flex flex-wrap gap-2 mb-2">
                                     {config.styleReferences.map((ref, idx) => (
-                                        <div key={idx} className="relative w-14 h-14 rounded-lg overflow-hidden border border-[#27272a] group">
-                                            <img src={ref.preview} className="w-full h-full object-cover" />
-                                            <button
-                                                onClick={() => {
+                                        <div key={idx} className="flex flex-col gap-1">
+                                            <div className="relative w-14 h-14 rounded-lg overflow-hidden border border-white/10 group">
+                                                <img src={ref.preview} className="w-full h-full object-cover" />
+                                                <button
+                                                    onClick={() => {
+                                                        const newRefs = [...config.styleReferences];
+                                                        newRefs.splice(idx, 1);
+                                                        updateConfig('styleReferences', newRefs);
+                                                    }}
+                                                    className="absolute top-0 right-0 w-4 h-4 bg-red-500 text-white flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100"
+                                                >
+                                                    <X className="w-2.5 h-2.5" />
+                                                </button>
+                                            </div>
+                                            <input
+                                                type="text"
+                                                placeholder="Desc..."
+                                                value={ref.description || ''}
+                                                onChange={e => {
                                                     const newRefs = [...config.styleReferences];
-                                                    newRefs.splice(idx, 1);
+                                                    newRefs[idx] = { ...newRefs[idx], description: e.target.value };
                                                     updateConfig('styleReferences', newRefs);
                                                 }}
-                                                className="absolute top-0 right-0 w-4 h-4 bg-red-500 text-white flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100"
-                                            >
-                                                <X className="w-2.5 h-2.5" />
-                                            </button>
+                                                className="w-14 text-[7px] px-1 py-0.5 border border-white/10 rounded bg-white/5 text-white/70 placeholder:text-white/30"
+                                            />
                                         </div>
                                     ))}
                                     <div
                                         onClick={() => refInputRef.current?.click()}
-                                        className="w-14 h-14 rounded-lg border border-dashed border-[#d5d2cc] flex flex-col items-center justify-center cursor-pointer hover:border-[#c8e64a] hover:bg-[#c8e64a]/10 transition-colors"
+                                        className="w-14 h-14 rounded-lg border border-dashed border-white/20 flex flex-col items-center justify-center cursor-pointer hover:border-violet-500/50 hover:bg-violet-600/10 transition-colors"
                                     >
-                                        <Plus className="w-4 h-4 text-stone-400" />
+                                        <Plus className="w-4 h-4 text-white/40" />
                                     </div>
                                 </div>
                                 <input ref={refInputRef} type="file" className="hidden" accept="image/*" onChange={handleRefUpload} />
@@ -782,10 +1108,10 @@ export function DesignerDoFuturoGenerator() {
                             {/* ATRIBUTOS VISUAIS */}
                             <SectionTitle>Atributos Visuais & Estilo</SectionTitle>
 
-                            <div className="bg-stone-50 rounded-xl p-3 mb-4">
+                            <div className="bg-white/5 rounded-xl p-3 mb-4">
                                 <div className="flex justify-between mb-2">
-                                    <Label className="text-[10px] uppercase font-bold text-stone-500">Sobriedade</Label>
-                                    <span className="text-[10px] font-bold text-[#1a1a1a]">{config.sobriety}</span>
+                                    <Label className="text-[10px] uppercase font-bold text-white/50">Sobriedade</Label>
+                                    <span className="text-[10px] font-bold text-white">{config.sobriety}</span>
                                 </div>
                                 <Slider
                                     value={[config.sobriety]}
@@ -794,7 +1120,7 @@ export function DesignerDoFuturoGenerator() {
                                     step={1}
                                     className="mb-2"
                                 />
-                                <div className="flex justify-between text-[8px] uppercase font-bold text-stone-400">
+                                <div className="flex justify-between text-[8px] uppercase font-bold text-white/30">
                                     <span>Criativo</span>
                                     <span>Profissional</span>
                                 </div>
@@ -803,7 +1129,7 @@ export function DesignerDoFuturoGenerator() {
                             <Separator />
 
                             <div className="flex items-center justify-between mb-3 px-1">
-                                <span className="text-[10px] font-extrabold uppercase tracking-[0.08em] text-[#1a1a1a]">Ativar Estilo Visual</span>
+                                <span className="text-[10px] font-extrabold uppercase tracking-[0.08em] text-white">Ativar Estilo Visual</span>
                                 <Switch checked={config.useVisualstyle} onCheckedChange={v => updateConfig('useVisualstyle', v)} />
                             </div>
 
@@ -815,8 +1141,8 @@ export function DesignerDoFuturoGenerator() {
                                         className={`
                                         px-1 py-1.5 rounded text-[9px] font-bold border transition-colors truncate
                                         ${config.selectedStyle === s.id
-                                                ? 'bg-[#1a1a1a] text-white border-[#1a1a1a]'
-                                                : 'bg-white text-stone-400 border-[#e0ddd7] hover:border-stone-300'
+                                                ? 'bg-violet-600/30 text-violet-300 border-violet-500/50'
+                                                : 'bg-white/5 text-white/40 border-white/10 hover:border-white/20'
                                             }
                                     `}
                                     >
@@ -828,11 +1154,11 @@ export function DesignerDoFuturoGenerator() {
                             <Separator />
 
                             <div className="flex items-center justify-between py-2">
-                                <span className="text-[10px] font-bold uppercase text-stone-400">Desfoque (Blur)</span>
+                                <span className="text-[10px] font-bold uppercase text-white/40">Desfoque (Blur)</span>
                                 <Switch checked={config.useBlur} onCheckedChange={v => updateConfig('useBlur', v)} />
                             </div>
                             <div className="flex items-center justify-between py-2">
-                                <span className="text-[10px] font-bold uppercase text-stone-400">Degradê Lateral</span>
+                                <span className="text-[10px] font-bold uppercase text-white/40">Degradê Lateral</span>
                                 <Switch checked={config.useGradient} onCheckedChange={v => updateConfig('useGradient', v)} />
                             </div>
 
@@ -840,13 +1166,13 @@ export function DesignerDoFuturoGenerator() {
 
                             {/* Prompt Adicional */}
                             <div className="flex items-center justify-between py-2">
-                                <span className="text-[10px] font-bold uppercase text-stone-400">Prompt Adicional</span>
+                                <span className="text-[10px] font-bold uppercase text-white/40">Prompt Adicional</span>
                                 <Switch checked={config.useExtraPrompt} onCheckedChange={v => updateConfig('useExtraPrompt', v)} />
                             </div>
                             {config.useExtraPrompt && (
                                 <Textarea
                                     placeholder="Instruções extras..."
-                                    className="text-xs bg-stone-50 border-[#e0ddd7]"
+                                    className="text-xs bg-white/5 border-white/10 text-white placeholder:text-white/30"
                                     value={config.extraPrompt}
                                     onChange={e => updateConfig('extraPrompt', e.target.value)}
                                 />
@@ -854,8 +1180,8 @@ export function DesignerDoFuturoGenerator() {
 
                             {/* SUGESTÕES DA IA */}
                             {suggestions.length > 0 && (
-                                <div className="bg-violet-50 border border-violet-200 rounded-xl p-3 mb-3 animate-in fade-in slide-in-from-top-2 duration-300">
-                                    <div className="text-[9px] font-extrabold uppercase tracking-wider text-violet-500 mb-2">💡 Sugestões de Cenário</div>
+                                <div className="bg-violet-500/10 border border-violet-500/30 rounded-xl p-3 mb-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                                    <div className="text-[9px] font-extrabold uppercase tracking-wider text-violet-400 mb-2">💡 Sugestões de Cenário</div>
                                     <div className="space-y-1.5">
                                         {suggestions.map((s, i) => (
                                             <button
@@ -864,15 +1190,15 @@ export function DesignerDoFuturoGenerator() {
                                                     updateConfig('environment', s);
                                                     toast({ title: `Cenário aplicado: ${s.substring(0, 40)}...` });
                                                 }}
-                                                className="w-full text-left text-[10px] text-violet-800 bg-white hover:bg-violet-100 border border-violet-200 rounded-lg px-2.5 py-1.5 transition-colors"
+                                                className="w-full text-left text-[10px] text-white/80 bg-white/5 hover:bg-violet-500/20 border border-white/10 rounded-lg px-2.5 py-1.5 transition-colors"
                                             >
-                                                <span className="font-bold text-violet-600 mr-1">{i + 1}.</span> {s}
+                                                <span className="font-bold text-violet-400 mr-1">{i + 1}.</span> {s}
                                             </button>
                                         ))}
                                     </div>
                                     <button
                                         onClick={() => setSuggestions([])}
-                                        className="mt-2 text-[8px] font-bold uppercase text-violet-400 hover:text-violet-600"
+                                        className="mt-2 text-[8px] font-bold uppercase text-violet-400/60 hover:text-violet-400"
                                     >
                                         Fechar sugestões
                                     </button>
@@ -880,15 +1206,15 @@ export function DesignerDoFuturoGenerator() {
                             )}
 
                             {/* BOTÕES DE AÇÃO */}
-                            <div className="sticky bottom-0 bg-white pt-4 pb-2 border-t border-[#e0ddd7] mt-4 space-y-2 z-10">
+                            <div className="sticky bottom-0 bg-[#111111] pt-4 pb-2 border-t border-white/5 mt-4 space-y-2 z-10">
                                 <Button
                                     onClick={handleGenerate}
                                     disabled={isGenerating}
                                     className={`
                                     w-full h-11 rounded-xl text-xs font-bold uppercase tracking-wider
                                     ${isGenerating
-                                            ? 'bg-[#f0ede8] text-[#8aad2a]'
-                                            : 'bg-[#1a1a1a] text-[#c8e64a] hover:bg-[#333] hover:scale-[1.01] transition-transform'
+                                            ? 'bg-violet-900/30 text-violet-400'
+                                            : 'bg-violet-600 text-white hover:bg-violet-500 hover:scale-[1.01] transition-transform'
                                         }
                                 `}
                                 >
@@ -905,39 +1231,11 @@ export function DesignerDoFuturoGenerator() {
                                     )}
                                 </Button>
 
-                                {/* AGENTES IA — Extrair Referência + Sugestões */}
+                                {/* AGENTES IA — Sugestões */}
                                 <div className="flex gap-2">
                                     <Button
                                         variant="outline"
-                                        className="flex-1 h-9 rounded-xl text-[10px] font-bold text-violet-600 border-violet-300 hover:bg-violet-50 hover:border-violet-400 disabled:opacity-50"
-                                        disabled={!config.subjectImage || isExtracting}
-                                        onClick={async () => {
-                                            if (!config.subjectImage) return;
-                                            setIsExtracting(true);
-                                            try {
-                                                const result = await extractPromptFromImage(
-                                                    `data:${config.subjectImage.mimeType};base64,${config.subjectImage.base64}`
-                                                );
-                                                updateConfig('subjectDescription', result.suggestedPrompt);
-                                                toast({
-                                                    title: '🔍 Referência Extraída!',
-                                                    description: `Pose: ${result.pose} | Câmera: ${result.cameraAngle}`,
-                                                    className: 'bg-violet-600 text-white border-none',
-                                                });
-                                            } catch (err: any) {
-                                                toast({ title: 'Erro ao extrair', description: err.message, variant: 'destructive' });
-                                            } finally {
-                                                setIsExtracting(false);
-                                            }
-                                        }}
-                                    >
-                                        {isExtracting ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : '🔍'}
-                                        {isExtracting ? 'Analisando...' : 'Extrair Ref.'}
-                                    </Button>
-
-                                    <Button
-                                        variant="outline"
-                                        className="flex-1 h-9 rounded-xl text-[10px] font-bold text-amber-600 border-amber-300 hover:bg-amber-50 hover:border-amber-400 disabled:opacity-50"
+                                        className="flex-1 h-9 rounded-xl text-[10px] font-bold text-amber-400 border-amber-500/30 hover:bg-amber-500/10 hover:border-amber-400/50 disabled:opacity-50"
                                         disabled={!config.niche || isBrainstorming}
                                         onClick={async () => {
                                             if (!config.niche) return;
@@ -963,7 +1261,7 @@ export function DesignerDoFuturoGenerator() {
 
                                 <Button
                                     variant="outline"
-                                    className="w-full h-9 rounded-xl text-[10px] font-bold text-stone-500 border-[#d5d2cc] hover:bg-[#c8e64a]/10 hover:text-[#1a1a1a] hover:border-[#c8e64a]"
+                                    className="w-full h-9 rounded-xl text-[10px] font-bold text-white/40 border-white/10 hover:bg-violet-600/10 hover:text-violet-400 hover:border-violet-500/30"
                                     onClick={() => {
                                         navigator.clipboard.writeText(JSON.stringify(config, null, 2));
                                         toast({ title: 'Configuração copiada!' });
@@ -977,8 +1275,8 @@ export function DesignerDoFuturoGenerator() {
                                 <Button
                                     variant="outline"
                                     className={`w-full h-9 rounded-xl text-[10px] font-bold tracking-wider ${forensicOpen
-                                        ? 'bg-amber-100 text-amber-800 border-amber-400'
-                                        : 'text-stone-400 border-[#d5d2cc] hover:bg-amber-50 hover:text-amber-700 hover:border-amber-300'
+                                        ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                                        : 'text-white/30 border-white/10 hover:bg-amber-500/10 hover:text-amber-400 hover:border-amber-500/20'
                                         }`}
                                     onClick={() => setForensicOpen(!forensicOpen)}
                                     disabled={!lastForensicLog}
@@ -1040,6 +1338,21 @@ export function DesignerDoFuturoGenerator() {
                     <span className="text-[9px] font-extrabold uppercase tracking-[0.12em] text-white/40">Galeria</span>
                     <div className="flex items-center gap-3">
                         <span className="text-[9px] font-medium text-white/30">{gallery.length} imagens</span>
+                        <button
+                            onClick={handleExportZip}
+                            disabled={gallery.length === 0}
+                            className="bg-emerald-600/80 hover:bg-emerald-500 disabled:opacity-40 text-white text-[9px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider transition-colors"
+                            title="Exportar todas como ZIP"
+                        >
+                            <PackageOpen className="w-3 h-3" />
+                        </button>
+                        <button
+                            onClick={() => setChatOpen(o => !o)}
+                            className={`text-[9px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider transition-colors ${chatOpen ? 'bg-violet-600 text-white' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}
+                            title="Chat IA"
+                        >
+                            <Bot className="w-3 h-3" />
+                        </button>
                         <div id="apiBadge" className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-900/30 text-emerald-400 text-[9px] font-bold">
                             <div className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
                             API OK
@@ -1140,18 +1453,7 @@ export function DesignerDoFuturoGenerator() {
                     </div>
                 </div>
 
-                {/* Bottom Bar */}
-                <div className="h-12 border-t border-white/5 flex items-center gap-2 px-3 bg-[#111111]">
-                    <input
-                        className="flex-1 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-[11px] text-white outline-none placeholder:text-white/30 focus:border-violet-500/50"
-                        placeholder="Ajuste fino: descreva alterações..."
-                        value={refinementText}
-                        onChange={e => setRefinementText(e.target.value)}
-                    />
-                    <button className="bg-violet-600 hover:bg-violet-500 text-white text-[9px] font-extrabold px-4 py-2 rounded-full uppercase tracking-wider transition-colors">
-                        Refinar
-                    </button>
-                </div>
+
             </div>
 
             {/* LIGHTBOX */}
@@ -1161,7 +1463,15 @@ export function DesignerDoFuturoGenerator() {
                 isOpen={lightboxOpen}
                 onClose={() => setLightboxOpen(false)}
                 onIndexChange={setLightboxIndex}
+                onInpaint={handleInpaint}
+                onReframe={handleReframe}
+                onTextOverlay={handleTextOverlay}
+                onRefine={handleLightboxRefine}
+                initialTexts={{ h1: config.textH1, h2: config.textH2, cta: config.textCTA }}
             />
+
+            {/* CHAT IA PANEL */}
+            <AIChatPanel isOpen={chatOpen} onClose={() => setChatOpen(false)} />
 
             {/* FORENSIC PANEL */}
             <ForensicPanel

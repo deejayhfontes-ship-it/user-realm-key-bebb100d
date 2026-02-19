@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, Suspense } from 'react';
+import { useRef, useEffect, useState, Suspense, Component, ReactNode } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { useTexture } from '@react-three/drei';
 import * as THREE from 'three';
@@ -67,12 +67,12 @@ const fragmentShader = `
 function ChromaPlaneInner({ texture }: { texture: THREE.Texture }) {
   const meshRef = useRef<THREE.Mesh>(null);
   const { viewport, size } = useThree();
-  
+
   // Calcula aspect ratio da imagem
   const img = texture.image as HTMLImageElement | undefined;
   const imageAspect = img ? img.width / img.height : 1;
   const viewportAspect = viewport.width / viewport.height;
-  
+
   // Escala para cobrir viewport mantendo aspect ratio (object-fit: cover)
   let scaleX: number, scaleY: number;
   if (viewportAspect > imageAspect) {
@@ -84,7 +84,7 @@ function ChromaPlaneInner({ texture }: { texture: THREE.Texture }) {
     scaleY = viewport.height;
     scaleX = viewport.height * imageAspect;
   }
-  
+
   const uniforms = useRef({
     uTexture: { value: texture },
     uMouse: { value: new THREE.Vector2(0, 0) },
@@ -105,7 +105,7 @@ function ChromaPlaneInner({ texture }: { texture: THREE.Texture }) {
     let targetX = 0;
     let targetY = 0;
     let isHovering = 0;
-    
+
     const handleMouseMove = (e: MouseEvent) => {
       targetX = (e.clientX / window.innerWidth) * 2 - 1;
       targetY = -(e.clientY / window.innerHeight) * 2 + 1;
@@ -118,7 +118,7 @@ function ChromaPlaneInner({ texture }: { texture: THREE.Texture }) {
 
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
     document.addEventListener('mouseleave', handleMouseLeave);
-    
+
     let animationId: number;
     const animate = () => {
       uniforms.current.uMouse.value.x += (targetX - uniforms.current.uMouse.value.x) * 0.05;
@@ -127,7 +127,7 @@ function ChromaPlaneInner({ texture }: { texture: THREE.Texture }) {
       animationId = requestAnimationFrame(animate);
     };
     animate();
-    
+
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseleave', handleMouseLeave);
@@ -158,11 +158,29 @@ function ChromaPlane({ imageUrl }: { imageUrl: string }) {
 
 function FallbackImage({ imageUrl }: { imageUrl: string }) {
   return (
-    <div 
+    <div
       className="absolute inset-0 bg-cover bg-center bg-no-repeat"
       style={{ backgroundImage: `url(${imageUrl})` }}
     />
   );
+}
+
+// Error Boundary interno — captura crash do Canvas/WebGL sem esconder texto ou imagem fallback
+class CanvasErrorBoundary extends Component<
+  { children: ReactNode; onError: () => void },
+  { hasError: boolean }
+> {
+  state = { hasError: false };
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidCatch(error: Error) {
+    console.warn('[ChromaHero] Canvas/WebGL falhou, usando imagem estática:', error.message);
+    this.props.onError();
+  }
+  render() {
+    return this.state.hasError ? null : this.props.children;
+  }
 }
 
 export default function ChromaHero() {
@@ -177,31 +195,33 @@ export default function ChromaHero() {
       {/* Canvas WebGL fullscreen - apenas desktop */}
       <div className="absolute inset-0">
         {!useStaticImage ? (
-          <Canvas
-            dpr={[1, 1.5]}
-            camera={{ position: [0, 0, 1] }}
-            gl={{
-              antialias: false,
-              alpha: true,
-              powerPreference: "high-performance",
-              failIfMajorPerformanceCaveat: true,
-            }}
-            onError={() => setHasError(true)}
-            style={{ background: 'transparent' }}
-          >
-            <Suspense fallback={null}>
-              <ChromaPlane imageUrl={heroPortrait} />
-            </Suspense>
-          </Canvas>
+          <CanvasErrorBoundary onError={() => setHasError(true)}>
+            <Canvas
+              dpr={[1, 1.5]}
+              camera={{ position: [0, 0, 1] }}
+              gl={{
+                antialias: false,
+                alpha: true,
+                powerPreference: "high-performance",
+                failIfMajorPerformanceCaveat: false,
+              }}
+              onError={() => setHasError(true)}
+              style={{ background: 'transparent' }}
+            >
+              <Suspense fallback={null}>
+                <ChromaPlane imageUrl={heroPortrait} />
+              </Suspense>
+            </Canvas>
+          </CanvasErrorBoundary>
         ) : (
           <FallbackImage imageUrl={heroPortrait} />
         )}
       </div>
-      
+
       {/* Overlay de texto - à esquerda */}
       <div className="absolute inset-0 flex items-center pointer-events-none z-[5]">
         <div className="pl-8 md:pl-16 lg:pl-24 xl:pl-32">
-          <h1 
+          <h1
             className="text-6xl sm:text-7xl md:text-8xl lg:text-8xl xl:text-9xl font-bold tracking-tight text-black leading-[0.9] text-left"
             style={{
               fontFamily: "'Space Grotesk', sans-serif",
@@ -211,9 +231,9 @@ export default function ChromaHero() {
             <br />
             GRAPHICS
           </h1>
-          
+
           {/* Subtítulo discreto */}
-          <p 
+          <p
             className="mt-4 md:mt-6 text-sm md:text-base lg:text-lg tracking-[0.15em] uppercase font-semibold"
             style={{
               fontFamily: "'Space Grotesk', sans-serif",
