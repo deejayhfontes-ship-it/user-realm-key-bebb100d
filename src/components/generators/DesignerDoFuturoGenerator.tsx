@@ -23,6 +23,9 @@ import {
     MoveHorizontal,
     MoreHorizontal,
     Plus,
+    Compass,
+    Brush,
+    GalleryHorizontal,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,6 +37,7 @@ import { toast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useGeminiImageGeneration } from '@/hooks/useGeminiImageGeneration';
 import { ForensicPanel } from './ForensicPanel';
+import { ImageLightbox } from './ImageLightbox';
 
 // ── Tipos ──
 interface ReferenceImage {
@@ -170,6 +174,9 @@ export function DesignerDoFuturoGenerator() {
     const [isExtracting, setIsExtracting] = useState(false);
     const [isBrainstorming, setIsBrainstorming] = useState(false);
     const [suggestions, setSuggestions] = useState<string[]>([]);
+    const [sidebarTab, setSidebarTab] = useState<'create' | 'explore' | 'gallery'>('create');
+    const [lightboxOpen, setLightboxOpen] = useState(false);
+    const [lightboxIndex, setLightboxIndex] = useState(0);
 
     // Helpers
     const updateConfig = (key: keyof DesignerConfig, value: any) => {
@@ -341,11 +348,71 @@ export function DesignerDoFuturoGenerator() {
         </button>
     );
 
-    return (
-        <div className="flex flex-col lg:flex-row h-[calc(100vh-100px)] gap-2 bg-[#f9f9f9] p-2 rounded-2xl overflow-hidden font-sans">
+    // Handler para abrir lightbox
+    const openLightbox = (index: number) => {
+        setLightboxIndex(index);
+        setLightboxOpen(true);
+    };
 
-            {/* ── PAINEL ESQUERDO ── */}
-            <div className="w-full lg:w-[420px] bg-white rounded-xl border border-[#e0ddd7] flex flex-col shadow-sm">
+    return (
+        <div className="flex flex-col lg:flex-row h-[calc(100vh-100px)] gap-0 bg-[#0a0a0a] p-0 rounded-2xl overflow-hidden font-sans">
+
+            {/* ── SIDEBAR ── */}
+            <div className="hidden lg:flex flex-col w-[68px] bg-[#111111] border-r border-white/5 items-center py-4 gap-1 shrink-0">
+                <button
+                    onClick={() => setSidebarTab('explore')}
+                    className={`flex flex-col items-center gap-1 w-14 py-2.5 rounded-xl transition-all text-[8px] font-bold uppercase tracking-wider ${sidebarTab === 'explore'
+                            ? 'bg-violet-600/20 text-violet-400'
+                            : 'text-white/40 hover:text-white/70 hover:bg-white/5'
+                        }`}
+                >
+                    <Compass className="w-5 h-5" />
+                    Explorar
+                </button>
+                <button
+                    onClick={() => setSidebarTab('create')}
+                    className={`flex flex-col items-center gap-1 w-14 py-2.5 rounded-xl transition-all text-[8px] font-bold uppercase tracking-wider ${sidebarTab === 'create'
+                            ? 'bg-violet-600/20 text-violet-400'
+                            : 'text-white/40 hover:text-white/70 hover:bg-white/5'
+                        }`}
+                >
+                    <Brush className="w-5 h-5" />
+                    Criar
+                </button>
+                <button
+                    onClick={() => setSidebarTab('gallery')}
+                    className={`flex flex-col items-center gap-1 w-14 py-2.5 rounded-xl transition-all text-[8px] font-bold uppercase tracking-wider ${sidebarTab === 'gallery'
+                            ? 'bg-violet-600/20 text-violet-400'
+                            : 'text-white/40 hover:text-white/70 hover:bg-white/5'
+                        }`}
+                >
+                    <GalleryHorizontal className="w-5 h-5" />
+                    Galeria
+                </button>
+
+                {/* Thumbnails do histórico */}
+                {gallery.length > 0 && (
+                    <>
+                        <div className="w-10 h-px bg-white/10 my-2" />
+                        <ScrollArea className="flex-1 w-full px-1.5">
+                            <div className="flex flex-col gap-1.5">
+                                {gallery.map((img, idx) => (
+                                    <button
+                                        key={idx}
+                                        onClick={() => openLightbox(idx)}
+                                        className="w-full aspect-square rounded-lg overflow-hidden border border-white/10 hover:border-violet-500/50 transition-colors opacity-80 hover:opacity-100"
+                                    >
+                                        <img src={img.src} className="w-full h-full object-cover" />
+                                    </button>
+                                ))}
+                            </div>
+                        </ScrollArea>
+                    </>
+                )}
+            </div>
+
+            {/* ── PAINEL ESQUERDO (CONFIGURAÇÕES) ── */}
+            <div className="w-full lg:w-[420px] bg-white rounded-none lg:rounded-none border-r border-[#e0ddd7] flex flex-col shadow-sm shrink-0">
                 <ScrollArea className="flex-1">
                     <div className="p-4 space-y-1">
 
@@ -885,109 +952,105 @@ export function DesignerDoFuturoGenerator() {
             </div>
 
 
-            {/* ── PAINEL DIREITO (GALERIA) ── */}
-            <div className="flex-1 bg-[#f0ede8] rounded-xl flex flex-col min-w-0 border border-[#e0ddd7] ml-0 lg:ml-2">
-                <div className="h-[38px] border-b border-[#e0ddd7] flex items-center justify-between px-4 bg-[#f0ede8] rounded-t-xl">
-                    <span className="text-[9px] font-extrabold uppercase tracking-[0.12em] text-[#aaa]">Galeria</span>
-                    <div id="apiBadge" className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#052e16] text-[#4ade80] text-[9px] font-bold">
-                        <div className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
-                        API OK
+            {/* ── PAINEL DIREITO (PREVIEW + GALERIA) ── */}
+            <div className="flex-1 bg-[#0f0f0f] flex flex-col min-w-0">
+                <div className="h-[38px] border-b border-white/5 flex items-center justify-between px-4 bg-[#111111]">
+                    <span className="text-[9px] font-extrabold uppercase tracking-[0.12em] text-white/40">Galeria</span>
+                    <div className="flex items-center gap-3">
+                        <span className="text-[9px] font-medium text-white/30">{gallery.length} imagens</span>
+                        <div id="apiBadge" className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-900/30 text-emerald-400 text-[9px] font-bold">
+                            <div className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+                            API OK
+                        </div>
                     </div>
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-4 flex flex-col items-center">
 
-                    {/* Empty State */}
-                    {gallery.length === 0 && !isGenerating && (
-                        <div className="text-center mt-20 opacity-60">
-                            <div className="w-14 h-14 rounded-2xl bg-white border border-[#e0ddd7] flex items-center justify-center mx-auto mb-3 shadow-sm">
-                                <ImageIcon className="w-6 h-6 text-[#ccc]" />
+                    {/* Progress bar */}
+                    {isGenerating && progress && (
+                        <div className="w-full max-w-md mx-auto mb-4 px-4">
+                            <div className="bg-white/5 rounded-full p-3 border border-white/10 backdrop-blur-sm">
+                                <div className="flex items-center gap-3">
+                                    <Loader2 className="w-4 h-4 text-violet-400 animate-spin shrink-0" />
+                                    <span className="text-xs text-white/70 font-medium truncate">{progress}</span>
+                                </div>
                             </div>
-                            <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-[#bbb]">Aguardando Criação</p>
                         </div>
                     )}
 
-                    {/* Masonry Grid */}
-                    <div className="w-full columns-2 md:columns-2 lg:columns-3 xl:columns-4 gap-3 space-y-3">
+                    {/* Empty State */}
+                    {gallery.length === 0 && !isGenerating && (
+                        <div className="text-center mt-20 opacity-60">
+                            <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-4">
+                                <ImageIcon className="w-7 h-7 text-white/20" />
+                            </div>
+                            <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/25">Aguardando Criação</p>
+                            <p className="text-[9px] text-white/15 mt-1">Configure e clique em Gerar</p>
+                        </div>
+                    )}
+
+                    {/* Grid */}
+                    <div className="w-full grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
 
                         {/* Skeleton Loading */}
                         {isGenerating && (
-                            <div className="break-inside-avoid mb-3 rounded-xl overflow-hidden bg-white border border-[#e0ddd7] shadow-sm animate-pulse">
-                                <div className="w-full aspect-[9/16] bg-gradient-to-r from-[#e8e5df] via-[#f0ede8] to-[#e8e5df] bg-[length:200%_100%] animate-[shimmer_1.5s_infinite]" />
+                            <div className="rounded-xl overflow-hidden bg-white/5 border border-white/10 animate-pulse">
+                                <div className="w-full aspect-[9/16] bg-gradient-to-r from-white/5 via-white/10 to-white/5 bg-[length:200%_100%] animate-[shimmer_1.5s_infinite]" />
                             </div>
                         )}
 
                         {/* Gallery Items */}
                         {gallery.map((img, idx) => (
-                            <div key={idx} className="break-inside-avoid mb-3 rounded-xl overflow-hidden bg-white border border-[#e0ddd7] shadow-sm group relative animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                <img src={img.src} className="w-full block" loading="lazy" />
+                            <div key={idx} className="rounded-xl overflow-hidden bg-white/5 border border-white/10 group relative animate-in fade-in slide-in-from-bottom-4 duration-500 hover:border-violet-500/30 transition-colors">
+                                {/* Imagem clicável → abre lightbox */}
+                                <button
+                                    onClick={() => openLightbox(idx)}
+                                    className="w-full block cursor-pointer"
+                                >
+                                    <img src={img.src} className="w-full block" loading="lazy" />
+                                </button>
 
-                                {/* Overlay */}
-                                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2.5 gap-2">
+                                {/* Barra de ações sempre visível */}
+                                <div className="flex items-center gap-1.5 p-2 bg-black/40 backdrop-blur-sm">
+                                    <button
+                                        onClick={() => openLightbox(idx)}
+                                        className="flex-1 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-[9px] font-bold uppercase tracking-wider transition-colors"
+                                    >
+                                        🔍 Visualizar
+                                    </button>
                                     <button
                                         onClick={async () => {
                                             try {
-                                                const dataUri = img.src;
-                                                if (!dataUri || !dataUri.startsWith('data:')) {
-                                                    toast({ title: 'Erro: imagem inválida', variant: 'destructive' });
-                                                    return;
-                                                }
-
-                                                // Converter data URI em blob via fetch
-                                                const response = await fetch(dataUri);
+                                                const response = await fetch(img.src);
                                                 const blob = await response.blob();
-
-                                                // Nome legível: design-2026-02-18_22-50.png
                                                 const d = new Date(img.timestamp);
                                                 const pad = (n: number) => String(n).padStart(2, '0');
                                                 const safeName = `design-${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}`;
-
-                                                // Detectar extensão real pelo MIME
-                                                const ext = blob.type.includes('jpeg') || blob.type.includes('jpg') ? 'jpg' : 'png';
-
-                                                // Criar link de download
                                                 const url = URL.createObjectURL(blob);
                                                 const link = document.createElement('a');
                                                 link.href = url;
-                                                link.download = `${safeName}.${ext}`;
-                                                link.style.display = 'none';
-                                                document.body.appendChild(link);
+                                                link.download = `${safeName}.png`;
                                                 link.click();
-
-                                                toast({ title: `📥 Baixando ${safeName}.${ext}` });
-
-                                                // Limpar após 5 segundos
-                                                setTimeout(() => {
-                                                    document.body.removeChild(link);
-                                                    URL.revokeObjectURL(url);
-                                                }, 5000);
+                                                setTimeout(() => URL.revokeObjectURL(url), 5000);
+                                                toast({ title: `📥 Baixando ${safeName}.png` });
                                             } catch (err) {
                                                 console.error('Erro no download:', err);
-                                                // Fallback: abrir em nova aba para salvar manualmente
-                                                try {
-                                                    const w = window.open('');
-                                                    if (w) {
-                                                        w.document.write(`<img src="${img.src}" style="max-width:100%"/>`);
-                                                        w.document.title = 'Clique direito > Salvar imagem como...';
-                                                    }
-                                                    toast({ title: 'Aberto em nova aba — salve manualmente', variant: 'destructive' });
-                                                } catch {
-                                                    toast({ title: 'Erro ao baixar', description: String(err), variant: 'destructive' });
-                                                }
+                                                toast({ title: 'Erro ao baixar', variant: 'destructive' });
                                             }
                                         }}
-                                        className="flex-1 py-1.5 rounded-lg bg-white text-black text-[9px] font-extrabold uppercase hover:scale-105 transition-transform"
+                                        className="py-1.5 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[9px] font-bold uppercase tracking-wider transition-colors"
                                     >
-                                        <Download className="w-3 h-3 inline mr-1" /> Baixar PNG
+                                        <Download className="w-3 h-3 inline mr-1" /> PNG
                                     </button>
                                     <button
                                         onClick={() => {
                                             navigator.clipboard.writeText(img.prompt);
                                             toast({ title: 'Prompt copiado!' });
                                         }}
-                                        className="flex-1 py-1.5 rounded-lg bg-[#27272a] text-white text-[9px] font-extrabold uppercase hover:bg-black hover:scale-105 transition-transform"
+                                        className="py-1.5 px-3 rounded-lg bg-white/10 hover:bg-white/20 text-white text-[9px] font-bold uppercase tracking-wider transition-colors"
                                     >
-                                        <Copy className="w-3 h-3 inline mr-1" /> Prompt
+                                        <Copy className="w-3 h-3 inline" />
                                     </button>
                                 </div>
                             </div>
@@ -996,18 +1059,27 @@ export function DesignerDoFuturoGenerator() {
                 </div>
 
                 {/* Bottom Bar */}
-                <div className="h-12 border-t border-[#e0ddd7] flex items-center gap-2 px-3 bg-[#f0ede8] rounded-b-xl">
+                <div className="h-12 border-t border-white/5 flex items-center gap-2 px-3 bg-[#111111]">
                     <input
-                        className="flex-1 bg-white border border-[#d5d2cc] rounded-full px-4 py-2 text-[11px] outline-none placeholder:text-[#bbb] focus:border-[#c8e64a]"
+                        className="flex-1 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-[11px] text-white outline-none placeholder:text-white/30 focus:border-violet-500/50"
                         placeholder="Ajuste fino: descreva alterações..."
                         value={refinementText}
                         onChange={e => setRefinementText(e.target.value)}
                     />
-                    <button className="bg-[#1a1a1a] text-white text-[9px] font-extrabold px-4 py-2 rounded-full uppercase tracking-wider hover:bg-[#333]">
+                    <button className="bg-violet-600 hover:bg-violet-500 text-white text-[9px] font-extrabold px-4 py-2 rounded-full uppercase tracking-wider transition-colors">
                         Refinar
                     </button>
                 </div>
             </div>
+
+            {/* LIGHTBOX */}
+            <ImageLightbox
+                images={gallery}
+                currentIndex={lightboxIndex}
+                isOpen={lightboxOpen}
+                onClose={() => setLightboxOpen(false)}
+                onIndexChange={setLightboxIndex}
+            />
 
             {/* FORENSIC PANEL */}
             <ForensicPanel
