@@ -1053,6 +1053,7 @@ Return a JSON array of exactly 5 scene descriptions in Portuguese (Brazil). Each
             throw new Error(msg);
         } finally {
             setIsGenerating(false);
+            setProgress('');
             generationRef.current = false;
         }
     }, [getProviderData, generatePromptText, generateImage]);
