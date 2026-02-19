@@ -51,6 +51,7 @@ import SolicitacaoArtes from "@/pages/prefeitura/SolicitacaoArtes";
 import BrandKit from "@/pages/prefeitura/BrandKit";
 import ModelosOficiais from "@/pages/prefeitura/ModelosOficiais";
 import ConsultarSolicitacao from "@/pages/prefeitura/ConsultarSolicitacao";
+import PrefeituraArtePage from "@/pages/prefeitura/PrefeituraArtePage";
 import PublicTracking from "@/pages/PublicTracking";
 import AdminSolicitacoes from "@/pages/admin/AdminSolicitacoes";
 import AdminProtocols from "@/pages/admin/AdminProtocols";
@@ -109,6 +110,7 @@ const App = () => (
               <Route path="/prefeitura/brand-kit" element={<BrandKit />} />
               <Route path="/prefeitura/modelos-oficiais" element={<ModelosOficiais />} />
               <Route path="/prefeitura/consultar" element={<ConsultarSolicitacao />} />
+              <Route path="/prefeitura/arte" element={<PrefeituraArtePage />} />
               <Route path="/acompanhar/:protocolo" element={<PublicTracking />} />
 
               {/* Public Landing Page */}
