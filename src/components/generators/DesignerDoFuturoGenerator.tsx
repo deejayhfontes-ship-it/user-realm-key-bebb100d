@@ -1208,8 +1208,9 @@ export function DesignerDoFuturoGenerator() {
 
 
                                 <Button
-                                    variant="outline"
-                                    className="w-full h-9 rounded-xl text-[10px] font-bold text-white/40 border-white/10 hover:bg-lime-500/10 hover:text-lime-300 hover:border-lime-400/30"
+                                    variant="ghost"
+                                    style={{ backgroundColor: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.6)' }}
+                                    className="w-full h-9 rounded-xl text-[10px] font-bold border border-white/10 hover:!bg-lime-500/10 hover:!text-lime-300 hover:border-lime-400/30"
                                     onClick={() => {
                                         navigator.clipboard.writeText(JSON.stringify(config, null, 2));
                                         toast({ title: 'Configuração copiada!' });
@@ -1221,10 +1222,14 @@ export function DesignerDoFuturoGenerator() {
 
                                 {/* MODO FORENSE */}
                                 <Button
-                                    variant="outline"
-                                    className={`w-full h-9 rounded-xl text-[10px] font-bold tracking-wider ${forensicOpen
-                                        ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
-                                        : 'text-white/30 border-white/10 hover:bg-amber-500/10 hover:text-amber-400 hover:border-amber-500/20'
+                                    variant="ghost"
+                                    style={forensicOpen
+                                        ? { backgroundColor: 'rgba(245,158,11,0.2)', color: 'rgb(251,191,36)' }
+                                        : { backgroundColor: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.5)' }
+                                    }
+                                    className={`w-full h-9 rounded-xl text-[10px] font-bold tracking-wider border ${forensicOpen
+                                        ? 'border-amber-500/30'
+                                        : 'border-white/10 hover:!bg-amber-500/10 hover:!text-amber-400 hover:border-amber-500/20'
                                         }`}
                                     onClick={() => setForensicOpen(!forensicOpen)}
                                     disabled={!lastForensicLog}
