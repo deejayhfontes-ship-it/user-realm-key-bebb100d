@@ -381,8 +381,18 @@ async function callWithKeyPool<T>(
                     return await fn(key, ki, globalAttempt++);
                 } catch (err: any) {
                     const msg = err?.message || '';
-                    const is429 = msg.includes('429') || err?.status === 429 || msg.includes('quota') || msg.includes('RESOURCE_EXHAUSTED');
-                    if (!is429) throw err;
+                    const status = err?.status || err?.httpCode || 0;
+                    const isRetryable =
+                        // Rate limit / quota
+                        msg.includes('429') || status === 429 || msg.includes('quota') || msg.includes('RESOURCE_EXHAUSTED') ||
+                        // Server errors (503 Service Unavailable, 500 Internal, etc.)
+                        msg.includes('503') || msg.includes('500') || status === 503 || status === 500 ||
+                        msg.includes('SERVICE_UNAVAILABLE') || msg.includes('UNAVAILABLE') || msg.includes('INTERNAL') ||
+                        msg.includes('overloaded') || msg.includes('temporarily') ||
+                        // Generic 5xx check
+                        (status >= 500 && status < 600);
+                    if (!isRetryable) throw err;
+                    console.warn(`[KeyPool] Key ${ki + 1}/${shuffled.length} falhou (${status || msg.substring(0, 60)}), tentando próxima...`);
                     if (retry < maxRetries - 1) {
                         const delay = baseDelay * Math.pow(2, retry);
                         await new Promise(r => setTimeout(r, delay));
