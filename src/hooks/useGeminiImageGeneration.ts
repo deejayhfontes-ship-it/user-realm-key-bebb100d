@@ -830,16 +830,25 @@ Retorne um JSON com os campos: pose, clothing, lighting, cameraAngle, suggestedP
         const result = await callWithKeyPool(keys, async (apiKey) => {
             const genAI = new GoogleGenAI({ apiKey });
 
+            const imageData = imageBase64.replace(/^data:[^,]+,/, '');
+
             const response = await genAI.models.generateContent({
                 model: textModel,
                 contents: [
                     {
-                        inlineData: {
-                            data: imageBase64.replace(/^data:[^,]+,/, ''),
-                            mimeType: 'image/png',
-                        }
+                        role: 'user',
+                        parts: [
+                            {
+                                inlineData: {
+                                    data: imageData,
+                                    mimeType: 'image/png',
+                                },
+                            },
+                            {
+                                text: 'Analise esta imagem de referência e extraia as informações solicitadas.',
+                            },
+                        ],
                     },
-                    { text: 'Analise esta imagem de referência e extraia as informações solicitadas.' },
                 ],
                 config: {
                     systemInstruction,
@@ -847,6 +856,7 @@ Retorne um JSON com os campos: pose, clothing, lighting, cameraAngle, suggestedP
             });
 
             const text = response.text || '';
+            console.log('[ExtractRef] Response text:', text?.substring(0, 200));
             try {
                 // Tenta parsear JSON
                 const jsonMatch = text.match(/\{[\s\S]*\}/);
@@ -855,6 +865,7 @@ Retorne um JSON com os campos: pose, clothing, lighting, cameraAngle, suggestedP
                 }
             } catch {
                 // Se não é JSON válido, retorna estrutura manual
+                console.warn('[ExtractRef] Falhou ao parsear JSON da resposta');
             }
 
             return {
