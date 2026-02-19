@@ -478,26 +478,7 @@ export function DesignerDoFuturoGenerator() {
             try {
                 const img = await processImage(file);
                 updateConfig('subjectImage', img);
-
-                // ── Auto-extract reference on upload ──
-                setIsExtracting(true);
-                toast({ title: '🔍 Analisando referência...', className: 'bg-lime-500 text-white border-none' });
-                try {
-                    const result = await extractPromptFromImage(
-                        `data:${img.mimeType};base64,${img.base64}`
-                    );
-                    updateConfig('subjectDescription', result.suggestedPrompt);
-                    toast({
-                        title: '✅ Referência extraída automaticamente!',
-                        description: `Pose: ${result.pose} | Câmera: ${result.cameraAngle}`,
-                        className: 'bg-emerald-600 text-white border-none',
-                    });
-                } catch (extractErr: any) {
-                    console.warn('Auto-extract failed:', extractErr);
-                    toast({ title: '⚠️ Não foi possível extrair referência', description: 'Descreva o sujeito manualmente', className: 'bg-amber-500 text-white border-none' });
-                } finally {
-                    setIsExtracting(false);
-                }
+                toast({ title: '📸 Foto do sujeito carregada!', className: 'bg-lime-500 text-white border-none' });
             } catch (err) {
                 toast({ title: 'Erro', description: 'Arquivo inválido', variant: 'destructive' });
             }
@@ -509,10 +490,39 @@ export function DesignerDoFuturoGenerator() {
         if (file) {
             try {
                 const img = await processImage(file);
+                // Adiciona referência imediatamente na galeria
                 setConfig(prev => ({
                     ...prev,
                     styleReferences: [...prev.styleReferences, img]
                 }));
+
+                // ── Auto-describe: analisa referência via IA ──
+                setIsExtracting(true);
+                toast({ title: '🔍 Analisando referência de estilo...', className: 'bg-lime-500 text-white border-none' });
+                try {
+                    const result = await extractPromptFromImage(
+                        `data:${img.mimeType};base64,${img.base64}`
+                    );
+                    // Atualiza a description da referência recém-adicionada
+                    setConfig(prev => {
+                        const refs = [...prev.styleReferences];
+                        const lastIdx = refs.length - 1;
+                        if (lastIdx >= 0) {
+                            refs[lastIdx] = { ...refs[lastIdx], description: result.suggestedPrompt };
+                        }
+                        return { ...prev, styleReferences: refs };
+                    });
+                    toast({
+                        title: '✅ Referência descrita automaticamente!',
+                        description: `Estilo: ${result.lighting} | Câmera: ${result.cameraAngle}`,
+                        className: 'bg-emerald-600 text-white border-none',
+                    });
+                } catch (extractErr: any) {
+                    console.warn('[RefUpload] Auto-describe failed:', extractErr);
+                    toast({ title: '⚠️ Não foi possível descrever a referência', description: 'Descreva manualmente no campo abaixo', className: 'bg-amber-500 text-white border-none' });
+                } finally {
+                    setIsExtracting(false);
+                }
             } catch (err) {
                 toast({ title: 'Erro', description: 'Arquivo inválido', variant: 'destructive' });
             }
