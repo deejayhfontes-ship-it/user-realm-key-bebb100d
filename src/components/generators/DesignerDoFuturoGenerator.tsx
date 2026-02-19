@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
     Sparkles,
     Upload,
@@ -244,7 +244,11 @@ export function DesignerDoFuturoGenerator() {
 
     // Persist projects
     useEffect(() => {
-        localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(projects));
+        try {
+            localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(projects));
+        } catch (e) {
+            console.warn('[PROJECTS] localStorage cheio, não foi possível salvar projetos.');
+        }
     }, [projects]);
 
     const addProject = () => {
@@ -1436,4 +1440,50 @@ export function DesignerDoFuturoGenerator() {
     );
 }
 
-export default DesignerDoFuturoGenerator;
+// ── Error Boundary ──
+class DesignerErrorBoundary extends React.Component<
+    { children: React.ReactNode },
+    { hasError: boolean; error: string }
+> {
+    constructor(props: { children: React.ReactNode }) {
+        super(props);
+        this.state = { hasError: false, error: '' };
+    }
+    static getDerivedStateFromError(error: Error) {
+        return { hasError: true, error: error.message };
+    }
+    componentDidCatch(error: Error, info: React.ErrorInfo) {
+        console.error('[DesignerErrorBoundary] Crash capturado:', error, info);
+    }
+    render() {
+        if (this.state.hasError) {
+            return (
+                <div className="flex flex-col items-center justify-center h-screen bg-[#0a0a0a] text-white gap-4">
+                    <div className="text-6xl">⚠️</div>
+                    <h2 className="text-xl font-bold">Algo deu errado</h2>
+                    <p className="text-white/50 text-sm max-w-md text-center">{this.state.error}</p>
+                    <button
+                        onClick={() => {
+                            this.setState({ hasError: false, error: '' });
+                            window.location.reload();
+                        }}
+                        className="px-6 py-2 bg-lime-500 text-black font-bold rounded-xl hover:bg-lime-400 transition-colors"
+                    >
+                        🔄 Recarregar
+                    </button>
+                </div>
+            );
+        }
+        return this.props.children;
+    }
+}
+
+function DesignerDoFuturoWithBoundary() {
+    return (
+        <DesignerErrorBoundary>
+            <DesignerDoFuturoGenerator />
+        </DesignerErrorBoundary>
+    );
+}
+
+export default DesignerDoFuturoWithBoundary;
