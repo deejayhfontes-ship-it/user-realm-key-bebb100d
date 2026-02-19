@@ -207,8 +207,7 @@ export function DesignerDoFuturoGenerator() {
     const [refinementText, setRefinementText] = useState('');
     const [forensicOpen, setForensicOpen] = useState(false);
     const [isExtracting, setIsExtracting] = useState(false);
-    const [isBrainstorming, setIsBrainstorming] = useState(false);
-    const [suggestions, setSuggestions] = useState<string[]>([]);
+
     const [sidebarTab, setSidebarTab] = useState<'create' | 'explore' | 'gallery'>('create');
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const [lightboxIndex, setLightboxIndex] = useState(0);
@@ -716,8 +715,8 @@ export function DesignerDoFuturoGenerator() {
                                     setEditingName(project.name);
                                 }}
                                 className={`group relative flex items-center gap-1.5 px-3 h-full text-[9px] font-bold uppercase tracking-[0.08em] whitespace-nowrap transition-all border-b-2 ${activeProjectId === project.id
-                                        ? 'text-lime-300 border-lime-400 bg-lime-500/5'
-                                        : 'text-white/30 border-transparent hover:text-white/50 hover:bg-white/5'
+                                    ? 'text-lime-300 border-lime-400 bg-lime-500/5'
+                                    : 'text-white/30 border-transparent hover:text-white/50 hover:bg-white/5'
                                     }`}
                             >
                                 {editingProjectId === project.id ? (
@@ -1178,32 +1177,7 @@ export function DesignerDoFuturoGenerator() {
                                 />
                             )}
 
-                            {/* SUGESTÕES DA IA */}
-                            {suggestions.length > 0 && (
-                                <div className="bg-lime-400/10 border border-lime-400/30 rounded-xl p-3 mb-3 animate-in fade-in slide-in-from-top-2 duration-300">
-                                    <div className="text-[9px] font-extrabold uppercase tracking-wider text-lime-300 mb-2">💡 Sugestões de Cenário</div>
-                                    <div className="space-y-1.5">
-                                        {suggestions.map((s, i) => (
-                                            <button
-                                                key={i}
-                                                onClick={() => {
-                                                    updateConfig('environment', s);
-                                                    toast({ title: `Cenário aplicado: ${s.substring(0, 40)}...` });
-                                                }}
-                                                className="w-full text-left text-[10px] text-white/80 bg-white/5 hover:bg-lime-400/20 border border-white/10 rounded-lg px-2.5 py-1.5 transition-colors"
-                                            >
-                                                <span className="font-bold text-lime-300 mr-1">{i + 1}.</span> {s}
-                                            </button>
-                                        ))}
-                                    </div>
-                                    <button
-                                        onClick={() => setSuggestions([])}
-                                        className="mt-2 text-[8px] font-bold uppercase text-lime-300/60 hover:text-lime-300"
-                                    >
-                                        Fechar sugestões
-                                    </button>
-                                </div>
-                            )}
+
 
                             {/* BOTÕES DE AÇÃO */}
                             <div className="sticky bottom-0 bg-[#111111] pt-4 pb-2 border-t border-white/5 mt-4 space-y-2 z-10">
@@ -1231,33 +1205,7 @@ export function DesignerDoFuturoGenerator() {
                                     )}
                                 </Button>
 
-                                {/* AGENTES IA — Sugestões */}
-                                <div className="flex gap-2">
-                                    <Button
-                                        variant="outline"
-                                        className="flex-1 h-9 rounded-xl text-[10px] font-bold text-amber-400 border-amber-500/30 hover:bg-amber-500/10 hover:border-amber-400/50 disabled:opacity-50"
-                                        disabled={!config.niche || isBrainstorming}
-                                        onClick={async () => {
-                                            if (!config.niche) return;
-                                            setIsBrainstorming(true);
-                                            try {
-                                                const scenes = await brainstormScenes(config.niche, config.selectedStyle);
-                                                setSuggestions(scenes);
-                                                toast({
-                                                    title: '💡 5 Cenários Sugeridos!',
-                                                    className: 'bg-amber-500 text-white border-none',
-                                                });
-                                            } catch (err: any) {
-                                                toast({ title: 'Erro nas sugestões', description: err.message, variant: 'destructive' });
-                                            } finally {
-                                                setIsBrainstorming(false);
-                                            }
-                                        }}
-                                    >
-                                        {isBrainstorming ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : '💡'}
-                                        {isBrainstorming ? 'Pensando...' : 'Sugestões'}
-                                    </Button>
-                                </div>
+
 
                                 <Button
                                     variant="outline"
