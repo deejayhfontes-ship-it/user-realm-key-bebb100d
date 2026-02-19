@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Camera, Sparkles, Download, Upload, Zap, Palette, Sun, Play,
-  ArrowLeft, Copy, Check, Image as ImageIcon, Loader2, Type, Film, Layers,
+  ArrowLeft, Copy, Check, Braces, Loader2, Type, Film, Layers,
   Ban, Scale, Hash, Monitor, Clock, FileVideo, Thermometer, CloudRain, User, Music,
   RotateCcw, Save, History, FileText
 } from 'lucide-react';
@@ -57,12 +57,12 @@ const PromptGenerator = ({ onGerar }: PromptGeneratorProps) => {
   const [analyzing2, setAnalyzing2] = useState(false);
   const [analyzingCross, setAnalyzingCross] = useState(false);
   const [generating, setGenerating] = useState(false);
-  const [generatingImage, setGeneratingImage] = useState(false);
+
   const [imageDescription, setImageDescription] = useState('');
   const [imageDescription2, setImageDescription2] = useState('');
   const [crossAnalysis, setCrossAnalysis] = useState('');
   const [copied, setCopied] = useState(false);
-  const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
+
 
   // Modo de geração: text-to-video, image-to-video, frames-to-video
   const [generationMode, setGenerationMode] = useState<'text-to-video' | 'image-to-video' | 'frames-to-video'>('text-to-video');
@@ -469,37 +469,32 @@ const PromptGenerator = ({ onGerar }: PromptGeneratorProps) => {
     }
   };
 
-  // Generate Image with Lovable AI
-  const generateImageFromPrompt = async () => {
+  // Copiar prompt como JSON estruturado
+  const copyPromptAsJson = async () => {
     if (!generatedPrompt) {
       toast.error('Gere um prompt primeiro!');
       return;
     }
-
-    setGeneratingImage(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('prompt-generator', {
-        body: {
-          action: 'generate-image',
-          prompt: generatedPrompt
-        }
-      });
-
-      if (error) throw error;
-
-      if (data.imageUrl) {
-        setGeneratedImageUrl(data.imageUrl);
-        toast.success('Imagem gerada com sucesso!');
-      } else {
-        toast.error('Nenhuma imagem retornada');
-      }
-
-    } catch (error) {
-      console.error('Erro ao gerar imagem:', error);
-      toast.error('Erro ao gerar imagem. Tente novamente.');
-    } finally {
-      setGeneratingImage(false);
-    }
+    const platform = aiPlatforms[selectedOptions.ai];
+    const jsonData = {
+      platform: platform.name,
+      prompt: generatedPrompt,
+      settings: {
+        motionControl: selectedOptions.motionControl,
+        cameraAngle: selectedOptions.cameraAngle,
+        lighting: selectedOptions.lighting,
+        animationStyle: selectedOptions.animationStyle,
+        aesthetic: selectedOptions.aesthetic,
+        transitionSpeed: selectedOptions.transitionSpeed
+      },
+      advancedSettings: advancedOptions,
+      imageDescription: imageDescription || undefined,
+      imageDescription2: imageDescription2 || undefined,
+      crossAnalysis: crossAnalysis || undefined,
+      timestamp: new Date().toISOString()
+    };
+    await navigator.clipboard.writeText(JSON.stringify(jsonData, null, 2));
+    toast.success('Prompt JSON copiado!');
   };
 
   // Copy to clipboard
@@ -521,7 +516,7 @@ const PromptGenerator = ({ onGerar }: PromptGeneratorProps) => {
     setImageDescription2('');
     setCrossAnalysis('');
     setGeneratedPrompt('');
-    setGeneratedImageUrl(null);
+
     setAdvancedOptions({
       negativePrompt: '',
       promptWeights: {},
@@ -718,8 +713,8 @@ ${crossAnalysis ? `ANÁLISE CRUZADA:\n${crossAnalysis}` : ''}
                 <button
                   onClick={() => setGenerationMode('text-to-video')}
                   className={`p-3 rounded-lg border transition-all flex flex-col items-center gap-1.5 ${generationMode === 'text-to-video'
-                      ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-300'
+                    ? 'border-primary bg-primary/10 text-primary'
+                    : 'border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-300'
                     }`}
                 >
                   <Type className="w-5 h-5" />
@@ -729,11 +724,11 @@ ${crossAnalysis ? `ANÁLISE CRUZADA:\n${crossAnalysis}` : ''}
                 <button
                   onClick={() => setGenerationMode('image-to-video')}
                   className={`p-3 rounded-lg border transition-all flex flex-col items-center gap-1.5 ${generationMode === 'image-to-video'
-                      ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-300'
+                    ? 'border-primary bg-primary/10 text-primary'
+                    : 'border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-300'
                     }`}
                 >
-                  <ImageIcon className="w-5 h-5" />
+                  <Film className="w-5 h-5" />
                   <span className="text-xs font-medium">Image to Video</span>
                 </button>
 
@@ -741,8 +736,8 @@ ${crossAnalysis ? `ANÁLISE CRUZADA:\n${crossAnalysis}` : ''}
                   <button
                     onClick={() => setGenerationMode('frames-to-video')}
                     className={`p-3 rounded-lg border transition-all flex flex-col items-center gap-1.5 ${generationMode === 'frames-to-video'
-                        ? 'border-primary bg-primary/10 text-primary'
-                        : 'border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-300'
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-300'
                       }`}
                   >
                     <Layers className="w-5 h-5" />
@@ -849,8 +844,8 @@ ${crossAnalysis ? `ANÁLISE CRUZADA:\n${crossAnalysis}` : ''}
                           key={speed.value}
                           onClick={() => setSelectedOptions({ ...selectedOptions, transitionSpeed: speed.value })}
                           className={`p-2 rounded-lg border transition-all flex flex-col items-center gap-0.5 ${selectedOptions.transitionSpeed === speed.value
-                              ? 'border-primary bg-primary/10 text-primary'
-                              : 'border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600'
+                            ? 'border-primary bg-primary/10 text-primary'
+                            : 'border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600'
                             }`}
                         >
                           <span className="text-base">{speed.icon}</span>
@@ -915,8 +910,8 @@ ${crossAnalysis ? `ANÁLISE CRUZADA:\n${crossAnalysis}` : ''}
                       }
                     }}
                     className={`p-2 rounded-lg border transition-all ${selectedOptions.ai === key
-                        ? 'border-primary bg-primary/10 text-primary'
-                        : 'border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-300'
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-300'
                       }`}
                   >
                     <span className="text-xs font-medium">{platform.name.split(' ')[0]}</span>
@@ -943,8 +938,8 @@ ${crossAnalysis ? `ANÁLISE CRUZADA:\n${crossAnalysis}` : ''}
                 <button
                   onClick={() => setPromptLanguage('pt')}
                   className={`p-3 rounded-lg border transition-all flex items-center justify-center gap-2 ${promptLanguage === 'pt'
-                      ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-300'
+                    ? 'border-primary bg-primary/10 text-primary'
+                    : 'border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-300'
                     }`}
                 >
                   <span className="text-lg">🇧🇷</span>
@@ -954,8 +949,8 @@ ${crossAnalysis ? `ANÁLISE CRUZADA:\n${crossAnalysis}` : ''}
                 <button
                   onClick={() => setPromptLanguage('en')}
                   className={`p-3 rounded-lg border transition-all flex items-center justify-center gap-2 ${promptLanguage === 'en'
-                      ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-300'
+                    ? 'border-primary bg-primary/10 text-primary'
+                    : 'border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-300'
                     }`}
                 >
                   <span className="text-lg">🇺🇸</span>
@@ -1024,8 +1019,8 @@ ${crossAnalysis ? `ANÁLISE CRUZADA:\n${crossAnalysis}` : ''}
                             key={ar.value}
                             onClick={() => setAdvancedOptions({ ...advancedOptions, aspectRatio: ar.value })}
                             className={`p-1.5 rounded border transition-all text-center ${advancedOptions.aspectRatio === ar.value
-                                ? 'border-primary bg-primary/10 text-primary'
-                                : 'border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600'
+                              ? 'border-primary bg-primary/10 text-primary'
+                              : 'border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600'
                               }`}
                           >
                             <span className="text-[10px] font-medium">{ar.label}</span>
@@ -1046,8 +1041,8 @@ ${crossAnalysis ? `ANÁLISE CRUZADA:\n${crossAnalysis}` : ''}
                             key={d.value}
                             onClick={() => setAdvancedOptions({ ...advancedOptions, duration: d.value })}
                             className={`p-1.5 rounded border transition-all text-center ${advancedOptions.duration === d.value
-                                ? 'border-primary bg-primary/10 text-primary'
-                                : 'border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600'
+                              ? 'border-primary bg-primary/10 text-primary'
+                              : 'border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600'
                               }`}
                           >
                             <span className="text-[10px] font-medium">{d.label}</span>
@@ -1069,8 +1064,8 @@ ${crossAnalysis ? `ANÁLISE CRUZADA:\n${crossAnalysis}` : ''}
                           key={r.value}
                           onClick={() => setAdvancedOptions({ ...advancedOptions, resolution: r.value })}
                           className={`p-1.5 rounded border transition-all text-center ${advancedOptions.resolution === r.value
-                              ? 'border-primary bg-primary/10 text-primary'
-                              : 'border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600'
+                            ? 'border-primary bg-primary/10 text-primary'
+                            : 'border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600'
                             }`}
                         >
                           <span className="text-[10px] font-medium">{r.label}</span>
@@ -1091,8 +1086,8 @@ ${crossAnalysis ? `ANÁLISE CRUZADA:\n${crossAnalysis}` : ''}
                           key={cg.value}
                           onClick={() => setAdvancedOptions({ ...advancedOptions, colorGrading: cg.value })}
                           className={`p-1.5 rounded border transition-all text-center ${advancedOptions.colorGrading === cg.value
-                              ? 'border-primary bg-primary/10 text-primary'
-                              : 'border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600'
+                            ? 'border-primary bg-primary/10 text-primary'
+                            : 'border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600'
                             }`}
                         >
                           <span className="text-[10px] font-medium">{cg.label}</span>
@@ -1113,8 +1108,8 @@ ${crossAnalysis ? `ANÁLISE CRUZADA:\n${crossAnalysis}` : ''}
                           key={w.value}
                           onClick={() => setAdvancedOptions({ ...advancedOptions, weather: w.value })}
                           className={`p-1.5 rounded border transition-all text-center ${advancedOptions.weather === w.value
-                              ? 'border-primary bg-primary/10 text-primary'
-                              : 'border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600'
+                            ? 'border-primary bg-primary/10 text-primary'
+                            : 'border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600'
                             }`}
                         >
                           <span className="text-[10px] font-medium">{w.label}</span>
@@ -1172,8 +1167,8 @@ ${crossAnalysis ? `ANÁLISE CRUZADA:\n${crossAnalysis}` : ''}
                     key={motion.value}
                     onClick={() => setSelectedOptions({ ...selectedOptions, motionControl: motion.value })}
                     className={`w-full rounded-xl border-2 transition-all overflow-hidden relative group ${selectedOptions.motionControl === motion.value
-                        ? 'border-primary ring-2 ring-primary/30'
-                        : 'border-zinc-700 hover:border-zinc-500'
+                      ? 'border-primary ring-2 ring-primary/30'
+                      : 'border-zinc-700 hover:border-zinc-500'
                       }`}
                     title={motion.description}
                     style={{ paddingBottom: '100%' }}
@@ -1202,8 +1197,8 @@ ${crossAnalysis ? `ANÁLISE CRUZADA:\n${crossAnalysis}` : ''}
                     {/* Label */}
                     <div className="absolute bottom-0 left-0 right-0 p-2 text-center">
                       <span className={`text-sm font-medium block truncate ${selectedOptions.motionControl === motion.value
-                          ? 'text-primary'
-                          : 'text-white'
+                        ? 'text-primary'
+                        : 'text-white'
                         }`}>
                         {motion.label}
                       </span>
@@ -1235,8 +1230,8 @@ ${crossAnalysis ? `ANÁLISE CRUZADA:\n${crossAnalysis}` : ''}
                     key={angle.value}
                     onClick={() => setSelectedOptions({ ...selectedOptions, cameraAngle: angle.value })}
                     className={`p-1.5 rounded border transition-all text-center ${selectedOptions.cameraAngle === angle.value
-                        ? 'border-primary bg-primary/10 text-primary'
-                        : 'border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600'
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600'
                       }`}
                     title={angle.technical}
                   >
@@ -1262,8 +1257,8 @@ ${crossAnalysis ? `ANÁLISE CRUZADA:\n${crossAnalysis}` : ''}
                     key={light.value}
                     onClick={() => setSelectedOptions({ ...selectedOptions, lighting: light.value })}
                     className={`p-1.5 rounded border transition-all text-center ${selectedOptions.lighting === light.value
-                        ? 'border-primary bg-primary/10 text-primary'
-                        : 'border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600'
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600'
                       }`}
                     title={light.technical}
                   >
@@ -1287,8 +1282,8 @@ ${crossAnalysis ? `ANÁLISE CRUZADA:\n${crossAnalysis}` : ''}
                       key={style.value}
                       onClick={() => setSelectedOptions({ ...selectedOptions, animationStyle: style.value })}
                       className={`p-1.5 rounded border transition-all text-center ${selectedOptions.animationStyle === style.value
-                          ? 'border-primary bg-primary/10 text-primary'
-                          : 'border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600'
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600'
                         }`}
                     >
                       <span className="text-[10px] font-medium">{style.label}</span>
@@ -1308,8 +1303,8 @@ ${crossAnalysis ? `ANÁLISE CRUZADA:\n${crossAnalysis}` : ''}
                       key={aes.value}
                       onClick={() => setSelectedOptions({ ...selectedOptions, aesthetic: aes.value })}
                       className={`p-1.5 rounded border transition-all text-center ${selectedOptions.aesthetic === aes.value
-                          ? 'border-primary bg-primary/10 text-primary'
-                          : 'border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600'
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600'
                         }`}
                     >
                       <span className="text-[10px] font-medium">{aes.label}</span>
@@ -1383,24 +1378,17 @@ ${crossAnalysis ? `ANÁLISE CRUZADA:\n${crossAnalysis}` : ''}
                   </Button>
                   <Button
                     size="sm"
-                    onClick={generateImageFromPrompt}
-                    disabled={generatingImage}
-                    className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white"
+                    onClick={copyPromptAsJson}
+                    className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:from-emerald-500 hover:to-teal-500"
                   >
-                    {generatingImage ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4 mr-1" />}
-                    Imagem
+                    <Braces className="w-4 h-4 mr-1" />
+                    Copiar JSON
                   </Button>
                 </div>
               </div>
             )}
 
-            {/* Generated Image */}
-            {generatedImageUrl && (
-              <div className="bg-zinc-900/80 backdrop-blur-sm border border-zinc-800 rounded-xl p-5 shadow-lg">
-                <h2 className="text-lg font-semibold text-white mb-3">Imagem Gerada</h2>
-                <img src={generatedImageUrl} alt="Generated" className="w-full rounded-lg border border-zinc-800" />
-              </div>
-            )}
+
 
             {/* Image Descriptions */}
             {imageDescription && (

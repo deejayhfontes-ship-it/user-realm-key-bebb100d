@@ -810,28 +810,62 @@ export function DesignerDoFuturoGenerator() {
                                 <img src={img.src} className="w-full block" loading="lazy" />
 
                                 {/* Overlay */}
-                                <div className="absolute inset-0 bg-gradient-to-input from-transparent via-black/20 to-black/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2.5 gap-2">
+                                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2.5 gap-2">
                                     <button
-                                        onClick={() => {
-                                            const dataUri = img.src;
-                                            const [header, b64] = dataUri.split(',');
-                                            const mime = header.match(/data:([^;]+)/)?.[1] || 'image/png';
-                                            const binary = atob(b64);
-                                            const bytes = new Uint8Array(binary.length);
-                                            for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-                                            const blob = new Blob([bytes], { type: mime });
-                                            const url = URL.createObjectURL(blob);
-                                            const a = document.createElement('a');
-                                            a.href = url;
-                                            a.download = `design-${img.timestamp}.png`;
-                                            document.body.appendChild(a);
-                                            a.click();
-                                            document.body.removeChild(a);
-                                            URL.revokeObjectURL(url);
+                                        onClick={async () => {
+                                            try {
+                                                const dataUri = img.src;
+                                                if (!dataUri || !dataUri.startsWith('data:')) {
+                                                    toast({ title: 'Erro: imagem inválida', variant: 'destructive' });
+                                                    return;
+                                                }
+
+                                                // Converter data URI em blob via fetch
+                                                const response = await fetch(dataUri);
+                                                const blob = await response.blob();
+
+                                                // Nome legível: design-2026-02-18_22-50.png
+                                                const d = new Date(img.timestamp);
+                                                const pad = (n: number) => String(n).padStart(2, '0');
+                                                const safeName = `design-${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}`;
+
+                                                // Detectar extensão real pelo MIME
+                                                const ext = blob.type.includes('jpeg') || blob.type.includes('jpg') ? 'jpg' : 'png';
+
+                                                // Criar link de download
+                                                const url = URL.createObjectURL(blob);
+                                                const link = document.createElement('a');
+                                                link.href = url;
+                                                link.download = `${safeName}.${ext}`;
+                                                link.style.display = 'none';
+                                                document.body.appendChild(link);
+                                                link.click();
+
+                                                toast({ title: `📥 Baixando ${safeName}.${ext}` });
+
+                                                // Limpar após 5 segundos
+                                                setTimeout(() => {
+                                                    document.body.removeChild(link);
+                                                    URL.revokeObjectURL(url);
+                                                }, 5000);
+                                            } catch (err) {
+                                                console.error('Erro no download:', err);
+                                                // Fallback: abrir em nova aba para salvar manualmente
+                                                try {
+                                                    const w = window.open('');
+                                                    if (w) {
+                                                        w.document.write(`<img src="${img.src}" style="max-width:100%"/>`);
+                                                        w.document.title = 'Clique direito > Salvar imagem como...';
+                                                    }
+                                                    toast({ title: 'Aberto em nova aba — salve manualmente', variant: 'destructive' });
+                                                } catch {
+                                                    toast({ title: 'Erro ao baixar', description: String(err), variant: 'destructive' });
+                                                }
+                                            }
                                         }}
                                         className="flex-1 py-1.5 rounded-lg bg-white text-black text-[9px] font-extrabold uppercase hover:scale-105 transition-transform"
                                     >
-                                        <Download className="w-3 h-3 inline mr-1" /> Baixar
+                                        <Download className="w-3 h-3 inline mr-1" /> Baixar PNG
                                     </button>
                                     <button
                                         onClick={() => {

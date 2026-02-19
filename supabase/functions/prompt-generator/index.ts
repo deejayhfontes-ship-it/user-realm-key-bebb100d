@@ -1,4 +1,4 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+﻿import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
@@ -67,52 +67,60 @@ function getAuthHeaders(provider: AIProvider, apiKey: string): Record<string, st
 // Obtém provider ativo do banco — busca por slug específico, depois categoria com fallback
 async function getProvider(supabase: any, category?: 'vision' | 'text') {
     let provider = null;
-    let error = null;
 
-    // 1. Tentar buscar provider específico por slug 'premium-pro-max'
-    const slugResult = await supabase
-        .from('ai_providers')
-        .select('*')
-        .eq('slug', 'premium-pro-max')
-        .eq('is_active', true)
-        .limit(1)
-        .single();
+    console.log(`[getProvider] Buscando provider para category=${category}`);
 
-    if (slugResult.data) {
-        provider = slugResult.data;
+    // 1. Para TEXTO: buscar provider por slug 'premium-pro-max' (Groq nao suporta visao)
+    if (category !== 'vision') {
+        const { data, error } = await supabase
+            .from('ai_providers')
+            .select('*')
+            .eq('slug', 'premium-pro-max')
+            .eq('is_active', true)
+            .limit(1);
+        console.log(`[getProvider] Slug lookup: found=${data?.length}, error=${error?.message}`);
+        if (data && data.length > 0) {
+            provider = data[0];
+        }
     }
 
-    // 2. Fallback: buscar provider específico da categoria
+    // 2. Fallback: buscar provider específico da categoria (excluindo designer-do-futuro que é exclusivo)
     if (!provider && category) {
-        const result = await supabase
+        const { data, error } = await supabase
             .from('ai_providers')
             .select('*')
             .eq('is_active', true)
+            .neq('slug', 'designer-do-futuro')
             .in('category', [category, 'both'])
             .order('is_default', { ascending: false })
-            .limit(1)
-            .single();
-        provider = result.data;
-        error = result.error;
+            .limit(1);
+        console.log(`[getProvider] Category lookup: found=${data?.length}, error=${error?.message}`);
+        if (data && data.length > 0) {
+            provider = data[0];
+        }
     }
 
     // 3. Fallback final: buscar provider padrão
     if (!provider) {
-        const result = await supabase
+        const { data, error } = await supabase
             .from('ai_providers')
             .select('*')
             .eq('is_active', true)
             .eq('is_default', true)
-            .single();
-        provider = result.data;
-        error = result.error;
+            .limit(1);
+        console.log(`[getProvider] Default lookup: found=${data?.length}, error=${error?.message}`);
+        if (data && data.length > 0) {
+            provider = data[0];
+        }
     }
 
-    if (error || !provider) {
+    if (!provider) {
         throw new Error("Nenhum provedor de IA configurado. Configure em Provedores IA > Premium Pro Max.");
     }
 
     const typed = provider as AIProvider;
+    console.log(`[getProvider] Usando provider: name=${typed.name}, slug=${typed.slug}, api_type=${typed.api_type}, model=${typed.model_name}, endpoint=${typed.endpoint_url}`);
+
     const apiKey = typed.api_key_encrypted || '';
     let endpoint = typed.endpoint_url;
     if (typed.api_type === 'google' && apiKey) {

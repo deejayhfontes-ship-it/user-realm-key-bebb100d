@@ -179,6 +179,13 @@ function buildUserMessage(config: GenerationConfig): string {
 // ============================================================
 // Monta regras de composição para a etapa 2 (igual concorrente)
 // ============================================================
+// ============================================================
+// Constantes de composição (KR e XR — replicadas do concorrente)
+// ============================================================
+const KR_BLENDING = 'BLENDING ATTRIBUTE: Apply a soft, seamless GRADIENT FADE on the negative space side. The gradient should use the DOMINANT BACKGROUND COLOR to fade out any complex details, ensuring maximum text readability.';
+
+const XR_RACK_FOCUS = 'DEPTH ATTRIBUTE (RACK FOCUS): First, render the entire image with full sharp details. THEN, overlay a subtle GRADIENT BLUR (Rack Focus effect) that is heaviest on the negative space edge and gradually fades to 0% blur towards the center/subject. The subject must remain 100% sharp. The blur acts as a background softening layer for text overlay.';
+
 function buildCompositionRules(config: GenerationConfig, referenceImages: ReferenceImage[]): string {
     const side = config.safeAreaSide || 'CENTER';
     const parts = config.dimension.split('x');
@@ -186,9 +193,12 @@ function buildCompositionRules(config: GenerationConfig, referenceImages: Refere
     const h = parseInt(parts[1]) || 800;
     const rules: string[] = [];
 
-    // Style references (se tiver imagens de referência)
+    // Style references (diferencia sujeito vs referências de estilo — igual concorrente)
     if (referenceImages.length > 1) {
         rules.push(`STYLE REFERENCES: Use the provided reference images as style inspiration and blend these elements with the requested ${config.niche} theme.`);
+    }
+    if (referenceImages.length > 0) {
+        rules.push('ENVIRONMENT INSTRUCTION: Use the provided environment images to understand the architectural style/texture of the background, but render it according to the requested blur/sharpness settings.');
     }
 
     // Sobriety adjustment (igual concorrente: sobriety > 70)
@@ -199,16 +209,26 @@ function buildCompositionRules(config: GenerationConfig, referenceImages: Refere
     // Safe area rule
     rules.push(`SAFE AREA RULE: Maintain a significant margin of exactly 10% of the total canvas width on the ${side} side. The subject must NOT be clipped or touch the extreme edge; they should be positioned with breathing room for UI elements.`);
 
-    // Critical composition rule (ultra-wide header)
+    // Critical composition rule
     rules.push(`CRITICAL COMPOSITION RULE: This image must be composed as an ULTRA-WIDE CINEMATIC HEADER. The intended view area is ${w}x${h}. Center all critical action and the subject's face vertically so they are not cut off. Use the full horizontal space for environment storytelling.`);
 
-    // Composition rule por posição (igual JR do concorrente)
+    // Composition rule por posição (JR do concorrente)
     if (side === 'LEFT') {
         rules.push('COMPOSITION RULE: Position the subject centered specifically between the left edge and the vertical center line (approx. at the 25% horizontal mark). The subject should NOT be touching the edge.\n\nNEGATIVE SPACE RULE: The entire RIGHT side (from center to right edge) must be kept open for text.');
     } else if (side === 'RIGHT') {
         rules.push('COMPOSITION RULE: Position the subject centered specifically between the vertical center line and the right edge (approx. at the 75% horizontal mark). The subject should NOT be touching the edge.\n\nNEGATIVE SPACE RULE: The entire LEFT side (from left edge to center) must be kept open for text.');
     } else {
         rules.push('COMPOSITION RULE: Position the subject strictly in the geometric center of the image. Balance the negative space equally on both sides.');
+    }
+
+    // ✅ KR — BLENDING ATTRIBUTE (concorrente adiciona quando gradient ativo)
+    if (config.useGradient) {
+        rules.push(KR_BLENDING);
+    }
+
+    // ✅ XR — DEPTH ATTRIBUTE / RACK FOCUS (concorrente adiciona quando blur ativo)
+    if (config.useBlur) {
+        rules.push(XR_RACK_FOCUS);
     }
 
     return rules.join('\n\n');
@@ -387,21 +407,23 @@ export function useGeminiImageGeneration() {
 
         return callWithKeyPool(keys, async (apiKey) => {
             // Monta as parts: imagens primeiro, depois o texto (igual concorrente)
+            // ✅ Concorrente força mimeType: "image/png" em TODAS as imagens
             const parts: any[] = [];
             for (const img of referenceImages) {
                 parts.push({
                     inlineData: {
                         data: img.data.replace(/^data:[^,]+,/, ''),
-                        mimeType: img.mimeType
+                        mimeType: 'image/png'
                     }
                 });
             }
             parts.push({ text: fullPrompt });
 
+            // ✅ Sem responseModalities — concorrente NÃO usa, deixa o SDK decidir
+            // ✅ Sem outputMimeType — concorrente NÃO usa, qualidade melhor
             const body = {
                 contents: { parts },
                 generationConfig: {
-                    responseModalities: ['TEXT', 'IMAGE'],
                     imageConfig: {
                         aspectRatio,
                         imageSize: '2K',
