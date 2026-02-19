@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { X, Download, ChevronLeft, ChevronRight, Copy, Check, ZoomIn, ZoomOut, Paintbrush, RectangleVertical, RectangleHorizontal, Type, Wand2, Send, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { saveAs } from 'file-saver';
 import { MaskPainter } from './MaskPainter';
 import { TextOverlayEditor } from './TextOverlayEditor';
 
@@ -78,12 +79,7 @@ export function ImageLightbox({ images, currentIndex, isOpen, onClose, onIndexCh
                 ctx.drawImage(img, 0, 0);
                 canvas.toBlob((blob) => {
                     if (!blob) return;
-                    const url = URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = `${safeName}.jpg`;
-                    link.click();
-                    setTimeout(() => URL.revokeObjectURL(url), 5000);
+                    saveAs(blob, `${safeName}.jpg`);
                     toast({ title: `📥 Baixando ${safeName}.jpg` });
                 }, 'image/jpeg', 0.95);
             } else {
@@ -92,14 +88,7 @@ export function ImageLightbox({ images, currentIndex, isOpen, onClose, onIndexCh
                 if (!blob.type || blob.type === 'application/octet-stream') {
                     blob = new Blob([blob], { type: 'image/png' });
                 }
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = `${safeName}.png`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                setTimeout(() => URL.revokeObjectURL(url), 5000);
+                saveAs(blob, `${safeName}.png`);
                 toast({ title: `📥 Baixando ${safeName}.png` });
             }
         } catch (err) {

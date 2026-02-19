@@ -1386,22 +1386,14 @@ export function DesignerDoFuturoGenerator() {
                                             try {
                                                 const response = await fetch(img.src);
                                                 let blob = await response.blob();
-                                                // Força o tipo correto se o blob não tiver tipo
                                                 if (!blob.type || blob.type === 'application/octet-stream') {
                                                     blob = new Blob([blob], { type: 'image/png' });
                                                 }
                                                 const d = new Date(img.timestamp);
                                                 const pad = (n: number) => String(n).padStart(2, '0');
-                                                const safeName = `design-${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}`;
-                                                const url = URL.createObjectURL(blob);
-                                                const link = document.createElement('a');
-                                                link.href = url;
-                                                link.download = `${safeName}.png`;
-                                                document.body.appendChild(link);
-                                                link.click();
-                                                document.body.removeChild(link);
-                                                setTimeout(() => URL.revokeObjectURL(url), 5000);
-                                                toast({ title: `📥 Baixando ${safeName}.png` });
+                                                const safeName = `design-${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}.png`;
+                                                saveAs(blob, safeName);
+                                                toast({ title: `📥 Baixando ${safeName}` });
                                             } catch (err) {
                                                 console.error('Erro no download:', err);
                                                 toast({ title: 'Erro ao baixar', variant: 'destructive' });
