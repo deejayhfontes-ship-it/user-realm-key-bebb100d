@@ -33,6 +33,7 @@ import { Switch } from '@/components/ui/switch';
 import { toast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useGeminiImageGeneration } from '@/hooks/useGeminiImageGeneration';
+import { ForensicPanel } from './ForensicPanel';
 
 // ── Tipos ──
 interface ReferenceImage {
@@ -149,6 +150,13 @@ const STYLES = [
     { id: 'pro_portrait', label: 'Retrato' },
     { id: 'ultra_realistic', label: 'Realista' },
     { id: 'glow', label: 'Glow' },
+    // ── 6 novos estilos (live bundle concorrente) ──
+    { id: 'cinematic_render', label: 'Cinemático' },
+    { id: '3d_unreal_engine', label: '3D Unreal' },
+    { id: 'cyber_punk', label: 'Cyberpunk' },
+    { id: 'minimalist_studio', label: 'Estúdio' },
+    { id: 'dark_luxury', label: 'Luxo Dark' },
+    { id: 'neon_futuristic', label: 'Neon' },
 ];
 
 export function DesignerDoFuturoGenerator() {
@@ -156,8 +164,12 @@ export function DesignerDoFuturoGenerator() {
     const [gallery, setGallery] = useState<GeneratedImage[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const refInputRef = useRef<HTMLInputElement>(null);
-    const { generate, isGenerating, progress } = useGeminiImageGeneration();
+    const { generate, extractPromptFromImage, brainstormScenes, isGenerating, progress, lastForensicLog } = useGeminiImageGeneration();
     const [refinementText, setRefinementText] = useState('');
+    const [forensicOpen, setForensicOpen] = useState(false);
+    const [isExtracting, setIsExtracting] = useState(false);
+    const [isBrainstorming, setIsBrainstorming] = useState(false);
+    const [suggestions, setSuggestions] = useState<string[]>([]);
 
     // Helpers
     const updateConfig = (key: keyof DesignerConfig, value: any) => {
@@ -223,6 +235,7 @@ export function DesignerDoFuturoGenerator() {
     const handleGenerate = async () => {
         if (!config.niche && !config.subjectDescription) {
             toast({ title: 'Atenção', description: 'Preencha o Nicho ou a Descrição do Sujeito', variant: 'destructive' });
+            return; // Fix C2: impede execução sem dados obrigatórios
         }
 
         // Mapeamento de dimensão para string "WxH"
@@ -728,6 +741,33 @@ export function DesignerDoFuturoGenerator() {
                             />
                         )}
 
+                        {/* SUGESTÕES DA IA */}
+                        {suggestions.length > 0 && (
+                            <div className="bg-violet-50 border border-violet-200 rounded-xl p-3 mb-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                                <div className="text-[9px] font-extrabold uppercase tracking-wider text-violet-500 mb-2">💡 Sugestões de Cenário</div>
+                                <div className="space-y-1.5">
+                                    {suggestions.map((s, i) => (
+                                        <button
+                                            key={i}
+                                            onClick={() => {
+                                                updateConfig('environment', s);
+                                                toast({ title: `Cenário aplicado: ${s.substring(0, 40)}...` });
+                                            }}
+                                            className="w-full text-left text-[10px] text-violet-800 bg-white hover:bg-violet-100 border border-violet-200 rounded-lg px-2.5 py-1.5 transition-colors"
+                                        >
+                                            <span className="font-bold text-violet-600 mr-1">{i + 1}.</span> {s}
+                                        </button>
+                                    ))}
+                                </div>
+                                <button
+                                    onClick={() => setSuggestions([])}
+                                    className="mt-2 text-[8px] font-bold uppercase text-violet-400 hover:text-violet-600"
+                                >
+                                    Fechar sugestões
+                                </button>
+                            </div>
+                        )}
+
                         {/* BOTÕES DE AÇÃO */}
                         <div className="sticky bottom-0 bg-white pt-4 pb-2 border-t border-[#e0ddd7] mt-4 space-y-2 z-10">
                             <Button
@@ -754,6 +794,62 @@ export function DesignerDoFuturoGenerator() {
                                 )}
                             </Button>
 
+                            {/* AGENTES IA — Extrair Referência + Sugestões */}
+                            <div className="flex gap-2">
+                                <Button
+                                    variant="outline"
+                                    className="flex-1 h-9 rounded-xl text-[10px] font-bold text-violet-600 border-violet-300 hover:bg-violet-50 hover:border-violet-400 disabled:opacity-50"
+                                    disabled={!config.subjectImage || isExtracting}
+                                    onClick={async () => {
+                                        if (!config.subjectImage) return;
+                                        setIsExtracting(true);
+                                        try {
+                                            const result = await extractPromptFromImage(
+                                                `data:${config.subjectImage.mimeType};base64,${config.subjectImage.base64}`
+                                            );
+                                            updateConfig('subjectDescription', result.suggestedPrompt);
+                                            toast({
+                                                title: '🔍 Referência Extraída!',
+                                                description: `Pose: ${result.pose} | Câmera: ${result.cameraAngle}`,
+                                                className: 'bg-violet-600 text-white border-none',
+                                            });
+                                        } catch (err: any) {
+                                            toast({ title: 'Erro ao extrair', description: err.message, variant: 'destructive' });
+                                        } finally {
+                                            setIsExtracting(false);
+                                        }
+                                    }}
+                                >
+                                    {isExtracting ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : '🔍'}
+                                    {isExtracting ? 'Analisando...' : 'Extrair Ref.'}
+                                </Button>
+
+                                <Button
+                                    variant="outline"
+                                    className="flex-1 h-9 rounded-xl text-[10px] font-bold text-amber-600 border-amber-300 hover:bg-amber-50 hover:border-amber-400 disabled:opacity-50"
+                                    disabled={!config.niche || isBrainstorming}
+                                    onClick={async () => {
+                                        if (!config.niche) return;
+                                        setIsBrainstorming(true);
+                                        try {
+                                            const scenes = await brainstormScenes(config.niche, config.selectedStyle);
+                                            setSuggestions(scenes);
+                                            toast({
+                                                title: '💡 5 Cenários Sugeridos!',
+                                                className: 'bg-amber-500 text-white border-none',
+                                            });
+                                        } catch (err: any) {
+                                            toast({ title: 'Erro nas sugestões', description: err.message, variant: 'destructive' });
+                                        } finally {
+                                            setIsBrainstorming(false);
+                                        }
+                                    }}
+                                >
+                                    {isBrainstorming ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : '💡'}
+                                    {isBrainstorming ? 'Pensando...' : 'Sugestões'}
+                                </Button>
+                            </div>
+
                             <Button
                                 variant="outline"
                                 className="w-full h-9 rounded-xl text-[10px] font-bold text-stone-500 border-[#d5d2cc] hover:bg-[#c8e64a]/10 hover:text-[#1a1a1a] hover:border-[#c8e64a]"
@@ -764,6 +860,23 @@ export function DesignerDoFuturoGenerator() {
                             >
                                 <Copy className="w-3 h-3 mr-1.5" />
                                 Duplicar Configuração
+                            </Button>
+
+                            {/* MODO FORENSE */}
+                            <Button
+                                variant="outline"
+                                className={`w-full h-9 rounded-xl text-[10px] font-bold tracking-wider ${forensicOpen
+                                    ? 'bg-amber-100 text-amber-800 border-amber-400'
+                                    : 'text-stone-400 border-[#d5d2cc] hover:bg-amber-50 hover:text-amber-700 hover:border-amber-300'
+                                    }`}
+                                onClick={() => setForensicOpen(!forensicOpen)}
+                                disabled={!lastForensicLog}
+                            >
+                                🔬 {forensicOpen ? 'Fechar' : 'Modo'} Forense
+                                {lastForensicLog && (
+                                    <span className={`ml-1.5 w-1.5 h-1.5 rounded-full inline-block ${lastForensicLog.success ? 'bg-green-500' : 'bg-red-500'
+                                        }`} />
+                                )}
                             </Button>
                         </div>
 
@@ -895,6 +1008,13 @@ export function DesignerDoFuturoGenerator() {
                     </button>
                 </div>
             </div>
+
+            {/* FORENSIC PANEL */}
+            <ForensicPanel
+                log={lastForensicLog}
+                isOpen={forensicOpen}
+                onClose={() => setForensicOpen(false)}
+            />
         </div>
     );
 }
