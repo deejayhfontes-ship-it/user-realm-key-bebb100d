@@ -358,9 +358,9 @@ function buildCompositionRules(config: GenerationConfig, referenceImages: Refere
 async function callWithKeyPool<T>(
     keys: string[],
     fn: (apiKey: string, keyIndex: number, attempt: number) => Promise<T>,
-    maxRetries = 3,
-    rounds = 2,
-    baseDelay = 7000
+    maxRetries = 2,
+    rounds = 1,
+    baseDelay = 3000
 ): Promise<T> {
     if (keys.length === 0) throw new Error('Nenhuma API key disponível.');
 
@@ -382,19 +382,24 @@ async function callWithKeyPool<T>(
                 } catch (err: any) {
                     const msg = err?.message || '';
                     const status = err?.status || err?.httpCode || 0;
-                    const isRetryable =
-                        // Rate limit / quota
-                        msg.includes('429') || status === 429 || msg.includes('quota') || msg.includes('RESOURCE_EXHAUSTED') ||
-                        // Server errors (503 Service Unavailable, 500 Internal, etc.)
+                    const is429 =
+                        msg.includes('429') || status === 429 || msg.includes('quota') || msg.includes('RESOURCE_EXHAUSTED');
+                    const is5xx =
                         msg.includes('503') || msg.includes('500') || status === 503 || status === 500 ||
                         msg.includes('SERVICE_UNAVAILABLE') || msg.includes('UNAVAILABLE') || msg.includes('INTERNAL') ||
                         msg.includes('overloaded') || msg.includes('temporarily') ||
-                        // Generic 5xx check
                         (status >= 500 && status < 600);
+                    const isRetryable = is429 || is5xx;
                     if (!isRetryable) throw err;
                     console.warn(`[KeyPool] Key ${ki + 1}/${shuffled.length} falhou (${status || msg.substring(0, 60)}), tentando próxima...`);
+
+                    if (is5xx) {
+                        // Erro de servidor → pular DIRETO pra próxima key, sem delay
+                        break;
+                    }
+                    // Erro 429 (rate limit) → delay curto antes de retry na mesma key
                     if (retry < maxRetries - 1) {
-                        const delay = baseDelay * Math.pow(2, retry);
+                        const delay = baseDelay * Math.pow(1.5, retry);
                         await new Promise(r => setTimeout(r, delay));
                     }
                 }
