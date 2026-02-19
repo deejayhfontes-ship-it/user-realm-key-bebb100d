@@ -653,7 +653,7 @@ export function useGeminiImageGeneration() {
         }
         generationRef.current = true;
         setIsGenerating(true);
-        setProgress('Preparando inpainting...');
+        setProgress('✨ Preparando a mágica...');
 
         try {
             const providerResult = await getProviderData();
@@ -666,7 +666,7 @@ export function useGeminiImageGeneration() {
             const result = await callWithKeyPool(keys, async (apiKey) => {
                 const genAI = new GoogleGenAI({ apiKey });
 
-                setProgress('Aplicando máscara...');
+                setProgress('🎨 Refinando os detalhes...');
 
                 // ✅ Inpainting via SDK — imagem original + máscara + prompt
                 const response = await genAI.models.generateContent({
@@ -726,7 +726,7 @@ EDIT SCOPE: Apply changes ONLY within the designated edit area.` },
                 throw new Error('Inpainting: nenhuma imagem na resposta.');
             });
 
-            setProgress('Inpainting concluído!');
+            setProgress('🎉 Mágica concluída!');
             return result;
         } finally {
             setIsGenerating(false);
@@ -747,7 +747,7 @@ EDIT SCOPE: Apply changes ONLY within the designated edit area.` },
         }
         generationRef.current = true;
         setIsGenerating(true);
-        setProgress('Preparando reframe...');
+        setProgress('✨ Preparando a mágica...');
 
         try {
             const providerResult = await getProviderData();
@@ -756,7 +756,7 @@ EDIT SCOPE: Apply changes ONLY within the designated edit area.` },
             const result = await callWithKeyPool(keys, async (apiKey) => {
                 const genAI = new GoogleGenAI({ apiKey });
 
-                setProgress('Expandindo imagem...');
+                setProgress('🖼️ Expandindo a arte...');
 
                 const directionPrompt = direction === 'vertical'
                     ? 'Expand this image VERTICALLY (top and bottom) to fill the new aspect ratio. Seamlessly extend the background, maintaining consistency in lighting, style, and environment. Do NOT alter the original content.'
@@ -795,7 +795,7 @@ EDIT SCOPE: Apply changes ONLY within the designated edit area.` },
                 throw new Error('Reframe: nenhuma imagem na resposta.');
             });
 
-            setProgress('Reframe concluído!');
+            setProgress('🎉 Mágica concluída!');
             return result;
         } finally {
             setIsGenerating(false);
@@ -920,7 +920,7 @@ Return a JSON array of exactly 5 scene descriptions in Portuguese (Brazil). Each
         generationRef.current = true;
 
         setIsGenerating(true);
-        setProgress('Conectando via SDK...');
+        setProgress('✨ Criando a mágica...');
 
         // [PATH-ACTIVE] Prova que o hook SDK é o caminho único ativo
         console.log('[PATH-ACTIVE] useGeminiImageGeneration.generate() — hook-sdk-direct | Edge Function NÃO utilizada');
@@ -938,11 +938,11 @@ Return a JSON array of exactly 5 scene descriptions in Portuguese (Brazil). Each
             const compositionRulesArr = buildCompositionRules(config, referenceImages);
 
             // Etapa 1: Gera o prompt refinado via SDK
-            setProgress('Montando prompt via SDK...');
+            setProgress('🎨 Gerando a mágica...');
             const finalPrompt = await generatePromptText(keys, textModel, config, styleLabel, forensicSteps);
 
             // Etapa 2: Gera a imagem via SDK com 2K
-            setProgress('Gerando imagem 2K via SDK...');
+            setProgress('🖼️ Gerando sua imagem...');
             const { imageBase64, mimeType } = await generateImage(
                 keys,
                 imageModel,
@@ -954,7 +954,7 @@ Return a JSON array of exactly 5 scene descriptions in Portuguese (Brazil). Each
             );
 
             const completedAt = Date.now();
-            setProgress('Concluído!');
+            setProgress('🎉 Mágica concluída!');
 
             // FORENSIC: montar log completo
             const forensicLog: ForensicLog = {
