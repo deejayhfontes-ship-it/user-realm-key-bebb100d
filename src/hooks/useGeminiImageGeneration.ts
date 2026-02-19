@@ -867,6 +867,9 @@ Return a JSON array of exactly 5 scene descriptions in Portuguese (Brazil). Each
         setIsGenerating(true);
         setProgress('Conectando via SDK...');
 
+        // [PATH-ACTIVE] Prova que o hook SDK é o caminho único ativo
+        console.log('[PATH-ACTIVE] useGeminiImageGeneration.generate() — hook-sdk-direct | Edge Function NÃO utilizada');
+
         const correlationId = generateCorrelationId();
         const startedAt = Date.now();
         const forensicSteps: ForensicStepLog[] = [];

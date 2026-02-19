@@ -77,14 +77,20 @@ export function ImageLightbox({ images, currentIndex, isOpen, onClose, onIndexCh
                     toast({ title: `📥 Baixando ${safeName}.jpg` });
                 }, 'image/jpeg', 0.95);
             } else {
-                // PNG direto
+                // PNG direto — com fallback MIME robusto
                 const response = await fetch(image.src);
-                const blob = await response.blob();
+                let blob = await response.blob();
+                // Fallback: se blob.type vazio (data URI base64), força image/png
+                if (!blob.type || blob.type === 'application/octet-stream') {
+                    blob = new Blob([blob], { type: 'image/png' });
+                }
                 const url = URL.createObjectURL(blob);
                 const link = document.createElement('a');
                 link.href = url;
                 link.download = `${safeName}.png`;
+                document.body.appendChild(link);
                 link.click();
+                document.body.removeChild(link);
                 setTimeout(() => URL.revokeObjectURL(url), 5000);
                 toast({ title: `📥 Baixando ${safeName}.png` });
             }
