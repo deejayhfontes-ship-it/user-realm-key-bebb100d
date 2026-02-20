@@ -1,0 +1,5 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="100" cy="100" r="90" fill="#00995D"/>
+  <path d="M100 40V160M40 100H160" stroke="white" stroke-width="20" stroke-linecap="round"/>
+  <text x="100" y="180" font-family="Arial" font-size="24" fill="white" text-anchor="middle">SAÚDE</text>
+</svg>

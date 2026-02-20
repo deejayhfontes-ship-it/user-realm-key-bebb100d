@@ -84,19 +84,36 @@ async function getProvider(supabase: any, category?: 'vision' | 'text') {
         }
     }
 
-    // 2. Fallback: buscar provider específico da categoria (excluindo designer-do-futuro que é exclusivo)
+    // 2. Fallback: buscar provider por capacidade (supports_images para vision)
     if (!provider && category) {
-        const { data, error } = await supabase
-            .from('ai_providers')
-            .select('*')
-            .eq('is_active', true)
-            .neq('slug', 'designer-do-futuro')
-            .in('category', [category, 'both'])
-            .order('is_default', { ascending: false })
-            .limit(1);
-        console.log(`[getProvider] Category lookup: found=${data?.length}, error=${error?.message}`);
-        if (data && data.length > 0) {
-            provider = data[0];
+        if (category === 'vision') {
+            // Para visão: buscar provider que suporte imagens
+            const { data, error } = await supabase
+                .from('ai_providers')
+                .select('*')
+                .eq('is_active', true)
+                .eq('supports_images', true)
+                .neq('slug', 'designer-do-futuro')
+                .order('is_default', { ascending: false })
+                .limit(1);
+            console.log(`[getProvider] Vision lookup (supports_images=true): found=${data?.length}, error=${error?.message}`);
+            if (data && data.length > 0) {
+                provider = data[0];
+            }
+        } else {
+            // Para texto: qualquer provider ativo (exceto os de uso exclusivo)
+            const { data, error } = await supabase
+                .from('ai_providers')
+                .select('*')
+                .eq('is_active', true)
+                .neq('slug', 'designer-do-futuro')
+                .neq('slug', 'premium-pro-max')
+                .order('is_default', { ascending: false })
+                .limit(1);
+            console.log(`[getProvider] Text lookup: found=${data?.length}, error=${error?.message}`);
+            if (data && data.length > 0) {
+                provider = data[0];
+            }
         }
     }
 

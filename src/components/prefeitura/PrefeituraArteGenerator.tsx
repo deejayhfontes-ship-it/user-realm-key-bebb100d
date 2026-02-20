@@ -14,10 +14,11 @@ import {
     Wand2,
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { useGeminiImageGeneration } from '@/hooks/useGeminiImageGeneration';
+import { useGeminiImageGeneration, GenerationConfig } from '@/hooks/useGeminiImageGeneration';
 import { ImageLightbox } from '@/components/generators/ImageLightbox';
 import { saveAs } from 'file-saver';
 import { useNavigate } from 'react-router-dom';
+import { usePrefeituraAssets } from '@/hooks/usePrefeituraAssets';
 
 // ── Tipos ──
 interface ReferenceImage {
@@ -96,6 +97,9 @@ export function PrefeituraArteGenerator() {
     const [refImage, setRefImage] = useState<ReferenceImage | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const refInputRef = useRef<HTMLInputElement>(null);
+
+    // Hook de Assets da Prefeitura (Agente Migrado)
+    const { currentSecretaria, getStylePrompt, buildPrefeituraPrompt } = usePrefeituraAssets(secretaria);
 
     // ── Galeria Separada ──
     const [gallery, setGallery] = useState<GeneratedImage[]>(() => {
@@ -184,25 +188,42 @@ export function PrefeituraArteGenerator() {
             const niche = `Prefeitura Municipal - ${secretariaLabel}`;
             const environment = `Official government communication, ${intencaoLabel.replace(/[^\w\s]/g, '')} tone, clean institutional design`;
 
-            const generationConfig = {
+            const tipoPecaLabel = TIPOS_PECA.find(t => t.id === tipoPeca)?.label || 'Arte';
+
+            // Mapeamento de formato para dimensões
+            const dimensions: Record<string, string> = {
+                'quadrado': '1080x1080',
+                'vertical': '1080x1920',
+                'paisagem': '1920x1080'
+            };
+
+            // Usa o "Agente" migrado para construir o prompt
+            const promptDoAgente = buildPrefeituraPrompt(
+                tipoPecaLabel,
+                titulo, // tema
+                intencaoLabel, // intencao
+                descricaoExtra // detalhes
+            );
+
+            const generationConfig: GenerationConfig = {
                 niche,
-                gender: 'Masculino' as const,
-                subjectDescription: `${titulo}. Contexto: ${intencaoLabel} da ${secretariaLabel}. ${descricaoExtra}`.trim(),
+                gender: 'neutral',
+                subjectDescription: promptDoAgente, // Prompt rico gerado pelo agente
                 environment,
-                sobriety: 30,
+                sobriety: 50, // Padrão balanceado
                 style: estilo,
-                useStyle: true,
-                colors: { ambient: '#004691', rim: '#004691', complementary: '#ffffff' },
-                colorFlags: { ambient: true, rim: false, complementary: false },
-                ambientOpacity: 40,
+                useStyle: !!estilo,
+                colors: { ambient: '#ffffff', rim: '#ffffff', complementary: '#ffffff' },
+                colorFlags: { ambient: false, rim: false, complementary: false },
+                ambientOpacity: 0,
                 useBlur: false,
                 useGradient: false,
                 useFloatingElements: false,
                 floatingElementsDescription: '',
-                shotType: 'MEDIUM' as const,
-                additionalInstructions: descricaoExtra || '',
-                dimension,
-                safeAreaSide: 'CENTER' as const,
+                shotType: 'MEDIUM',
+                additionalInstructions: descricaoExtra,
+                dimension: dimensions[formato] || '1080x1080',
+                safeAreaSide: 'CENTER',
                 personCount: 1,
             };
 
@@ -243,21 +264,87 @@ export function PrefeituraArteGenerator() {
         }
     };
 
-    // ── Download ──
+    // ── Download com Overlay (Agente Visual) ──
     const handleDownload = async (img: GeneratedImage) => {
         try {
-            const response = await fetch(img.src);
-            let blob = await response.blob();
-            if (!blob.type || blob.type === 'application/octet-stream') {
-                blob = new Blob([blob], { type: 'image/png' });
+            // Se não tiver logo ou configuração, baixa direto
+            if (!currentSecretaria?.logoUrl) {
+                const response = await fetch(img.src);
+                let blob = await response.blob();
+                if (!blob.type || blob.type === 'application/octet-stream') {
+                    blob = new Blob([blob], { type: 'image/png' });
+                }
+                saveAs(blob, `prefeitura-${Date.now()}.png`);
+                return;
             }
-            const d = new Date(img.timestamp);
-            const pad = (n: number) => String(n).padStart(2, '0');
-            const safeName = `prefeitura-${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}.png`;
-            saveAs(blob, safeName);
-            toast({ title: `📥 Baixando ${safeName}` });
-        } catch {
-            toast({ title: 'Erro ao baixar', variant: 'destructive' });
+
+            // Processamento com Canvas para aplicar marca d'água
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const imageBase = new Image();
+            imageBase.crossOrigin = "anonymous";
+            imageBase.src = img.src;
+
+            await new Promise((resolve, reject) => {
+                imageBase.onload = resolve;
+                imageBase.onerror = reject;
+            });
+
+            canvas.width = imageBase.width;
+            canvas.height = imageBase.height;
+
+            if (ctx) {
+                // 1. Desenha imagem base
+                ctx.drawImage(imageBase, 0, 0);
+
+                // 2. Carrega e desenha Logo
+                try {
+                    const logo = new Image();
+                    logo.crossOrigin = "anonymous";
+                    logo.src = currentSecretaria.logoUrl;
+
+                    await new Promise((resolve, reject) => {
+                        logo.onload = resolve;
+                        logo.onerror = reject;
+                    });
+
+                    // Cálculos de posicionamento (Canto Superior Direito)
+                    const logoWidth = canvas.width * 0.20; // 20% da largura da arte
+                    const scale = logoWidth / logo.width;
+                    const logoHeight = logo.height * scale;
+                    const margin = canvas.width * 0.05; // 5% de margem
+
+                    // Sombra suave para garantir leitura
+                    ctx.shadowColor = "rgba(0,0,0,0.5)";
+                    ctx.shadowBlur = 10;
+                    ctx.shadowOffsetX = 2;
+                    ctx.shadowOffsetY = 2;
+
+                    ctx.drawImage(logo, canvas.width - logoWidth - margin, margin, logoWidth, logoHeight);
+
+                } catch (e) {
+                    console.warn('Erro ao carregar logo para overlay, salvando sem logo.', e);
+                }
+            }
+
+            // 3. Exporta e Salva
+            canvas.toBlob((blob) => {
+                if (blob) {
+                    const d = new Date();
+                    const pad = (n: number) => String(n).padStart(2, '0');
+                    const safeName = `prefeitura-${secretaria}-${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}.png`;
+                    saveAs(blob, safeName);
+                    toast({ title: '📥 Baixando arte oficial com logo...' });
+                } else {
+                    throw new Error('Falha ao gerar blob do canvas');
+                }
+            }, 'image/png', 1.0);
+
+        } catch (err) {
+            console.error('Erro no download:', err);
+            // Fallback
+            saveAs(img.src, `prefeitura-backup-${Date.now()}.png`);
+            toast({ title: 'Baixando versão simples (erro no overlay)', variant: 'destructive' });
         }
     };
 

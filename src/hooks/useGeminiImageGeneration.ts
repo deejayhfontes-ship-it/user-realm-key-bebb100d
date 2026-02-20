@@ -447,14 +447,18 @@ export function useGeminiImageGeneration() {
             return { ...providerCache.current, cacheHit: true };
         }
 
-        const { data, error } = await (supabase
+        const { data: rows, error } = await (supabase
             .from('ai_providers') as any)
             .select('api_key_encrypted, model_name, system_prompt')
             .eq('slug', 'designer-do-futuro')
             .eq('is_active', true)
-            .limit(1)
-            .single();
+            .limit(1);
 
+        if (error) {
+            console.error('[getProviderData] Erro ao buscar provider:', error);
+        }
+
+        const data = rows?.[0] || null;
         const keys: string[] = [];
         let textModel = DEFAULT_TEXT_MODEL;
         let imageModel = DEFAULT_IMAGE_MODEL;

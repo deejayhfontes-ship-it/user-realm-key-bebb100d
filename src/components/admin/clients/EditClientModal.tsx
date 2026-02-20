@@ -67,6 +67,47 @@ export function EditClientModal({ client, open, onOpenChange }: EditClientModalP
   const [clientPassword, setClientPassword] = useState('');
   const [forcePasswordChange, setForcePasswordChange] = useState(false);
   const [editPermissions, setEditPermissions] = useState<Record<string, boolean>>({});
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
+
+  const handleAdminSetPassword = async (newPassword: string) => {
+    if (!client?.email) return;
+    setIsResettingPassword(true);
+    try {
+      const { supabase } = await import('@/integrations/supabase/client');
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session?.access_token) {
+        toast({ title: 'Erro', description: 'Sessão expirada. Faça login novamente.', variant: 'destructive' });
+        return;
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-reset-password`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`,
+            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+          body: JSON.stringify({ email: client.email, newPassword }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        toast({ title: 'Erro ao redefinir senha', description: result.error || 'Erro desconhecido', variant: 'destructive' });
+        return;
+      }
+
+      toast({ title: 'Senha atualizada! ✅', description: `A senha de ${client.email} foi alterada com sucesso.` });
+    } catch (error) {
+      toast({ title: 'Erro', description: 'Falha de conexão ao servidor.', variant: 'destructive' });
+    } finally {
+      setIsResettingPassword(false);
+    }
+  };
 
   const { data: generators } = useGenerators();
   const { data: packages } = usePackages();
@@ -698,6 +739,8 @@ export function EditClientModal({ client, open, onOpenChange }: EditClientModalP
                   // TODO: implement reset password via email
                   console.log('Reset password for', client?.email);
                 }}
+                onAdminSetPassword={handleAdminSetPassword}
+                isResettingPassword={isResettingPassword}
               />
             </TabsContent>
           </Tabs>

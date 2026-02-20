@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.webhook-stripe]
 verify_jwt = false
+
+[functions.admin-reset-password]
+verify_jwt = false

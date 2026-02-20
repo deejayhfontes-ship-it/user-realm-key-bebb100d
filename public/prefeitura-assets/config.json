@@ -1,0 +1,32 @@
+{
+    "secretarias": {
+        "saude": {
+            "nome": "Secretaria de Saúde",
+            "corPrimaria": "#00995D",
+            "corSecundaria": "#006747",
+            "fonteTitulo": "Montserrat",
+            "fonteCorpo": "Roboto",
+            "logoUrl": "/prefeitura-assets/saude/logo.svg"
+        },
+        "educacao": {
+            "nome": "Secretaria de Educação",
+            "corPrimaria": "#005EB8",
+            "corSecundaria": "#003D7A",
+            "fonteTitulo": "Montserrat",
+            "fonteCorpo": "Roboto",
+            "logoUrl": "/prefeitura-assets/educacao/logo.svg"
+        },
+        "cultura": {
+            "nome": "Secretaria de Cultura (Teste)",
+            "corPrimaria": "#9C27B0",
+            "corSecundaria": "#7B1FA2",
+            "fonteTitulo": "Montserrat",
+            "fonteCorpo": "Roboto",
+            "logoUrl": "/prefeitura-assets/cultura/logo.svg"
+        }
+    },
+    "global": {
+        "fontePadrao": "Inter",
+        "logoPrefeitura": "/prefeitura-assets/logo-prefeitura.svg"
+    }
+}

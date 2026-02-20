@@ -40,6 +40,10 @@ interface SecurityAccessTabProps {
     isEditMode?: boolean;
     /** Callback when reset password button is clicked */
     onResetPassword?: () => void;
+    /** Callback when admin sets a new password directly */
+    onAdminSetPassword?: (newPassword: string) => Promise<void>;
+    /** Whether the admin set password is in progress */
+    isResettingPassword?: boolean;
 }
 
 // Password strength calculator
@@ -100,7 +104,12 @@ export function SecurityAccessTab({
     lastLogin,
     isEditMode = false,
     onResetPassword,
+    onAdminSetPassword,
+    isResettingPassword = false,
 }: SecurityAccessTabProps) {
+    const [adminNewPassword, setAdminNewPassword] = useState('');
+    const [showAdminPassword, setShowAdminPassword] = useState(false);
+    const [resetSuccess, setResetSuccess] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [permSearch, setPermSearch] = useState('');
     const [permissions, setPermissions] = useState<PermissionState>({});
@@ -245,30 +254,116 @@ export function SecurityAccessTab({
 
                 {/* Edit mode extras */}
                 {isEditMode && (
-                    <div className="flex flex-wrap gap-3">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={onResetPassword}
-                            className="rounded-xl gap-2 text-sm"
-                        >
-                            <Mail className="h-4 w-4" />
-                            Resetar Senha por E-mail
-                        </Button>
-
-                        {lastLogin && (
-                            <div className="flex items-center gap-2 px-4 py-2 bg-muted/30 rounded-xl text-sm text-muted-foreground">
-                                <Clock className="h-4 w-4" />
-                                Último login:{' '}
-                                {new Date(lastLogin).toLocaleDateString('pt-BR', {
-                                    day: '2-digit',
-                                    month: '2-digit',
-                                    year: 'numeric',
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                })}
+                    <div className="space-y-4">
+                        {/* Admin: Definir Nova Senha */}
+                        {onAdminSetPassword && (
+                            <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl space-y-3">
+                                <div className="flex items-center gap-2">
+                                    <KeyRound className="h-4 w-4 text-amber-600" />
+                                    <span className="text-sm font-semibold text-foreground">Definir Nova Senha (Admin)</span>
+                                </div>
+                                <div className="flex gap-2">
+                                    <div className="relative flex-1">
+                                        <Input
+                                            type={showAdminPassword ? 'text' : 'password'}
+                                            value={adminNewPassword}
+                                            onChange={(e) => {
+                                                setAdminNewPassword(e.target.value);
+                                                setResetSuccess(false);
+                                            }}
+                                            placeholder="Digite a nova senha"
+                                            className="pr-10 rounded-xl bg-background border-border/50 h-11"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowAdminPassword(!showAdminPassword)}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                                        >
+                                            {showAdminPassword ? (
+                                                <EyeOff className="h-4 w-4" />
+                                            ) : (
+                                                <Eye className="h-4 w-4" />
+                                            )}
+                                        </button>
+                                    </div>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => {
+                                            const pw = generateStrongPassword();
+                                            setAdminNewPassword(pw);
+                                            setShowAdminPassword(true);
+                                            setResetSuccess(false);
+                                        }}
+                                        className="rounded-xl gap-1 hover:bg-primary/10 hover:text-primary hover:border-primary/30"
+                                    >
+                                        <RefreshCw className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        disabled={!adminNewPassword || adminNewPassword.length < 6 || isResettingPassword}
+                                        onClick={async () => {
+                                            await onAdminSetPassword(adminNewPassword);
+                                            setResetSuccess(true);
+                                            setAdminNewPassword('');
+                                            setShowAdminPassword(false);
+                                        }}
+                                        className="rounded-xl gap-2 bg-amber-600 text-white hover:bg-amber-700"
+                                    >
+                                        {isResettingPassword ? (
+                                            <RefreshCw className="h-4 w-4 animate-spin" />
+                                        ) : (
+                                            <KeyRound className="h-4 w-4" />
+                                        )}
+                                        Aplicar
+                                    </Button>
+                                </div>
+                                {/* Password strength for admin input */}
+                                {adminNewPassword && (() => {
+                                    const s = getPasswordStrength(adminNewPassword);
+                                    return (
+                                        <div className="space-y-1">
+                                            <div className="flex items-center justify-between text-xs">
+                                                <span className="text-muted-foreground">Força</span>
+                                                <span style={{ color: s.color }} className="font-medium">{s.label}</span>
+                                            </div>
+                                            <div className="h-1 bg-muted rounded-full overflow-hidden">
+                                                <div className={`h-full rounded-full transition-all duration-500 ${s.bgClass}`} style={{ width: `${(s.score / 5) * 100}%` }} />
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
+                                {resetSuccess && (
+                                    <p className="text-xs text-green-600 font-medium animate-in fade-in">✅ Senha atualizada com sucesso!</p>
+                                )}
                             </div>
                         )}
+
+                        <div className="flex flex-wrap gap-3">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={onResetPassword}
+                                className="rounded-xl gap-2 text-sm"
+                            >
+                                <Mail className="h-4 w-4" />
+                                Resetar Senha por E-mail
+                            </Button>
+
+                            {lastLogin && (
+                                <div className="flex items-center gap-2 px-4 py-2 bg-muted/30 rounded-xl text-sm text-muted-foreground">
+                                    <Clock className="h-4 w-4" />
+                                    Último login:{' '}
+                                    {new Date(lastLogin).toLocaleDateString('pt-BR', {
+                                        day: '2-digit',
+                                        month: '2-digit',
+                                        year: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                    })}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 )}
             </div>
@@ -342,15 +437,15 @@ function PagePermissionRow({
     return (
         <div
             className={`flex items-center justify-between p-4 rounded-xl border transition-all duration-200 ${granted
-                    ? 'bg-primary/5 border-primary/20'
-                    : 'bg-muted/20 border-border/30'
+                ? 'bg-primary/5 border-primary/20'
+                : 'bg-muted/20 border-border/30'
                 }`}
         >
             <div className="flex items-center gap-3">
                 <div
                     className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors duration-200 ${granted
-                            ? 'bg-primary/15 text-primary'
-                            : 'bg-muted/50 text-muted-foreground'
+                        ? 'bg-primary/15 text-primary'
+                        : 'bg-muted/50 text-muted-foreground'
                         }`}
                 >
                     <Shield className="h-4 w-4" />
