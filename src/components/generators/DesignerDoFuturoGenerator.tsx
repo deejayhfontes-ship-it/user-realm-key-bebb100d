@@ -71,7 +71,7 @@ interface Project {
 
 interface DesignerConfig {
     // Sujeito
-    subjectImage: ReferenceImage | null;
+    subjectImages: ReferenceImage[];
     quantity: number;
     gender: 'Masculino' | 'Feminino';
     subjectDescription: string;
@@ -127,7 +127,7 @@ interface DesignerConfig {
 
 // ── Constantes ──
 const DEFAULT_CONFIG: DesignerConfig = {
-    subjectImage: null,
+    subjectImages: [],
     quantity: 1,
     gender: 'Masculino',
     subjectDescription: '',
@@ -441,7 +441,14 @@ export function DesignerDoFuturoGenerator() {
 
     // Helpers
     const updateConfig = (key: keyof DesignerConfig, value: any) => {
-        setConfig(prev => ({ ...prev, [key]: value }));
+        setConfig(prev => {
+            const next = { ...prev, [key]: value };
+            // Quando diminui a quantity, trima fotos excedentes
+            if (key === 'quantity' && typeof value === 'number' && prev.subjectImages.length > value) {
+                next.subjectImages = prev.subjectImages.slice(0, value);
+            }
+            return next;
+        });
     };
 
     const updateColor = (key: 'ambient' | 'rim' | 'complementary', value: string) => {
@@ -473,16 +480,39 @@ export function DesignerDoFuturoGenerator() {
     };
 
     const handleSubjectUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            try {
-                const img = await processImage(file);
-                updateConfig('subjectImage', img);
-                toast({ title: '📸 Foto do sujeito carregada!', className: 'bg-lime-500 text-white border-none' });
-            } catch (err) {
-                toast({ title: 'Erro', description: 'Arquivo inválido', variant: 'destructive' });
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
+        try {
+            const maxSlots = config.quantity;
+            const currentCount = config.subjectImages.length;
+            const slotsAvailable = maxSlots - currentCount;
+            if (slotsAvailable <= 0) {
+                toast({ title: '⚠️ Limite atingido', description: `Máximo de ${maxSlots} foto(s) para a quantidade selecionada.`, className: 'bg-amber-500 text-white border-none' });
+                return;
             }
+            const filesToProcess = Array.from(files).slice(0, slotsAvailable);
+            const newImages: ReferenceImage[] = [];
+            for (const file of filesToProcess) {
+                const img = await processImage(file);
+                newImages.push(img);
+            }
+            setConfig(prev => ({
+                ...prev,
+                subjectImages: [...prev.subjectImages, ...newImages]
+            }));
+            toast({ title: `📸 ${newImages.length} foto(s) carregada(s)!`, className: 'bg-lime-500 text-white border-none' });
+        } catch (err) {
+            toast({ title: 'Erro', description: 'Arquivo inválido', variant: 'destructive' });
         }
+        // Reset input para permitir re-upload do mesmo arquivo
+        e.target.value = '';
+    };
+
+    const removeSubjectImage = (index: number) => {
+        setConfig(prev => ({
+            ...prev,
+            subjectImages: prev.subjectImages.filter((_, i) => i !== index)
+        }));
     };
 
     const handleRefUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -578,12 +608,12 @@ export function DesignerDoFuturoGenerator() {
                 } : {}),
             };
 
-            // Monta o array de imagens de referência (sujeito + estilos)
+            // Monta o array de imagens de referência (sujeitos + estilos)
             const referenceImages = [];
-            if (config.subjectImage) {
+            for (const img of config.subjectImages) {
                 referenceImages.push({
-                    data: `data:${config.subjectImage.mimeType};base64,${config.subjectImage.base64}`,
-                    mimeType: config.subjectImage.mimeType,
+                    data: `data:${img.mimeType};base64,${img.base64}`,
+                    mimeType: img.mimeType,
                 });
             }
             for (const ref of config.styleReferences) {
@@ -772,29 +802,34 @@ export function DesignerDoFuturoGenerator() {
 
                             {/* Upload */}
                             <div className="mb-3">
-                                <Label className="text-[9px] uppercase font-bold tracking-wider text-white/40 mb-1.5 block">Fotos do Sujeito</Label>
-                                <div
-                                    onClick={() => fileInputRef.current?.click()}
-                                    className={`
-                                    h-24 border border-dashed rounded-xl flex flex-col items-center justify-center cursor-pointer transition-colors relative overflow-hidden group
-                                    ${config.subjectImage ? 'border-lime-400 bg-lime-400/10' : 'border-white/10 hover:border-white/20 bg-white/5'}
-                                `}
-                                >
-                                    {config.subjectImage ? (
-                                        <>
-                                            <img src={config.subjectImage.preview} className="w-full h-full object-cover opacity-90" />
-                                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <span className="text-white text-xs font-bold">Trocar Imagem</span>
-                                            </div>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Upload className="w-5 h-5 text-white/30 mb-1" />
-                                            <span className="text-[10px] font-bold text-white/30 uppercase">Upload</span>
-                                        </>
+                                <Label className="text-[9px] uppercase font-bold tracking-wider text-white/40 mb-1.5 flex items-center justify-between">
+                                    <span>Fotos do Sujeito</span>
+                                    <span className="text-lime-400/60">{config.subjectImages.length}/{config.quantity}</span>
+                                </Label>
+                                <div className="grid grid-cols-4 gap-2">
+                                    {config.subjectImages.map((img, idx) => (
+                                        <div key={idx} className="relative aspect-square rounded-lg border border-lime-400/30 bg-lime-400/10 overflow-hidden group">
+                                            <img src={img.preview} className="w-full h-full object-cover" />
+                                            <div className="absolute top-1 left-1 bg-lime-500/90 text-white text-[8px] px-1.5 rounded-sm font-bold">{idx + 1}</div>
+                                            <button
+                                                onClick={() => removeSubjectImage(idx)}
+                                                className="absolute top-1 right-1 bg-red-500/90 hover:bg-red-600 w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] opacity-0 group-hover:opacity-100 transition-all"
+                                            >
+                                                <X className="w-3 h-3" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                    {config.subjectImages.length < config.quantity && (
+                                        <button
+                                            onClick={() => fileInputRef.current?.click()}
+                                            className="aspect-square rounded-lg border-2 border-dashed border-white/10 hover:border-lime-400/40 flex flex-col items-center justify-center cursor-pointer transition-all bg-white/5 hover:bg-lime-500/5"
+                                        >
+                                            <Upload className="w-4 h-4 text-white/30 mb-0.5" />
+                                            <span className="text-[8px] font-bold text-white/30 uppercase">Upload</span>
+                                        </button>
                                     )}
-                                    <input ref={fileInputRef} type="file" className="hidden" accept="image/*" onChange={handleSubjectUpload} />
                                 </div>
+                                <input ref={fileInputRef} type="file" className="hidden" accept="image/*" multiple onChange={handleSubjectUpload} />
                             </div>
 
                             {/* Quantidade */}
