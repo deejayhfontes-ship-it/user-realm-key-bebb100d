@@ -75,7 +75,12 @@ export function usePrefeituraAssets(secretariaSlug?: string) {
     /**
      * Constrói um prompt textual com base nas referências (Port do agente.py)
      */
-    const buildPrefeituraPrompt = (material: string, tema: string, intencao: string, detalhes: string) => {
+    const buildPrefeituraPrompt = (
+        material: string,
+        tema: string,
+        intencao: string,
+        detalhes: string
+    ) => {
         if (!currentSecretaria) return '';
 
         const secretariaNome = currentSecretaria.nome;

@@ -186,12 +186,12 @@ const SHOT_TYPES: Record<string, string> = {
 };
 
 // ============================================================
-// Modelos padrão — Gemini 3 (confirmado no HAR do concorrente)
+// Modelos padrão — Gemini 3.1 (mais recentes, fev/2026)
 // ============================================================
-const DEFAULT_TEXT_MODEL = 'gemini-3-pro-preview';
-const DEFAULT_IMAGE_MODEL = 'gemini-3-pro-image-preview';
+const DEFAULT_TEXT_MODEL = 'gemini-3.1-pro-preview';
+const DEFAULT_IMAGE_MODEL = 'gemini-3.1-flash-image-preview';
 const SDK_VERSION = '@google/genai@^1.30.0';
-const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutos
+const CACHE_TTL_MS = 30 * 1000; // 30 segundos — para que mudanças de keys entrem rápido
 
 // ============================================================
 // Calcula aspectRatio (igual ao concorrente)
@@ -358,22 +358,23 @@ function buildCompositionRules(config: GenerationConfig, referenceImages: Refere
 async function callWithKeyPool<T>(
     keys: string[],
     fn: (apiKey: string, keyIndex: number, attempt: number) => Promise<T>,
-    maxRetries = 2,
-    rounds = 1,
-    baseDelay = 3000
+    maxRetries = 3,
+    rounds = 2,
+    baseDelay = 5000
 ): Promise<T> {
     if (keys.length === 0) throw new Error('Nenhuma API key disponível.');
-
-    // Se só tem 1 key, tenta direto sem pool
-    if (keys.length === 1) {
-        return fn(keys[0], 0, 0);
-    }
 
     // Embaralha as keys aleatoriamente (igual concorrente)
     const shuffled = [...keys].sort(() => 0.5 - Math.random());
 
     let globalAttempt = 0;
     for (let round = 0; round < rounds; round++) {
+        if (round > 0) {
+            // Entre rounds, espera mais tempo para dar chance ao rate limit resetar
+            const roundDelay = baseDelay * (round + 1);
+            console.log(`[KeyPool] Round ${round + 1}/${rounds} — aguardando ${roundDelay / 1000}s para rate limit resetar...`);
+            await new Promise(r => setTimeout(r, roundDelay));
+        }
         for (let ki = 0; ki < shuffled.length; ki++) {
             const key = shuffled[ki];
             for (let retry = 0; retry < maxRetries; retry++) {
@@ -391,15 +392,16 @@ async function callWithKeyPool<T>(
                         (status >= 500 && status < 600);
                     const isRetryable = is429 || is5xx;
                     if (!isRetryable) throw err;
-                    console.warn(`[KeyPool] Key ${ki + 1}/${shuffled.length} falhou (${status || msg.substring(0, 60)}), tentando próxima...`);
+                    console.warn(`[KeyPool] Key ${ki + 1}/${shuffled.length} falhou (${status || msg.substring(0, 60)}), tentando próxima... [round ${round + 1}, retry ${retry + 1}/${maxRetries}]`);
 
                     if (is5xx) {
                         // Erro de servidor → pular DIRETO pra próxima key, sem delay
                         break;
                     }
-                    // Erro 429 (rate limit) → delay curto antes de retry na mesma key
+                    // Erro 429 (rate limit) → delay com backoff exponencial antes de retry
                     if (retry < maxRetries - 1) {
-                        const delay = baseDelay * Math.pow(1.5, retry);
+                        const delay = baseDelay * Math.pow(2, retry);
+                        console.log(`[KeyPool] Aguardando ${delay / 1000}s antes de retry...`);
                         await new Promise(r => setTimeout(r, delay));
                     }
                 }
@@ -475,9 +477,20 @@ export function useGeminiImageGeneration() {
                     const meta = JSON.parse(data.system_prompt);
                     if (meta.model_text) textModel = meta.model_text;
                     if (meta.api_keys && Array.isArray(meta.api_keys)) {
-                        for (const k of meta.api_keys) {
-                            if (k && typeof k === 'string' && !keys.includes(k)) {
-                                keys.push(k);
+                        for (const item of meta.api_keys) {
+                            // Handle both old format (string[]) and new format ({key,enabled}[])
+                            let keyStr: string | null = null;
+                            let isEnabled = true;
+
+                            if (typeof item === 'string') {
+                                keyStr = item;
+                            } else if (item && typeof item === 'object' && item.key) {
+                                keyStr = item.key;
+                                isEnabled = item.enabled !== false;
+                            }
+
+                            if (keyStr && isEnabled && !keys.includes(keyStr)) {
+                                keys.push(keyStr);
                             }
                         }
                     }

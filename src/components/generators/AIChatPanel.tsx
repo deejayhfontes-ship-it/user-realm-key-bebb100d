@@ -121,7 +121,7 @@ export function AIChatPanel({ isOpen, onClose }: AIChatPanelProps) {
             const fullPrompt = historyContents;
 
             const response = await genAI.models.generateContent({
-                model: 'gemini-3-pro-preview',
+                model: 'gemini-3.1-pro-preview',
                 contents: fullPrompt,
                 config: {
                     systemInstruction: selectedPersona.systemInstruction,
@@ -173,10 +173,10 @@ export function AIChatPanel({ isOpen, onClose }: AIChatPanelProps) {
                             setMessages([]);
                         }}
                         className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all ${selectedPersona.id === p.id
-                                ? p.color === 'violet'
-                                    ? 'bg-violet-600/20 text-violet-400 border border-violet-500/30'
-                                    : 'bg-amber-600/20 text-amber-400 border border-amber-500/30'
-                                : 'bg-white/5 text-white/40 border border-white/5 hover:border-white/10'
+                            ? p.color === 'violet'
+                                ? 'bg-violet-600/20 text-violet-400 border border-violet-500/30'
+                                : 'bg-amber-600/20 text-amber-400 border border-amber-500/30'
+                            : 'bg-white/5 text-white/40 border border-white/5 hover:border-white/10'
                             }`}
                     >
                         <p.icon className="w-3.5 h-3.5" />
@@ -203,8 +203,8 @@ export function AIChatPanel({ isOpen, onClose }: AIChatPanelProps) {
                 {messages.map((msg, idx) => (
                     <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                         <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-xs leading-relaxed ${msg.role === 'user'
-                                ? 'bg-violet-600 text-white rounded-br-sm'
-                                : 'bg-white/5 text-white/80 border border-white/10 rounded-bl-sm'
+                            ? 'bg-violet-600 text-white rounded-br-sm'
+                            : 'bg-white/5 text-white/80 border border-white/10 rounded-bl-sm'
                             }`}>
                             <p className="whitespace-pre-wrap">{msg.content}</p>
                         </div>

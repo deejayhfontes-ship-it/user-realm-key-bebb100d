@@ -172,6 +172,7 @@ export function PrefeituraArteGenerator() {
         return fmtDef?.dimension || tipoDef?.dimension || '1080x1080';
     };
 
+
     // ── Gerar ──
     const handleGenerate = async () => {
         if (!titulo.trim()) {
@@ -449,6 +450,7 @@ export function PrefeituraArteGenerator() {
                             </div>
                         </div>
 
+
                         {/* Descrição extra */}
                         <div className="bg-[#111] rounded-2xl border border-white/[0.06] p-6">
                             <label className="block text-sm font-semibold text-zinc-300 mb-3">
@@ -457,7 +459,7 @@ export function PrefeituraArteGenerator() {
                             <textarea
                                 value={descricaoExtra}
                                 onChange={(e) => setDescricaoExtra(e.target.value)}
-                                placeholder="Ex: Incluir informações de data, horário, local. Cores azul e branco. Destacar logo da prefeitura..."
+                                placeholder="Ex: Cores azul e branco. Estilo minimalista. Destacar logo da prefeitura..."
                                 rows={3}
                                 className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-emerald-400/50 text-white placeholder-zinc-600 rounded-xl px-4 py-3 outline-none transition-colors resize-none"
                             />
