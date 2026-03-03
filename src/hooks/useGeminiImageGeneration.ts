@@ -200,6 +200,13 @@ const IMAGE_MODEL_FALLBACKS: string[] = [
     'gemini-2.0-flash-exp-image-generation', // 🏅 Legacy fallback
 ];
 
+// Lista de modelos de TEXTO em ordem de prioridade (fallback automático)
+const TEXT_MODEL_FALLBACKS: string[] = [
+    'gemini-3.1-pro-preview',           // 🥇 Principal — melhor qualidade
+    'gemini-2.5-flash-preview-05-20',   // 🥈 Flash rápido
+    'gemini-2.0-flash',                 // 🥉 Modelo estável legacy
+];
+
 const SDK_VERSION = '@google/genai@^1.30.0';
 const CACHE_TTL_MS = 30 * 1000; // 30 segundos — para que mudanças de keys entrem rápido
 
@@ -439,10 +446,14 @@ async function callWithKeyPool<T>(
 async function callWithModelFallback<T>(
     primaryModel: string,
     fn: (model: string) => Promise<T>,
-    progressCallback?: (msg: string) => void
+    progressCallback?: (msg: string) => void,
+    fallbackList?: string[]
 ): Promise<{ result: T; usedModel: string }> {
+    // Detecta automaticamente a lista de fallbacks: custom > imagem (se modelo contém "image") > texto
+    const autoList = fallbackList
+        || (primaryModel.includes('image') ? IMAGE_MODEL_FALLBACKS : TEXT_MODEL_FALLBACKS);
     // Constrói lista: modelo principal primeiro, depois fallbacks que não duplicam
-    const models = [primaryModel, ...IMAGE_MODEL_FALLBACKS.filter(m => m !== primaryModel)];
+    const models = [primaryModel, ...autoList.filter(m => m !== primaryModel)];
 
     let lastError: any = null;
     for (let i = 0; i < models.length; i++) {
@@ -1026,9 +1037,19 @@ Return a JSON array of exactly 5 scene descriptions in Portuguese (Brazil). Each
             const systemPromptExpanded = SYSTEM_PROMPT.replace(/{estilo_selecionado}/g, styleLabel);
             const compositionRulesArr = buildCompositionRules(config, referenceImages);
 
-            // Etapa 1: Gera o prompt refinado via SDK
+            // Etapa 1: Gera o prompt refinado com FALLBACK AUTOMÁTICO de modelos de texto
             setProgress('🎨 Gerando a mágica...');
-            const finalPrompt = await generatePromptText(keys, textModel, config, styleLabel, forensicSteps);
+            const { result: finalPrompt, usedModel: usedTextModel } = await callWithModelFallback(
+                textModel,
+                async (textModelToUse) => {
+                    return generatePromptText(keys, textModelToUse, config, styleLabel, forensicSteps);
+                },
+                (msg) => setProgress(msg)
+            );
+
+            if (usedTextModel !== textModel) {
+                console.log(`[Generate] ✅ Prompt gerado com modelo fallback: ${usedTextModel} (principal era: ${textModel})`);
+            }
 
             // Etapa 2: Gera a imagem com FALLBACK AUTOMÁTICO de modelos
             setProgress('🖼️ Gerando sua imagem...');
