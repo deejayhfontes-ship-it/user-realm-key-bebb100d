@@ -209,9 +209,9 @@ export function PrefeituraArteGenerator() {
             const generationConfig: GenerationConfig = {
                 niche,
                 gender: 'neutral',
-                subjectDescription: promptDoAgente, // Prompt rico gerado pelo agente
-                environment,
-                sobriety: 50, // Padrão balanceado
+                subjectDescription: `[INSTRUÇÃO PRIORITÁRIA: NÃO gere foto de pessoa. Gere um DESIGN GRÁFICO / INFORMATIVO / FLYER / CARTAZ com o título "${titulo}" renderizado como texto tipográfico grande na composição.]\n\n${promptDoAgente}`,
+                environment: `Professional graphic design layout for government communication. Flat design style, clean layout with bold typography, institutional colors, geometric shapes, icons and decorative elements. This is a PRINTED FLYER/POSTER design, NOT a photograph.`,
+                sobriety: 70, // Mais sóbrio e institucional
                 style: estilo,
                 useStyle: !!estilo,
                 colors: { ambient: '#ffffff', rim: '#ffffff', complementary: '#ffffff' },
@@ -221,11 +221,11 @@ export function PrefeituraArteGenerator() {
                 useGradient: false,
                 useFloatingElements: false,
                 floatingElementsDescription: '',
-                shotType: 'MEDIUM',
-                additionalInstructions: descricaoExtra,
+                shotType: 'CLOSE_UP', // Não importa para design gráfico — close reduz chance de corpo inteiro
+                additionalInstructions: `REGRA ABSOLUTA: O resultado DEVE ser um DESIGN GRÁFICO/INFORMATIVO com tipografia, NÃO uma fotografia. O título "${titulo}" deve aparecer em TEXTO GRANDE e legível. ${descricaoExtra || ''}`,
                 dimension: dimensions[formato] || '1080x1080',
                 safeAreaSide: 'CENTER',
-                personCount: 1,
+                personCount: 0, // SEM pessoas — é informativo gráfico
             };
 
             const referenceImages = [];
