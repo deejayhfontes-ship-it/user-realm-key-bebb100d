@@ -186,10 +186,20 @@ const SHOT_TYPES: Record<string, string> = {
 };
 
 // ============================================================
-// Modelos padrão — Gemini 3.1 (mais recentes, fev/2026)
+// Modelos padrão — Gemini 3 (principal) + fallbacks
 // ============================================================
 const DEFAULT_TEXT_MODEL = 'gemini-3.1-pro-preview';
 const DEFAULT_IMAGE_MODEL = 'gemini-3-pro-image-preview';
+
+// Lista de modelos de imagem em ordem de prioridade (fallback automático)
+// Se o modelo principal estiver com 503/500, tenta o próximo da lista
+const IMAGE_MODEL_FALLBACKS: string[] = [
+    'gemini-3-pro-image-preview',       // 🥇 Principal — melhor qualidade
+    'gemini-3.1-flash-image-preview',   // 🥈 Rápido & barato (US$ 0,25 vs US$ 2)
+    'gemini-2.5-flash-image',           // 🥉 Versão anterior estável
+    'gemini-2.0-flash-exp-image-generation', // 🏅 Legacy fallback
+];
+
 const SDK_VERSION = '@google/genai@^1.30.0';
 const CACHE_TTL_MS = 30 * 1000; // 30 segundos — para que mudanças de keys entrem rápido
 
@@ -353,6 +363,22 @@ function buildCompositionRules(config: GenerationConfig, referenceImages: Refere
 }
 
 // ============================================================
+// Verifica se erro é retryável (503/500/429)
+// ============================================================
+function classifyError(err: any): { is429: boolean; is5xx: boolean; isRetryable: boolean } {
+    const msg = err?.message || '';
+    const status = err?.status || err?.httpCode || 0;
+    const is429 =
+        msg.includes('429') || status === 429 || msg.includes('quota') || msg.includes('RESOURCE_EXHAUSTED');
+    const is5xx =
+        msg.includes('503') || msg.includes('500') || status === 503 || status === 500 ||
+        msg.includes('SERVICE_UNAVAILABLE') || msg.includes('UNAVAILABLE') || msg.includes('INTERNAL') ||
+        msg.includes('overloaded') || msg.includes('temporarily') || msg.includes('high demand') ||
+        (status >= 500 && status < 600);
+    return { is429, is5xx, isRetryable: is429 || is5xx };
+}
+
+// ============================================================
 // SDK Key Pool com retry (replicado do concorrente Bs())
 // ============================================================
 async function callWithKeyPool<T>(
@@ -381,16 +407,9 @@ async function callWithKeyPool<T>(
                 try {
                     return await fn(key, ki, globalAttempt++);
                 } catch (err: any) {
+                    const { is429, is5xx, isRetryable } = classifyError(err);
                     const msg = err?.message || '';
                     const status = err?.status || err?.httpCode || 0;
-                    const is429 =
-                        msg.includes('429') || status === 429 || msg.includes('quota') || msg.includes('RESOURCE_EXHAUSTED');
-                    const is5xx =
-                        msg.includes('503') || msg.includes('500') || status === 503 || status === 500 ||
-                        msg.includes('SERVICE_UNAVAILABLE') || msg.includes('UNAVAILABLE') || msg.includes('INTERNAL') ||
-                        msg.includes('overloaded') || msg.includes('temporarily') ||
-                        (status >= 500 && status < 600);
-                    const isRetryable = is429 || is5xx;
                     if (!isRetryable) throw err;
                     console.warn(`[KeyPool] Key ${ki + 1}/${shuffled.length} falhou (${status || msg.substring(0, 60)}), tentando próxima... [round ${round + 1}, retry ${retry + 1}/${maxRetries}]`);
 
@@ -410,6 +429,44 @@ async function callWithKeyPool<T>(
     }
 
     throw new Error('Todas as chaves do pool falharam após múltiplas tentativas. Tente novamente em alguns minutos.');
+}
+
+// ============================================================
+// Fallback de modelos — tenta modelos alternativos quando 503/500
+// ============================================================
+async function callWithModelFallback<T>(
+    primaryModel: string,
+    fn: (model: string) => Promise<T>,
+    progressCallback?: (msg: string) => void
+): Promise<{ result: T; usedModel: string }> {
+    // Constrói lista: modelo principal primeiro, depois fallbacks que não duplicam
+    const models = [primaryModel, ...IMAGE_MODEL_FALLBACKS.filter(m => m !== primaryModel)];
+
+    let lastError: any = null;
+    for (let i = 0; i < models.length; i++) {
+        const model = models[i];
+        try {
+            if (i > 0) {
+                console.log(`[ModelFallback] ⚡ Tentando modelo alternativo ${i + 1}/${models.length}: ${model}`);
+                progressCallback?.(`🔄 Modelo ${models[i - 1]} indisponível, tentando ${model}...`);
+            }
+            const result = await fn(model);
+            if (i > 0) {
+                console.log(`[ModelFallback] ✅ Sucesso com modelo fallback: ${model}`);
+            }
+            return { result, usedModel: model };
+        } catch (err: any) {
+            lastError = err;
+            const { is5xx } = classifyError(err);
+            if (!is5xx) {
+                // Erro não é 5xx (pode ser auth, formato, etc) → não tenta fallback
+                throw err;
+            }
+            console.warn(`[ModelFallback] ❌ Modelo ${model} falhou com 5xx, tentando próximo...`);
+        }
+    }
+
+    throw lastError || new Error('Todos os modelos falharam. Tente novamente em alguns minutos.');
 }
 
 // ============================================================
@@ -685,29 +742,31 @@ export function useGeminiImageGeneration() {
                 ? getAspectRatio(referenceConfig.dimension)
                 : '9:16';
 
-            const result = await callWithKeyPool(keys, async (apiKey) => {
-                const genAI = new GoogleGenAI({ apiKey });
+            const result = await callWithModelFallback(
+                imageModel,
+                async (modelToUse) => {
+                    return callWithKeyPool(keys, async (apiKey) => {
+                        const genAI = new GoogleGenAI({ apiKey });
 
-                setProgress('🎨 Refinando os detalhes...');
+                        setProgress('🎨 Refinando os detalhes...');
 
-                // ✅ Inpainting via SDK — imagem original + máscara + prompt
-                const response = await genAI.models.generateContent({
-                    model: imageModel,
-                    contents: [
-                        {
-                            inlineData: {
-                                data: originalImageBase64.replace(/^data:[^,]+,/, ''),
-                                mimeType: 'image/png',
-                            }
-                        },
-                        {
-                            inlineData: {
-                                data: maskBase64.replace(/^data:[^,]+,/, ''),
-                                mimeType: 'image/png',
-                            }
-                        },
-                        {
-                            text: `${maskBase64 ? 'INPAINTING TASK: Edit ONLY the masked areas of the first image.' : 'IMAGE REFINEMENT TASK: Apply the requested changes to the first image.'} Instructions: ${editPrompt}. 
+                        const response = await genAI.models.generateContent({
+                            model: modelToUse,
+                            contents: [
+                                {
+                                    inlineData: {
+                                        data: originalImageBase64.replace(/^data:[^,]+,/, ''),
+                                        mimeType: 'image/png',
+                                    }
+                                },
+                                {
+                                    inlineData: {
+                                        data: maskBase64.replace(/^data:[^,]+,/, ''),
+                                        mimeType: 'image/png',
+                                    }
+                                },
+                                {
+                                    text: `${maskBase64 ? 'INPAINTING TASK: Edit ONLY the masked areas of the first image.' : 'IMAGE REFINEMENT TASK: Apply the requested changes to the first image.'} Instructions: ${editPrompt}. 
 
 ${maskBase64 ? 'MASK INTERPRETATION: The second image is a binary mask - BLACK pixels indicate areas to edit, WHITE pixels must remain COMPLETELY UNCHANGED.' : ''}
 
@@ -725,31 +784,34 @@ ${maskBase64 ? `STRICT PRESERVATION RULES:
 - DO NOT add new elements outside the masked area` : ''}
 
 EDIT SCOPE: Apply changes ONLY within the designated edit area.` },
-                    ],
-                    config: {
-                        imageConfig: {
-                            aspectRatio,
-                            imageSize: '2K',
-                        },
-                    },
-                });
+                            ],
+                            config: {
+                                imageConfig: {
+                                    aspectRatio,
+                                    imageSize: '2K',
+                                },
+                            },
+                        });
 
-                const candidates = response.candidates;
-                if (!candidates?.length) throw new Error('Inpainting: sem resultado.');
+                        const candidates = response.candidates;
+                        if (!candidates?.length) throw new Error('Inpainting: sem resultado.');
 
-                for (const part of candidates[0]?.content?.parts || []) {
-                    if (part.inlineData) {
-                        return {
-                            imageBase64: part.inlineData.data || '',
-                            mimeType: part.inlineData.mimeType || 'image/png',
-                        };
-                    }
-                }
-                throw new Error('Inpainting: nenhuma imagem na resposta.');
-            });
+                        for (const part of candidates[0]?.content?.parts || []) {
+                            if (part.inlineData) {
+                                return {
+                                    imageBase64: part.inlineData.data || '',
+                                    mimeType: part.inlineData.mimeType || 'image/png',
+                                };
+                            }
+                        }
+                        throw new Error('Inpainting: nenhuma imagem na resposta.');
+                    });
+                },
+                (msg) => setProgress(msg)
+            );
 
             setProgress('🎉 Mágica concluída!');
-            return result;
+            return result.result;
         } finally {
             setIsGenerating(false);
             generationRef.current = false;
@@ -775,50 +837,56 @@ EDIT SCOPE: Apply changes ONLY within the designated edit area.` },
             const providerResult = await getProviderData();
             const { keys, imageModel } = providerResult;
 
-            const result = await callWithKeyPool(keys, async (apiKey) => {
-                const genAI = new GoogleGenAI({ apiKey });
+            const result = await callWithModelFallback(
+                imageModel,
+                async (modelToUse) => {
+                    return callWithKeyPool(keys, async (apiKey) => {
+                        const genAI = new GoogleGenAI({ apiKey });
 
-                setProgress('🖼️ Expandindo a arte...');
+                        setProgress('🖼️ Expandindo a arte...');
 
-                const directionPrompt = direction === 'vertical'
-                    ? 'Expand this image VERTICALLY (top and bottom) to fill the new aspect ratio. Seamlessly extend the background, maintaining consistency in lighting, style, and environment. Do NOT alter the original content.'
-                    : 'Expand this image HORIZONTALLY (left and right) to fill the new aspect ratio. Seamlessly extend the background, maintaining consistency in lighting, style, and environment. Do NOT alter the original content.';
+                        const directionPrompt = direction === 'vertical'
+                            ? 'Expand this image VERTICALLY (top and bottom) to fill the new aspect ratio. Seamlessly extend the background, maintaining consistency in lighting, style, and environment. Do NOT alter the original content.'
+                            : 'Expand this image HORIZONTALLY (left and right) to fill the new aspect ratio. Seamlessly extend the background, maintaining consistency in lighting, style, and environment. Do NOT alter the original content.';
 
-                const response = await genAI.models.generateContent({
-                    model: imageModel,
-                    contents: [
-                        {
-                            inlineData: {
-                                data: originalImageBase64.replace(/^data:[^,]+,/, ''),
-                                mimeType: 'image/png',
+                        const response = await genAI.models.generateContent({
+                            model: modelToUse,
+                            contents: [
+                                {
+                                    inlineData: {
+                                        data: originalImageBase64.replace(/^data:[^,]+,/, ''),
+                                        mimeType: 'image/png',
+                                    }
+                                },
+                                { text: `REFRAME/OUTPAINTING: ${directionPrompt}\n\nTarget aspect ratio: ${targetAspectRatio}` },
+                            ],
+                            config: {
+                                imageConfig: {
+                                    aspectRatio: targetAspectRatio,
+                                    imageSize: '2K',
+                                },
+                            },
+                        });
+
+                        const candidates = response.candidates;
+                        if (!candidates?.length) throw new Error('Reframe: sem resultado.');
+
+                        for (const part of candidates[0]?.content?.parts || []) {
+                            if (part.inlineData) {
+                                return {
+                                    imageBase64: part.inlineData.data || '',
+                                    mimeType: part.inlineData.mimeType || 'image/png',
+                                };
                             }
-                        },
-                        { text: `REFRAME/OUTPAINTING: ${directionPrompt}\n\nTarget aspect ratio: ${targetAspectRatio}` },
-                    ],
-                    config: {
-                        imageConfig: {
-                            aspectRatio: targetAspectRatio,
-                            imageSize: '2K',
-                        },
-                    },
-                });
-
-                const candidates = response.candidates;
-                if (!candidates?.length) throw new Error('Reframe: sem resultado.');
-
-                for (const part of candidates[0]?.content?.parts || []) {
-                    if (part.inlineData) {
-                        return {
-                            imageBase64: part.inlineData.data || '',
-                            mimeType: part.inlineData.mimeType || 'image/png',
-                        };
-                    }
-                }
-                throw new Error('Reframe: nenhuma imagem na resposta.');
-            });
+                        }
+                        throw new Error('Reframe: nenhuma imagem na resposta.');
+                    });
+                },
+                (msg) => setProgress(msg)
+            );
 
             setProgress('🎉 Mágica concluída!');
-            return result;
+            return result.result;
         } finally {
             setIsGenerating(false);
             generationRef.current = false;
@@ -974,17 +1042,29 @@ Return a JSON array of exactly 5 scene descriptions in Portuguese (Brazil). Each
             setProgress('🎨 Gerando a mágica...');
             const finalPrompt = await generatePromptText(keys, textModel, config, styleLabel, forensicSteps);
 
-            // Etapa 2: Gera a imagem via SDK com 2K
+            // Etapa 2: Gera a imagem com FALLBACK AUTOMÁTICO de modelos
             setProgress('🖼️ Gerando sua imagem...');
-            const { imageBase64, mimeType } = await generateImage(
-                keys,
+            const { result: imageResult, usedModel } = await callWithModelFallback(
                 imageModel,
-                finalPrompt,
-                config,
-                referenceImages,
-                compositionRulesArr,
-                forensicSteps
+                async (modelToUse) => {
+                    return generateImage(
+                        keys,
+                        modelToUse,
+                        finalPrompt,
+                        config,
+                        referenceImages,
+                        compositionRulesArr,
+                        forensicSteps
+                    );
+                },
+                (msg) => setProgress(msg)
             );
+
+            const { imageBase64, mimeType } = imageResult;
+
+            if (usedModel !== imageModel) {
+                console.log(`[Generate] ✅ Imagem gerada com modelo fallback: ${usedModel} (principal era: ${imageModel})`);
+            }
 
             const completedAt = Date.now();
             setProgress('🎉 Mágica concluída!');
@@ -1001,7 +1081,7 @@ Return a JSON array of exactly 5 scene descriptions in Portuguese (Brazil). Each
                 provider: {
                     keyCount: keys.length,
                     textModel,
-                    imageModel,
+                    imageModel: usedModel, // ← modelo realmente usado (pode ser fallback)
                     cacheHit: providerResult.cacheHit,
                 },
                 hardcodedValues: {
