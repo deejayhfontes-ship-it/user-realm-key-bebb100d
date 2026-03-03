@@ -85,31 +85,45 @@ export function usePrefeituraAssets(secretariaSlug?: string) {
 
         const secretariaNome = currentSecretaria.nome;
 
-        // Descrição das cores (Baseado no agente.py: "nome codigo, ...")
-        // Como o config atual tem campos fixos, formatamos manualmente
+        // Descrição das cores
         const coresDesc = `Primária ${currentSecretaria.corPrimaria}, Secundária ${currentSecretaria.corSecundaria}`;
 
         // Descrição de fontes
         const fontesDesc = `${currentSecretaria.fonteTitulo} (títulos), ${currentSecretaria.fonteCorpo} (corpo)`;
 
-        // Descrição do layout (Adaptado do agente.py)
-        // No Python ele verifica arquivos de layout. Aqui vamos usar uma descrição baseada na intenção.
-        let layoutDesc = "use uma diagramação harmoniosa e moderna";
+        // Layout baseado na intenção
+        let layoutDesc = "diagramação moderna e profissional de material gráfico institucional";
         if (intencao.toLowerCase().includes('informar') || intencao.toLowerCase().includes('aviso')) {
-            layoutDesc = "use uma composição clara, com destaque para a informação textual e hierarquia visual bem definida";
+            layoutDesc = "layout de informativo oficial com hierarquia visual clara: título em destaque, informações bem organizadas, aspecto de comunicado governamental profissional";
         } else if (intencao.toLowerCase().includes('evento')) {
-            layoutDesc = "use uma composição vibrante e convidativa, com destaque para datas e atrações";
+            layoutDesc = "layout de cartaz/convite de evento institucional com título chamativo, data e local em destaque, composição vibrante e convidativa";
+        } else if (intencao.toLowerCase().includes('conscientizar')) {
+            layoutDesc = "layout de campanha de conscientização com título impactante, mensagem clara e visual educativo";
         }
 
-        // Montagem do prompt seguindo fielmente o template do agente.py
+        // Montagem do prompt — agora com instruções para COMPOR TEXTO na imagem
         const prompt = [
-            `Crie um(a) ${material} para a Secretaria de ${secretariaNome} com o tema: ${tema}.`,
+            `DESIGN GRÁFICO INSTITUCIONAL: Crie um(a) ${material} profissional para a Secretaria de ${secretariaNome}.`,
+            '',
+            `TÍTULO PRINCIPAL (DEVE aparecer composto na arte em destaque): "${tema}"`,
+            `O título "${tema}" DEVE ser renderizado como TEXTO VISUAL na imagem, com tipografia grande, legível e profissional. NÃO gere apenas uma foto — gere um MATERIAL GRÁFICO/INFORMATIVO com o texto integrado ao design.`,
+            '',
             `Intenção da comunicação: ${intencao}.`,
-            `Utilize as cores ${coresDesc} e tipografia similar a ${fontesDesc}.`,
-            `${layoutDesc}.`,
-            `Inclua elementos visuais que remetam às atividades da secretaria e mantenha a originalidade da arte.`,
-            detalhes ? `Detalhes adicionais: ${detalhes}` : ''
-        ].filter(Boolean).join(' ');
+            `Estilo de layout: ${layoutDesc}.`,
+            '',
+            `DIRETRIZES DE DESIGN:`,
+            `- Cores institucionais: ${coresDesc}`,
+            `- Tipografia: similar a ${fontesDesc}`,
+            `- O resultado DEVE parecer um material impresso profissional (flyer, cartaz, informativo)`,
+            `- Inclua elementos gráficos decorativos que remetam à secretaria de ${secretariaNome}`,
+            `- Mantenha identidade visual governamental: clean, organizado, oficial`,
+            `- Hierarquia visual: título grande → subtítulo/informação → detalhes`,
+            `- Reserve espaço para logotipo no rodapé ou topo`,
+            '',
+            detalhes ? `Informações adicionais para incluir no material: ${detalhes}` : '',
+            '',
+            `IMPORTANTE: O resultado final deve ser um INFORMATIVO/PEÇA GRÁFICA com texto composto, NÃO uma fotografia ou imagem genérica.`
+        ].filter(Boolean).join('\n');
 
         return prompt;
     };
