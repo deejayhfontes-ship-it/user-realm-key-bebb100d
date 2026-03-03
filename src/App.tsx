@@ -55,6 +55,7 @@ import PrefeituraArtePage from "@/pages/prefeitura/PrefeituraArtePage";
 import PublicTracking from "@/pages/PublicTracking";
 import AdminSolicitacoes from "@/pages/admin/AdminSolicitacoes";
 import AdminProtocols from "@/pages/admin/AdminProtocols";
+import SolicitarServico from "@/pages/public/SolicitarServico";
 
 // Client Pages
 import ClientLogin from "@/pages/client/Login";
@@ -112,6 +113,7 @@ const App = () => (
               <Route path="/prefeitura/consultar" element={<ConsultarSolicitacao />} />
               <Route path="/prefeitura/arte" element={<PrefeituraArtePage />} />
               <Route path="/acompanhar/:protocolo" element={<PublicTracking />} />
+              <Route path="/solicitar-servico" element={<SolicitarServico />} />
 
               {/* Public Landing Page */}
               <Route path="/" element={<Home />} />

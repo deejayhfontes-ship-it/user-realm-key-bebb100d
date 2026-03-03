@@ -1,13 +1,15 @@
 import { useServices } from "@/hooks/useServices";
-import { icons } from "lucide-react";
+import { icons, ArrowRight } from "lucide-react";
 import { landingContent } from "@/data/landingContent";
+import { useNavigate } from "react-router-dom";
 
 export function ServicesSection() {
   const { services } = useServices();
   const content = landingContent.services;
+  const navigate = useNavigate();
 
-  const displayServices = services.length > 0 
-    ? services.filter(s => s.is_active).slice(0, 4) 
+  const displayServices = services.length > 0
+    ? services.filter(s => s.is_active).slice(0, 4)
     : content.placeholderServices;
 
   const getIcon = (iconName: string) => {
@@ -61,6 +63,15 @@ export function ServicesSection() {
             <p className="text-zinc-400 mt-6 md:mt-8 text-center lg:text-left text-sm md:text-base">
               {content.description}
             </p>
+
+            {/* CTA */}
+            <button
+              onClick={() => navigate('/solicitar-servico')}
+              className="mt-6 group inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary text-black font-semibold hover:bg-primary/90 transition-all"
+            >
+              Solicitar Serviço
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </button>
           </div>
 
           {/* Right Column - Milestones */}
