@@ -189,7 +189,7 @@ const SHOT_TYPES: Record<string, string> = {
 // Modelos padrão — Gemini 3.1 (mais recentes, fev/2026)
 // ============================================================
 const DEFAULT_TEXT_MODEL = 'gemini-3.1-pro-preview';
-const DEFAULT_IMAGE_MODEL = 'gemini-3.1-flash-image-preview';
+const DEFAULT_IMAGE_MODEL = 'gemini-3-pro-image-preview';
 const SDK_VERSION = '@google/genai@^1.30.0';
 const CACHE_TTL_MS = 30 * 1000; // 30 segundos — para que mudanças de keys entrem rápido
 
