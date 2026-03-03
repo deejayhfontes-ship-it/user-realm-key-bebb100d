@@ -374,6 +374,8 @@ function classifyError(err: any): { is429: boolean; is5xx: boolean; isRetryable:
         msg.includes('503') || msg.includes('500') || status === 503 || status === 500 ||
         msg.includes('SERVICE_UNAVAILABLE') || msg.includes('UNAVAILABLE') || msg.includes('INTERNAL') ||
         msg.includes('overloaded') || msg.includes('temporarily') || msg.includes('high demand') ||
+        msg.includes('falharam após múltiplas tentativas') || // ← erro re-wrapped do callWithKeyPool
+        msg.includes('Todos os modelos falharam') || // ← erro re-wrapped do callWithModelFallback
         (status >= 500 && status < 600);
     return { is429, is5xx, isRetryable: is429 || is5xx };
 }
@@ -529,28 +531,14 @@ export function useGeminiImageGeneration() {
                 keys.push(data.api_key_encrypted);
             }
 
+            // Lê apenas model_text do system_prompt (NÃO carrega pool de keys)
+            // Pool de APIs DESATIVADA por decisão do usuário — usa SOMENTE api_key_encrypted
             if (data.system_prompt) {
                 try {
                     const meta = JSON.parse(data.system_prompt);
                     if (meta.model_text) textModel = meta.model_text;
-                    if (meta.api_keys && Array.isArray(meta.api_keys)) {
-                        for (const item of meta.api_keys) {
-                            // Handle both old format (string[]) and new format ({key,enabled}[])
-                            let keyStr: string | null = null;
-                            let isEnabled = true;
-
-                            if (typeof item === 'string') {
-                                keyStr = item;
-                            } else if (item && typeof item === 'object' && item.key) {
-                                keyStr = item.key;
-                                isEnabled = item.enabled !== false;
-                            }
-
-                            if (keyStr && isEnabled && !keys.includes(keyStr)) {
-                                keys.push(keyStr);
-                            }
-                        }
-                    }
+                    // POOL DESATIVADA: não carrega meta.api_keys
+                    console.log('[getProviderData] Pool desativada — usando apenas key principal');
                 } catch {
                     // system_prompt não é JSON, ignorar
                 }
