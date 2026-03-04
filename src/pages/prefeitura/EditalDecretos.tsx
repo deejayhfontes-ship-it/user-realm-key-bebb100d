@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import html2canvas from "html2canvas";
+import { saveAs } from "file-saver";
+
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -159,62 +161,74 @@ const EditalDecretos = () => {
         }
     };
 
+
     const generateImages = async () => {
         setIsGenerating(true);
         try {
-            const containerEl = captureRef.current;
-            if (!containerEl) return;
-
-            // Torna o container visível fora da tela para captura
-            containerEl.style.position = "fixed";
-            containerEl.style.left = "-9999px";
-            containerEl.style.top = "0px";
-            containerEl.style.display = "flex";
-            containerEl.style.visibility = "visible";
-            containerEl.style.opacity = "1";
-            containerEl.style.zIndex = "-9999";
-
-            // Espera fontes e imagens renderizarem
+            // Abordagem idêntica ao CarrosselInteracoes (que funciona):
+            // Clonar o preview visível e injetar no body para captura
             await document.fonts.ready;
-            await new Promise((resolve) => setTimeout(resolve, 800));
 
             for (let i = 0; i < paginasBody.length; i++) {
-                const captureEl = document.getElementById(`capture-page-${i}`);
-                if (!captureEl) continue;
+                // Busca o preview visível da página i
+                const previewEl = document.getElementById(`preview-page-${i}`);
+                if (!previewEl) continue;
 
-                const canvas = await html2canvas(captureEl, {
-                    scale: 3,
+                // Cria container clone no body (mesma técnica do CarrosselInteracoes)
+                const cloneContainer = document.createElement("div");
+                cloneContainer.style.position = "fixed";
+                cloneContainer.style.left = "-9999px";
+                cloneContainer.style.top = "0";
+                cloneContainer.style.width = `${PAGE_W}px`;
+                cloneContainer.style.height = `${PAGE_H}px`;
+                cloneContainer.style.overflow = "hidden";
+                cloneContainer.style.zIndex = "-1";
+                document.body.appendChild(cloneContainer);
+
+                // Clona o preview sem transform
+                const clone = previewEl.cloneNode(true) as HTMLElement;
+                clone.style.transform = "none";
+                clone.style.width = `${PAGE_W}px`;
+                clone.style.height = `${PAGE_H}px`;
+                cloneContainer.appendChild(clone);
+
+                // Aguarda renderização do clone
+                await new Promise((resolve) => setTimeout(resolve, 300));
+
+                const canvas = await html2canvas(clone, {
+                    scale: 2,
                     useCORS: true,
-                    allowTaint: false,
+                    allowTaint: true,
                     backgroundColor: "#ffffff",
+                    width: PAGE_W,
+                    height: PAGE_H,
                     logging: false,
-                    imageTimeout: 15000,
                 });
 
-                // Padrão idêntico ao GeradorAvisos (que funciona)
+                // Remove clone
+                document.body.removeChild(cloneContainer);
+
+                // saveAs com blob — padrão do CarrosselInteracoes
                 const suffix = paginasBody.length > 1 ? `_pag${i + 1}` : "";
-                const link = document.createElement("a");
-                link.download = `decreto${suffix}_${Date.now()}.png`;
-                link.href = canvas.toDataURL("image/png");
-                link.click();
+                const blob = await new Promise<Blob>((resolve) =>
+                    canvas.toBlob((b) => resolve(b!), "image/png", 1.0)
+                );
+                saveAs(blob, `decreto${suffix}_${String(Date.now()).slice(-4)}.png`);
 
                 if (i < paginasBody.length - 1) {
-                    await new Promise((resolve) => setTimeout(resolve, 500));
+                    await new Promise((resolve) => setTimeout(resolve, 300));
                 }
             }
-
-            containerEl.style.position = "absolute";
-            containerEl.style.display = "none";
 
             toast.success(paginasBody.length > 1 ? "Decretos gerados com sucesso!" : "Decreto gerado com sucesso!");
         } catch (error) {
             console.error("Erro ao gerar imagem:", error);
-            if (captureRef.current) captureRef.current.style.display = "none";
             toast.error("Erro ao gerar imagem");
         } finally {
             setIsGenerating(false);
         }
     };
+
 
     const updateStyle = (key: keyof typeof styles, value: any) => {
         setStyles((prev) => ({ ...prev, [key]: value }));
