@@ -208,12 +208,23 @@ const EditalDecretos = () => {
                 // Remove clone
                 document.body.removeChild(cloneContainer);
 
-                // saveAs com blob — padrão do CarrosselInteracoes
-                const suffix = paginasBody.length > 1 ? `_pag${i + 1}` : "";
-                const blob = await new Promise<Blob>((resolve) =>
-                    canvas.toBlob((b) => resolve(b!), "image/png", 1.0)
+                // ← CAUSA RAIZ: forçar type='image/png' igual ao ImageLightbox.tsx (linha 88-90)
+                const rawBlob = await new Promise<Blob | null>((resolve) =>
+                    canvas.toBlob((b) => resolve(b), "image/png", 1.0)
                 );
-                saveAs(blob, `decreto${suffix}_${String(Date.now()).slice(-4)}.png`);
+                if (!rawBlob) {
+                    toast.error("Falha ao gerar imagem (canvas vazio)");
+                    document.body.removeChild(cloneContainer);
+                    continue;
+                }
+                // Força MIME type — sem isso o browser baixa sem extensão
+                const pngBlob = (!rawBlob.type || rawBlob.type === 'application/octet-stream')
+                    ? new Blob([rawBlob], { type: 'image/png' })
+                    : rawBlob;
+
+                const suffix = paginasBody.length > 1 ? `_pag${i + 1}` : "";
+                saveAs(pngBlob, `decreto${suffix}_${String(Date.now()).slice(-4)}.png`);
+
 
                 if (i < paginasBody.length - 1) {
                     await new Promise((resolve) => setTimeout(resolve, 300));
