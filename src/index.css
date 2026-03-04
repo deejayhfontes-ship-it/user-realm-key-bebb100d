@@ -2,6 +2,47 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ===== Fontes Globo (Editor de Decretos) ===== */
+@font-face {
+  font-family: 'GLOBO CD BD';
+  src: url('/src/pages/prefeitura/assets/decreto_edital/GLOBO CD BD.TTF') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Globo Condensed';
+  src: url('/src/pages/prefeitura/assets/decreto_edital/GLOBO CD BD.TTF') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'GLOBO RD BD';
+  src: url('/src/pages/prefeitura/assets/decreto_edital/GLOBO RD BD.TTF') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Globo Text';
+  src: url('/src/pages/prefeitura/assets/decreto_edital/GLOBO-TX-BK.TTF') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Globo Text';
+  src: url('/src/pages/prefeitura/assets/decreto_edital/GLOBO-TX-BD.TTF') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* ===== Fontes Prefeitura (geradores de conteúdo) ===== */
 @font-face {
   font-family: 'ChandlerMountain';
@@ -35,6 +76,30 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: 'Globo Condensed';
+  src: url('./pages/prefeitura/assets/decreto_edital/GLOBO CD BK.OTF') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Globo Condensed';
+  src: url('./pages/prefeitura/assets/decreto_edital/GLOBO-TX-BD.TTF') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Globo Text';
+  src: url('./pages/prefeitura/assets/decreto_edital/GLOBO TX RG.OTF') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* Modern Soft-Card SaaS Theme */
 /* Primary: Neon Lime #D8FF9A / Acid Green */
 
@@ -43,7 +108,7 @@
     /* Primary - Neon Lime = hsl(78 100% 80%) */
     --primary: 78 100% 65%;
     --primary-foreground: 0 0% 10%;
-    
+
     /* Accent - Soft lime = hsl(78 60% 50%) */
     --accent: 78 70% 55%;
     --accent-foreground: 0 0% 10%;
@@ -96,7 +161,7 @@
     --success-foreground: 0 0% 98%;
     --warning: 45 95% 55%;
     --warning-foreground: 0 0% 10%;
-    
+
     /* Gradient tokens */
     --gradient-start: 78 100% 65%;
     --gradient-mid: 78 80% 55%;
@@ -107,7 +172,7 @@
     /* Primary - Neon Lime */
     --primary: 78 100% 65%;
     --primary-foreground: 0 0% 10%;
-    
+
     /* Accent - Soft lime */
     --accent: 78 70% 55%;
     --accent-foreground: 0 0% 10%;
@@ -153,7 +218,7 @@
 
     --glass-background: 0 0% 14% / 0.8;
     --glass-border: 0 0% 22%;
-    
+
     /* Gradient tokens */
     --gradient-start: 78 100% 65%;
     --gradient-mid: 78 80% 55%;
@@ -173,26 +238,32 @@
     letter-spacing: -0.01em;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-weight: 600;
     letter-spacing: -0.02em;
   }
 }
 
 @layer utilities {
+
   /* Soft card styles */
   .soft-card {
     @apply rounded-3xl border-0;
     background: hsl(var(--card));
-    box-shadow: 
+    box-shadow:
       0 2px 8px -2px hsl(0 0% 0% / 0.04),
       0 8px 24px -4px hsl(0 0% 0% / 0.06);
   }
-  
+
   .soft-card-elevated {
     @apply rounded-3xl border-0;
     background: hsl(var(--card));
-    box-shadow: 
+    box-shadow:
       0 4px 12px -2px hsl(0 0% 0% / 0.06),
       0 12px 32px -8px hsl(0 0% 0% / 0.1);
   }
@@ -215,7 +286,7 @@
     background: hsl(var(--glass-background));
     border: 1px solid hsl(var(--glass-border));
   }
-  
+
   .glass-card {
     @apply backdrop-blur-md rounded-2xl;
     background: hsl(var(--glass-background));
@@ -225,28 +296,22 @@
 
   /* Sidebar gradient - dark charcoal */
   .gradient-sidebar {
-    background: linear-gradient(
-      180deg, 
-      hsl(0 0% 14%) 0%, 
-      hsl(0 0% 10%) 100%
-    );
+    background: linear-gradient(180deg,
+        hsl(0 0% 14%) 0%,
+        hsl(0 0% 10%) 100%);
   }
 
   /* Main gradient - warm gray */
   .gradient-main {
-    background: linear-gradient(
-      160deg, 
-      hsl(40 10% 96%) 0%, 
-      hsl(40 10% 92%) 100%
-    );
+    background: linear-gradient(160deg,
+        hsl(40 10% 96%) 0%,
+        hsl(40 10% 92%) 100%);
   }
 
   .gradient-warm {
-    background: linear-gradient(
-      145deg, 
-      hsl(40 10% 96%) 0%, 
-      hsl(40 10% 90%) 100%
-    );
+    background: linear-gradient(145deg,
+        hsl(40 10% 96%) 0%,
+        hsl(40 10% 90%) 100%);
   }
 
   .gradient-cinematic {
@@ -255,13 +320,13 @@
 
   /* Soft shadows */
   .card-shadow {
-    box-shadow: 
+    box-shadow:
       0 2px 8px -2px hsl(0 0% 0% / 0.04),
       0 8px 24px -4px hsl(0 0% 0% / 0.06);
   }
 
   .card-float {
-    box-shadow: 
+    box-shadow:
       0 4px 16px -4px hsl(0 0% 0% / 0.08),
       0 16px 48px -12px hsl(0 0% 0% / 0.12);
   }
@@ -313,7 +378,7 @@
   }
 
   /* ===== MAGNETTO LANDING PAGE STYLES ===== */
-  
+
   /* Pixelated display font */
   .font-display {
     font-family: 'Space Grotesk', monospace;
