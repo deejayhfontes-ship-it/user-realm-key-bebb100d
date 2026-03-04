@@ -5,7 +5,7 @@
 /* ===== Fontes Globo (Editor de Decretos) ===== */
 @font-face {
   font-family: 'GLOBO CD BD';
-  src: url('/src/pages/prefeitura/assets/decreto_edital/GLOBO CD BD.TTF') format('truetype');
+  src: url('/fonts/globo/GLOBO CD BD.TTF') format('truetype');
   font-weight: bold;
   font-style: normal;
   font-display: swap;
@@ -13,7 +13,7 @@
 
 @font-face {
   font-family: 'Globo Condensed';
-  src: url('/src/pages/prefeitura/assets/decreto_edital/GLOBO CD BD.TTF') format('truetype');
+  src: url('/fonts/globo/GLOBO CD BD.TTF') format('truetype');
   font-weight: bold;
   font-style: normal;
   font-display: swap;
@@ -21,7 +21,7 @@
 
 @font-face {
   font-family: 'GLOBO RD BD';
-  src: url('/src/pages/prefeitura/assets/decreto_edital/GLOBO RD BD.TTF') format('truetype');
+  src: url('/fonts/globo/GLOBO RD BD.TTF') format('truetype');
   font-weight: bold;
   font-style: normal;
   font-display: swap;
@@ -29,7 +29,7 @@
 
 @font-face {
   font-family: 'Globo Text';
-  src: url('/src/pages/prefeitura/assets/decreto_edital/GLOBO-TX-BK.TTF') format('truetype');
+  src: url('/fonts/globo/GLOBO-TX-BK.TTF') format('truetype');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -37,7 +37,7 @@
 
 @font-face {
   font-family: 'Globo Text';
-  src: url('/src/pages/prefeitura/assets/decreto_edital/GLOBO-TX-BD.TTF') format('truetype');
+  src: url('/fonts/globo/GLOBO-TX-BD.TTF') format('truetype');
   font-weight: bold;
   font-style: normal;
   font-display: swap;

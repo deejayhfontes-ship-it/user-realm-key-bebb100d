@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import html2canvas from "html2canvas";
-import { saveAs } from "file-saver";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -192,11 +191,20 @@ const EditalDecretos = () => {
                     canvas.toBlob((b) => resolve(b!), "image/png", 1.0)
                 );
 
+                // Download nativo - garante PNG correto em todos os browsers
                 const suffix = paginasBody.length > 1 ? `_pag${i + 1}` : "";
-                saveAs(blob, `decreto${suffix}_${String(Date.now()).slice(-4)}.png`);
+                const fileName = `decreto${suffix}_${String(Date.now()).slice(-4)}.png`;
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                setTimeout(() => URL.revokeObjectURL(url), 2000);
 
                 if (i < paginasBody.length - 1) {
-                    await new Promise((resolve) => setTimeout(resolve, 300));
+                    await new Promise((resolve) => setTimeout(resolve, 400));
                 }
             }
 
