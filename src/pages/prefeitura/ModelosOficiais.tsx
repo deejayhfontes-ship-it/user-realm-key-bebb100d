@@ -30,13 +30,13 @@ const MODELOS = [
         ativo: true,
     },
     {
-        titulo: 'Modelo de Decreto',
-        descricao: 'Template oficial para redação de decretos municipais (em breve)',
+        titulo: 'Editais e Decretos',
+        descricao: 'Template oficial para criação de editais e decretos municipais',
         icone: FileText,
-        rota: '#',
-        cor: 'from-zinc-600 to-zinc-700',
-        corTexto: 'text-zinc-500',
-        ativo: false,
+        rota: '/prefeitura/edital-decretos',
+        cor: 'from-blue-400 to-cyan-500',
+        corTexto: 'text-blue-400',
+        ativo: true,
     },
     {
         titulo: 'Modelo de Ofício',
@@ -97,8 +97,8 @@ export default function ModelosOficiais() {
                                 onClick={() => modelo.ativo && navigate(modelo.rota)}
                                 disabled={!modelo.ativo}
                                 className={`group relative bg-[#111111] border border-white/[0.08] rounded-2xl p-6 text-left transition-all duration-300 ${modelo.ativo
-                                        ? 'hover:border-cyan-400/30 hover:shadow-[0_0_40px_-15px_rgba(34,211,238,0.15)] hover:-translate-y-0.5 cursor-pointer'
-                                        : 'opacity-50 cursor-not-allowed'
+                                    ? 'hover:border-cyan-400/30 hover:shadow-[0_0_40px_-15px_rgba(34,211,238,0.15)] hover:-translate-y-0.5 cursor-pointer'
+                                    : 'opacity-50 cursor-not-allowed'
                                     }`}
                             >
                                 <div className="flex items-start justify-between mb-4">
