@@ -165,6 +165,7 @@ const EditalDecretos = () => {
             const containerEl = captureRef.current;
             if (!containerEl) return;
 
+            // Torna o container visível fora da tela para captura
             containerEl.style.position = "fixed";
             containerEl.style.left = "-9999px";
             containerEl.style.top = "0px";
@@ -173,38 +174,36 @@ const EditalDecretos = () => {
             containerEl.style.opacity = "1";
             containerEl.style.zIndex = "-9999";
 
-            await new Promise((resolve) => setTimeout(resolve, 500));
+            // Espera fontes e imagens renderizarem
+            await document.fonts.ready;
+            await new Promise((resolve) => setTimeout(resolve, 800));
 
             for (let i = 0; i < paginasBody.length; i++) {
                 const captureEl = document.getElementById(`capture-page-${i}`);
                 if (!captureEl) continue;
 
                 const canvas = await html2canvas(captureEl, {
-                    scale: 2,
+                    scale: 3,
                     useCORS: true,
-                    allowTaint: true,
-                    backgroundColor: null,
+                    allowTaint: false,
+                    backgroundColor: "#ffffff",
                     logging: false,
+                    imageTimeout: 15000,
                 });
 
-                const blob = await new Promise<Blob>((resolve) =>
-                    canvas.toBlob((b) => resolve(b!), "image/png", 1.0)
-                );
-
-                // Download nativo - garante PNG correto em todos os browsers
+                // Download via toDataURL - mais confiável que blob em todos os browsers
+                const dataUrl = canvas.toDataURL("image/png");
                 const suffix = paginasBody.length > 1 ? `_pag${i + 1}` : "";
                 const fileName = `decreto${suffix}_${String(Date.now()).slice(-4)}.png`;
-                const url = URL.createObjectURL(blob);
                 const a = document.createElement("a");
-                a.href = url;
+                a.href = dataUrl;
                 a.download = fileName;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
-                setTimeout(() => URL.revokeObjectURL(url), 2000);
 
                 if (i < paginasBody.length - 1) {
-                    await new Promise((resolve) => setTimeout(resolve, 400));
+                    await new Promise((resolve) => setTimeout(resolve, 500));
                 }
             }
 
@@ -278,8 +277,8 @@ const EditalDecretos = () => {
                     {index === 0 && titulo && (
                         <div
                             style={{
-                                fontFamily: "'GLOBO CD BD', 'Globo Condensed', Arial, sans-serif",
-                                fontWeight: "900",
+                                fontFamily: "'GLOBO-TX-BD', 'Globo Text', Arial, sans-serif",
+                                fontWeight: "700",
                                 fontSize: `${styles.titleSize}px`,
                                 color: "#1a1a1a",
                                 lineHeight: "1.1",
@@ -294,7 +293,7 @@ const EditalDecretos = () => {
                     {conteudo && (
                         <div
                             style={{
-                                fontFamily: "'Globo Text', Arial, sans-serif",
+                                fontFamily: "'Globo Text', 'GLOBO-TX-BK', Arial, sans-serif",
                                 fontWeight: "normal",
                                 fontSize: `${styles.contentSize}px`,
                                 color: "#111111",

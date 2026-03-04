@@ -36,9 +36,17 @@
 }
 
 @font-face {
-  font-family: 'Globo Text';
+  font-family: 'GLOBO-TX-BD';
   src: url('/fonts/globo/GLOBO-TX-BD.TTF') format('truetype');
   font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'GLOBO-TX-BK';
+  src: url('/fonts/globo/GLOBO-TX-BK.TTF') format('truetype');
+  font-weight: normal;
   font-style: normal;
   font-display: swap;
 }
