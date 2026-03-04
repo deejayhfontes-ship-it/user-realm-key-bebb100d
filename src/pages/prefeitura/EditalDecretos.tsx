@@ -191,16 +191,12 @@ const EditalDecretos = () => {
                     imageTimeout: 15000,
                 });
 
-                // Download via toDataURL - mais confiável que blob em todos os browsers
-                const dataUrl = canvas.toDataURL("image/png");
+                // Padrão idêntico ao GeradorAvisos (que funciona)
                 const suffix = paginasBody.length > 1 ? `_pag${i + 1}` : "";
-                const fileName = `decreto${suffix}_${String(Date.now()).slice(-4)}.png`;
-                const a = document.createElement("a");
-                a.href = dataUrl;
-                a.download = fileName;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
+                const link = document.createElement("a");
+                link.download = `decreto${suffix}_${Date.now()}.png`;
+                link.href = canvas.toDataURL("image/png");
+                link.click();
 
                 if (i < paginasBody.length - 1) {
                     await new Promise((resolve) => setTimeout(resolve, 500));
