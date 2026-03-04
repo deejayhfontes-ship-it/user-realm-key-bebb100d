@@ -1,7 +1,20 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import html2canvas from "html2canvas";
-import { saveAs } from "file-saver";
+
+// Download nativo sem file-saver (não instalado no projeto)
+function downloadPng(blob: Blob, filename: string) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }, 1000);
+}
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -223,8 +236,7 @@ const EditalDecretos = () => {
                     : rawBlob;
 
                 const suffix = paginasBody.length > 1 ? `_pag${i + 1}` : "";
-                saveAs(pngBlob, `decreto${suffix}_${String(Date.now()).slice(-4)}.png`);
-
+                downloadPng(pngBlob, `decreto${suffix}_${String(Date.now()).slice(-4)}.png`);
 
                 if (i < paginasBody.length - 1) {
                     await new Promise((resolve) => setTimeout(resolve, 300));
