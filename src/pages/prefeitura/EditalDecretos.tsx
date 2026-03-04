@@ -178,68 +178,64 @@ const EditalDecretos = () => {
     const generateImages = async () => {
         setIsGenerating(true);
         try {
-            // Abordagem idêntica ao CarrosselInteracoes (que funciona):
-            // Clonar o preview visível e injetar no body para captura
             await document.fonts.ready;
 
             for (let i = 0; i < paginasBody.length; i++) {
-                // Busca o preview visível da página i
                 const previewEl = document.getElementById(`preview-page-${i}`);
                 if (!previewEl) continue;
 
-                // Cria container clone no body (mesma técnica do CarrosselInteracoes)
+                // Clone no body sem transform
                 const cloneContainer = document.createElement("div");
-                cloneContainer.style.position = "fixed";
-                cloneContainer.style.left = "-9999px";
-                cloneContainer.style.top = "0";
-                cloneContainer.style.width = `${PAGE_W}px`;
-                cloneContainer.style.height = `${PAGE_H}px`;
-                cloneContainer.style.overflow = "hidden";
-                cloneContainer.style.zIndex = "-1";
+                cloneContainer.style.cssText = `
+                    position:fixed; left:-9999px; top:0;
+                    width:${PAGE_W}px; height:${PAGE_H}px;
+                    overflow:hidden; z-index:-1;
+                `;
                 document.body.appendChild(cloneContainer);
 
-                // Clona o preview sem transform
                 const clone = previewEl.cloneNode(true) as HTMLElement;
                 clone.style.transform = "none";
                 clone.style.width = `${PAGE_W}px`;
                 clone.style.height = `${PAGE_H}px`;
+
+                // crossOrigin em TODAS as imagens para evitar canvas contaminado
+                clone.querySelectorAll("img").forEach((img) => {
+                    (img as HTMLImageElement).crossOrigin = "anonymous";
+                });
                 cloneContainer.appendChild(clone);
 
-                // Aguarda renderização do clone
-                await new Promise((resolve) => setTimeout(resolve, 300));
+                await new Promise((resolve) => setTimeout(resolve, 400));
 
                 const canvas = await html2canvas(clone, {
                     scale: 2,
                     useCORS: true,
-                    allowTaint: true,
+                    allowTaint: false,
                     backgroundColor: "#ffffff",
                     width: PAGE_W,
                     height: PAGE_H,
                     logging: false,
                 });
 
-                // Remove clone
                 document.body.removeChild(cloneContainer);
 
-                // ← CAUSA RAIZ: forçar type='image/png' igual ao ImageLightbox.tsx (linha 88-90)
-                const rawBlob = await new Promise<Blob | null>((resolve) =>
-                    canvas.toBlob((b) => resolve(b), "image/png", 1.0)
-                );
-                if (!rawBlob) {
-                    toast.error("Falha ao gerar imagem (canvas vazio)");
-                    document.body.removeChild(cloneContainer);
-                    continue;
-                }
-                // Força MIME type — sem isso o browser baixa sem extensão
-                const pngBlob = (!rawBlob.type || rawBlob.type === 'application/octet-stream')
-                    ? new Blob([rawBlob], { type: 'image/png' })
-                    : rawBlob;
-
+                // ✅ PADRÃO CORRETO: download DENTRO do callback do toBlob
                 const suffix = paginasBody.length > 1 ? `_pag${i + 1}` : "";
-                downloadPng(pngBlob, `decreto${suffix}_${String(Date.now()).slice(-4)}.png`);
+                const filename = `decreto${suffix}_${String(Date.now()).slice(-4)}.png`;
+
+                canvas.toBlob((blob) => {
+                    if (!blob) return;
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }, "image/png");
 
                 if (i < paginasBody.length - 1) {
-                    await new Promise((resolve) => setTimeout(resolve, 300));
+                    await new Promise((resolve) => setTimeout(resolve, 500));
                 }
             }
 
@@ -251,6 +247,8 @@ const EditalDecretos = () => {
             setIsGenerating(false);
         }
     };
+
+
 
 
     const updateStyle = (key: keyof typeof styles, value: any) => {
