@@ -177,36 +177,30 @@ const EditalDecretos = () => {
 
     const generateImages = async () => {
         setIsGenerating(true);
+        const container = captureRef.current;
+        if (!container) { setIsGenerating(false); return; }
+
+        // Torna o container visível temporariamente para captura
+        container.style.display = "flex";
+        container.style.position = "fixed";
+        container.style.left = "-9999px";
+        container.style.top = "0";
+        container.style.visibility = "visible";
+        container.style.opacity = "1";
+        container.style.zIndex = "-1";
+
         try {
             await document.fonts.ready;
+            await new Promise((r) => setTimeout(r, 500));
 
             for (let i = 0; i < paginasBody.length; i++) {
-                const previewEl = document.getElementById(`preview-page-${i}`);
-                if (!previewEl) continue;
+                const pageEl = document.getElementById(`capture-page-${i}`);
+                if (!pageEl) {
+                    toast.error(`Página ${i + 1} não encontrada`);
+                    continue;
+                }
 
-                // Clone no body sem transform
-                const cloneContainer = document.createElement("div");
-                cloneContainer.style.cssText = `
-                    position:fixed; left:-9999px; top:0;
-                    width:${PAGE_W}px; height:${PAGE_H}px;
-                    overflow:hidden; z-index:-1;
-                `;
-                document.body.appendChild(cloneContainer);
-
-                const clone = previewEl.cloneNode(true) as HTMLElement;
-                clone.style.transform = "none";
-                clone.style.width = `${PAGE_W}px`;
-                clone.style.height = `${PAGE_H}px`;
-
-                // crossOrigin em TODAS as imagens para evitar canvas contaminado
-                clone.querySelectorAll("img").forEach((img) => {
-                    (img as HTMLImageElement).crossOrigin = "anonymous";
-                });
-                cloneContainer.appendChild(clone);
-
-                await new Promise((resolve) => setTimeout(resolve, 400));
-
-                const canvas = await html2canvas(clone, {
+                const canvas = await html2canvas(pageEl, {
                     scale: 2,
                     useCORS: true,
                     allowTaint: false,
@@ -216,12 +210,10 @@ const EditalDecretos = () => {
                     logging: false,
                 });
 
-                document.body.removeChild(cloneContainer);
-
-                // ✅ PADRÃO CORRETO: download DENTRO do callback do toBlob
                 const suffix = paginasBody.length > 1 ? `_pag${i + 1}` : "";
                 const filename = `decreto${suffix}_${String(Date.now()).slice(-4)}.png`;
 
+                // Download dentro do callback do toBlob (padrão correto)
                 canvas.toBlob((blob) => {
                     if (!blob) return;
                     const url = URL.createObjectURL(blob);
@@ -235,15 +227,18 @@ const EditalDecretos = () => {
                 }, "image/png");
 
                 if (i < paginasBody.length - 1) {
-                    await new Promise((resolve) => setTimeout(resolve, 500));
+                    await new Promise((r) => setTimeout(r, 500));
                 }
             }
 
-            toast.success(paginasBody.length > 1 ? "Decretos gerados com sucesso!" : "Decreto gerado com sucesso!");
+            toast.success(paginasBody.length > 1 ? "Decretos gerados!" : "Decreto gerado com sucesso!");
         } catch (error) {
-            console.error("Erro ao gerar imagem:", error);
+            console.error("Erro ao gerar:", error);
             toast.error("Erro ao gerar imagem");
         } finally {
+            // Esconde novamente
+            container.style.display = "none";
+            container.style.position = "absolute";
             setIsGenerating(false);
         }
     };
