@@ -17,16 +17,16 @@ function UploadBox({ label, value, onChange, onClear }: { label: string; value: 
         <div>
             <p className="text-xs font-medium text-white/60 mb-2">{label}</p>
             {value ? (
-                <div className="relative rounded-xl overflow-hidden border border-violet-500/30 h-40">
+                <div className="relative rounded-xl overflow-hidden border border-lime-300/30 h-40">
                     <img src={value} className="w-full h-full object-cover" alt={label} />
                     <button onClick={onClear} className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/70 flex items-center justify-center hover:bg-red-500/80"><X className="w-3 h-3 text-white" /></button>
                 </div>
             ) : (
                 <button onClick={() => ref.current?.click()}
-                    className="w-full h-40 rounded-xl border-2 border-dashed border-white/15 hover:border-violet-500/50 hover:bg-violet-900/10 flex flex-col items-center justify-center gap-2 transition-all">
-                    <div className="w-10 h-10 rounded-full bg-violet-600/20 flex items-center justify-center"><Upload className="w-5 h-5 text-violet-400" /></div>
+                    className="w-full h-40 rounded-xl border-2 border-dashed border-white/15 hover:border-lime-300/40 hover:bg-lime-300/5 flex flex-col items-center justify-center gap-2 transition-all">
+                    <div className="w-10 h-10 rounded-full bg-lime-300/10 flex items-center justify-center"><Upload className="w-5 h-5 text-lime-300" /></div>
                     <p className="text-xs text-white/40 font-medium">Arraste ou clique</p>
-                    <p className="text-[10px] text-violet-400/70">Ctrl+V para colar</p>
+                    <p className="text-[10px] text-lime-300/70">Ctrl+V para colar</p>
                 </button>
             )}
             <input ref={ref} type="file" accept="image/*" className="hidden" onChange={handleFile} />
@@ -100,7 +100,7 @@ The background should be similar to the subject's original background.`,
                         <UploadBox label="Foto de Referência (pose desejada)" value={fotoRef} onChange={setFotoRef} onClear={() => setFotoRef(null)} />
                         <Button onClick={handleGerar} disabled={isGenerating || !suaFoto || !fotoRef}
                             className="w-full h-11 rounded-xl font-bold text-sm text-white disabled:opacity-40"
-                            style={{ background: 'linear-gradient(135deg, #7c3aed, #a855f7)' }}>
+                            style={{ background: '#D8FF9A', color: '#000' }}>
                             {isGenerating ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{progress || 'Gerando...'}</> : <><Sparkles className="w-4 h-4 mr-2" />Gerar Pose</>}
                         </Button>
                     </div>
@@ -113,7 +113,7 @@ The background should be similar to the subject's original background.`,
                                 </div>
                                 <button onClick={handleDownload}
                                     className="w-full py-2.5 rounded-xl flex items-center justify-center gap-2 text-sm font-bold text-white hover:brightness-110"
-                                    style={{ background: 'linear-gradient(135deg, #7c3aed, #a855f7)' }}>
+                                    style={{ background: '#D8FF9A', color: '#000' }}>
                                     <Download className="w-4 h-4" />Baixar PNG
                                 </button>
                             </div>
@@ -123,7 +123,7 @@ The background should be similar to the subject's original background.`,
                                     <svg className="w-8 h-8 text-white/15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="3" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21,15 16,10 5,21" /></svg>
                                 </div>
                                 <p className="text-sm text-white/40">O resultado aparecerá aqui</p>
-                                <p className="text-xs text-violet-400/60 mt-1">Envie as imagens e clique em "Gerar Pose"</p>
+                                <p className="text-xs text-lime-300/60 mt-1">Envie as imagens e clique em "Gerar Pose"</p>
                             </div>
                         )}
                     </div>

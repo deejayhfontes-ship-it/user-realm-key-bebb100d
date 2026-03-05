@@ -17,16 +17,16 @@ function UploadBox({ label, value, onChange, onClear }: { label: string; value: 
         <div>
             <p className="text-xs font-medium text-white/60 mb-2">{label}</p>
             {value ? (
-                <div className="relative rounded-xl overflow-hidden border border-violet-500/30 h-40">
+                <div className="relative rounded-xl overflow-hidden border border-lime-300/30 h-40">
                     <img src={value} className="w-full h-full object-cover" alt={label} />
                     <button onClick={onClear} className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/70 flex items-center justify-center hover:bg-red-500/80"><X className="w-3 h-3 text-white" /></button>
                 </div>
             ) : (
                 <button onClick={() => ref.current?.click()}
-                    className="w-full h-40 rounded-xl border-2 border-dashed border-white/15 hover:border-violet-500/50 hover:bg-violet-900/10 flex flex-col items-center justify-center gap-2 transition-all">
-                    <div className="w-10 h-10 rounded-full bg-violet-600/20 flex items-center justify-center"><Upload className="w-5 h-5 text-violet-400" /></div>
+                    className="w-full h-40 rounded-xl border-2 border-dashed border-white/15 hover:border-lime-300/40 hover:bg-lime-300/5 flex flex-col items-center justify-center gap-2 transition-all">
+                    <div className="w-10 h-10 rounded-full bg-lime-300/10 flex items-center justify-center"><Upload className="w-5 h-5 text-lime-300" /></div>
                     <p className="text-xs text-white/40 font-medium">Arraste ou clique</p>
-                    <p className="text-[10px] text-violet-400/70">Ctrl+V para colar</p>
+                    <p className="text-[10px] text-lime-300/70">Ctrl+V para colar</p>
                 </button>
             )}
             <input ref={ref} type="file" accept="image/*" className="hidden" onChange={handleFile} />
@@ -90,7 +90,7 @@ The garment should fit naturally, with realistic draping, lighting and shadows.`
                 <div className="text-center py-8 px-4 border-b border-white/5">
                     <h1 className="text-2xl font-black text-white">Veste AI</h1>
                     <p className="text-white/40 text-sm mt-1 max-w-md mx-auto">
-                        Troque a roupa da sua <span className="text-violet-400">foto</span> usando qualquer imagem como referência. A IA veste a peça na sua pessoa de forma realista.
+                        Troque a roupa da sua <span className="text-lime-300">foto</span> usando qualquer imagem como referência. A IA veste a peça na sua pessoa de forma realista.
                     </p>
                 </div>
 
@@ -100,7 +100,7 @@ The garment should fit naturally, with realistic draping, lighting and shadows.`
                         <UploadBox label="Foto da Roupa (referência)" value={fotoRoupa} onChange={setFotoRoupa} onClear={() => setFotoRoupa(null)} />
                         <Button onClick={handleVestir} disabled={isGenerating || !suaFoto || !fotoRoupa}
                             className="w-full h-11 rounded-xl font-bold text-sm text-white disabled:opacity-40 flex items-center justify-center gap-2"
-                            style={{ background: 'linear-gradient(135deg, #7c3aed, #a855f7)' }}>
+                            style={{ background: '#D8FF9A', color: '#000' }}>
                             {isGenerating ? <><Loader2 className="w-4 h-4 animate-spin" />{progress || 'Vestindo...'}</> : <><Shirt className="w-4 h-4" />Vestir</>}
                         </Button>
                     </div>
@@ -113,7 +113,7 @@ The garment should fit naturally, with realistic draping, lighting and shadows.`
                                 </div>
                                 <button onClick={handleDownload}
                                     className="w-full py-2.5 rounded-xl flex items-center justify-center gap-2 text-sm font-bold text-white hover:brightness-110"
-                                    style={{ background: 'linear-gradient(135deg, #7c3aed, #a855f7)' }}>
+                                    style={{ background: '#D8FF9A', color: '#000' }}>
                                     <Download className="w-4 h-4" />Baixar PNG
                                 </button>
                             </div>
@@ -121,7 +121,7 @@ The garment should fit naturally, with realistic draping, lighting and shadows.`
                             <div className="text-center opacity-50">
                                 <Shirt className="w-12 h-12 text-white/15 mx-auto mb-3" />
                                 <p className="text-sm text-white/40">O resultado aparecerá aqui</p>
-                                <p className="text-xs text-violet-400/60 mt-1">Envie as imagens e clique em "Vestir"</p>
+                                <p className="text-xs text-lime-300/60 mt-1">Envie as imagens e clique em "Vestir"</p>
                             </div>
                         )}
                     </div>

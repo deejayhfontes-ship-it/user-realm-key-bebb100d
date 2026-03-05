@@ -41,7 +41,7 @@ function UploadBox({
         <div>
             <p className="text-xs font-medium text-white/60 mb-2">{label}</p>
             {value ? (
-                <div className="relative rounded-xl overflow-hidden border border-violet-500/30 h-40">
+                <div className="relative rounded-xl overflow-hidden border border-lime-300/30 h-40">
                     <img src={value} className="w-full h-full object-cover" alt={label} />
                     <button
                         onClick={onClear}
@@ -54,13 +54,13 @@ function UploadBox({
                 <button
                     onClick={() => ref.current?.click()}
                     onPaste={handlePaste}
-                    className="w-full h-40 rounded-xl border-2 border-dashed border-white/15 hover:border-violet-500/50 hover:bg-violet-900/10 flex flex-col items-center justify-center gap-2 transition-all"
+                    className="w-full h-40 rounded-xl border-2 border-dashed border-white/15 hover:border-lime-300/40 hover:bg-lime-300/5 flex flex-col items-center justify-center gap-2 transition-all"
                 >
-                    <div className="w-10 h-10 rounded-full bg-violet-600/20 flex items-center justify-center">
-                        <Upload className="w-5 h-5 text-violet-400" />
+                    <div className="w-10 h-10 rounded-full bg-lime-300/10 flex items-center justify-center">
+                        <Upload className="w-5 h-5 text-lime-300" />
                     </div>
                     <p className="text-xs text-white/40 font-medium">Arraste ou clique</p>
-                    <p className="text-[10px] text-violet-400/70">Ctrl+V para colar</p>
+                    <p className="text-[10px] text-lime-300/70">Ctrl+V para colar</p>
                 </button>
             )}
             <input ref={ref} type="file" accept="image/*" className="hidden" onChange={handleFile} />
@@ -199,7 +199,7 @@ ${creativityLevel <= 30 ? 'STAY FAITHFUL to reference — minimal creative liber
                                         className={`
                       flex flex-col items-center justify-center py-2 rounded-xl border text-center transition-all
                       ${proporcao === p.id
-                                                ? 'border-violet-500 bg-violet-600/30 text-white'
+                                                ? 'text-black font-bold'
                                                 : 'border-white/10 bg-white/5 text-white/40 hover:border-white/20'
                                             }
                     `}
@@ -260,7 +260,7 @@ ${creativityLevel <= 30 ? 'STAY FAITHFUL to reference — minimal creative liber
                             onClick={handleGerar}
                             disabled={isGenerating || !suaFoto || !fotoRef}
                             className="w-full h-11 rounded-xl font-bold text-sm text-white disabled:opacity-40"
-                            style={{ background: 'linear-gradient(135deg, #7c3aed, #a855f7)' }}
+                            style={{ background: '#D8FF9A', color: '#000' }}
                         >
                             {isGenerating ? (
                                 <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{progress || 'Gerando...'}</>
@@ -280,7 +280,7 @@ ${creativityLevel <= 30 ? 'STAY FAITHFUL to reference — minimal creative liber
                                 <button
                                     onClick={handleDownload}
                                     className="w-full py-2.5 rounded-xl flex items-center justify-center gap-2 text-sm font-bold text-white transition-all hover:brightness-110"
-                                    style={{ background: 'linear-gradient(135deg, #7c3aed, #a855f7)' }}
+                                    style={{ background: '#D8FF9A', color: '#000' }}
                                 >
                                     <Download className="w-4 h-4" />
                                     Baixar PNG
@@ -296,7 +296,7 @@ ${creativityLevel <= 30 ? 'STAY FAITHFUL to reference — minimal creative liber
                                     </svg>
                                 </div>
                                 <p className="text-sm font-medium text-white/40">O resultado aparecerá aqui</p>
-                                <p className="text-xs text-violet-400/60 mt-1">Envie as imagens e clique em "Gerar Imagem"</p>
+                                <p className="text-xs text-lime-300/60 mt-1">Envie as imagens e clique em "Gerar Imagem"</p>
                             </div>
                         )}
                     </div>

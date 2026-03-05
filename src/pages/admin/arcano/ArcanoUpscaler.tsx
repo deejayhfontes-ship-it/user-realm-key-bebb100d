@@ -132,7 +132,7 @@ ${modo === 'PRO' ? 'PRO MODE: Apply maximum detail enhancement, noise reduction 
 
                         {/* Upload */}
                         {imagem ? (
-                            <div className="relative rounded-xl overflow-hidden border border-violet-500/30">
+                            <div className="relative rounded-xl overflow-hidden border border-lime-300/30">
                                 <img src={imagem} className="w-full h-44 object-cover" alt="Para upscale" />
                                 <button onClick={() => setImagem(null)} className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/70 flex items-center justify-center hover:bg-red-500/80">
                                     <X className="w-3 h-3 text-white" />
@@ -140,8 +140,8 @@ ${modo === 'PRO' ? 'PRO MODE: Apply maximum detail enhancement, noise reduction 
                             </div>
                         ) : (
                             <button onClick={() => fileRef.current?.click()}
-                                className="w-full h-28 rounded-xl border-2 border-dashed border-white/15 hover:border-violet-500/50 hover:bg-violet-900/10 flex flex-col items-center justify-center gap-2 transition-all">
-                                <Upload className="w-6 h-6 text-violet-400" />
+                                className="w-full h-28 rounded-xl border-2 border-dashed border-white/15 hover:border-lime-300/40 hover:bg-lime-300/5 flex flex-col items-center justify-center gap-2 transition-all">
+                                <Upload className="w-6 h-6 text-lime-300" />
                                 <p className="text-xs text-white/40">Arraste sua imagem aqui</p>
                                 <p className="text-[10px] text-white/25">PNG, JPG, WebP • Máximo 10MB</p>
                             </button>
@@ -154,7 +154,7 @@ ${modo === 'PRO' ? 'PRO MODE: Apply maximum detail enhancement, noise reduction 
                             <div className="flex flex-wrap gap-1.5">
                                 {TIPOS.map((t) => (
                                     <button key={t.id} onClick={() => setTipo(t.id)}
-                                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${tipo === t.id ? 'border-violet-500 bg-violet-600/30 text-white' : 'border-white/10 bg-white/5 text-white/40 hover:border-white/20'}`}>
+                                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${tipo === t.id ? 'text-black font-bold' : 'border-white/10 bg-white/5 text-white/40 hover:border-white/20'}`}>
                                         {t.label}
                                     </button>
                                 ))}
@@ -163,7 +163,7 @@ ${modo === 'PRO' ? 'PRO MODE: Apply maximum detail enhancement, noise reduction 
                                 <div className="flex gap-2 mt-2">
                                     {TIPOS_PESSOA.map((tp) => (
                                         <button key={tp.id} onClick={() => setSubTipo(tp.id)}
-                                            className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl border text-xs font-medium transition-all ${subTipo === tp.id ? 'border-violet-500 bg-violet-600/30 text-white' : 'border-white/10 bg-white/5 text-white/40'}`}>
+                                            className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl border text-xs font-medium transition-all ${subTipo === tp.id ? 'text-black font-bold' : 'border-white/10 bg-white/5 text-white/40'}`}>
                                             <span>{tp.icon}</span>{tp.label}
                                         </button>
                                     ))}
@@ -177,7 +177,7 @@ ${modo === 'PRO' ? 'PRO MODE: Apply maximum detail enhancement, noise reduction 
                             <div className="flex gap-2">
                                 {RESOLUCOES.map((r) => (
                                     <button key={r} onClick={() => setResolucao(r)}
-                                        className={`flex-1 py-2.5 rounded-xl border text-sm font-bold transition-all ${resolucao === r ? 'border-violet-500 bg-violet-600/30 text-white' : 'border-white/10 bg-white/5 text-white/40'}`}>
+                                        className={`flex-1 py-2.5 rounded-xl border text-sm font-bold transition-all ${resolucao === r ? 'text-black font-bold' : 'border-white/10 bg-white/5 text-white/40'}`}>
                                         {r}
                                     </button>
                                 ))}
@@ -186,7 +186,7 @@ ${modo === 'PRO' ? 'PRO MODE: Apply maximum detail enhancement, noise reduction 
 
                         <Button onClick={handleUpscale} disabled={isGenerating || !imagem}
                             className="w-full h-11 rounded-xl font-bold text-sm text-white disabled:opacity-40"
-                            style={{ background: 'linear-gradient(135deg, #7c3aed, #a855f7)' }}>
+                            style={{ background: '#D8FF9A', color: '#000' }}>
                             {isGenerating ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{progress || 'Upscaling...'}</> : <><Sparkles className="w-4 h-4 mr-2" />Fazer Upscale {resolucao}</>}
                         </Button>
                     </div>
@@ -200,7 +200,7 @@ ${modo === 'PRO' ? 'PRO MODE: Apply maximum detail enhancement, noise reduction 
                                 </div>
                                 <button onClick={handleDownload}
                                     className="w-full py-2.5 rounded-xl flex items-center justify-center gap-2 text-sm font-bold text-white hover:brightness-110"
-                                    style={{ background: 'linear-gradient(135deg, #7c3aed, #a855f7)' }}>
+                                    style={{ background: '#D8FF9A', color: '#000' }}>
                                     <Download className="w-4 h-4" />Baixar PNG {resolucao}
                                 </button>
                             </div>

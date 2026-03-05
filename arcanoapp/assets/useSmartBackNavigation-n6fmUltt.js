@@ -1,0 +1,1 @@
+import{r as a}from"./lucide-icons-B2PndJo5.js";import{u as r}from"./react-vendor-CAM2zcDi.js";const w=({fallback:o})=>{var e;const t=r(),i=a.useCallback(()=>{var s;(typeof window<"u"?((s=window.history.state)==null?void 0:s.idx)??0:0)>0?t(-1):t(o)},[t,o]),n=typeof window<"u"?(((e=window.history.state)==null?void 0:e.idx)??0)>0:!1;return{goBack:i,canGoBack:n}};export{w as u};

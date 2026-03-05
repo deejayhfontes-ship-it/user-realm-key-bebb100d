@@ -2,6 +2,8 @@ import { useNavigate } from 'react-router-dom';
 import { ArcanoLayout } from '@/components/admin/arcano/ArcanoLayout';
 import { ArrowRight, UserCheck, ZoomIn, PersonStanding, Shirt, Image } from 'lucide-react';
 
+const LIME = '#D8FF9A';
+
 const tools = [
     {
         id: 'cloner',
@@ -10,7 +12,6 @@ const tools = [
         href: '/admin/arcano/cloner',
         icon: UserCheck,
         badge: 'Novo',
-        gradient: 'from-violet-700 to-purple-900',
     },
     {
         id: 'upscaler',
@@ -18,7 +19,6 @@ const tools = [
         desc: 'Aumente a qualidade das suas imagens com inteligência artificial. Transforme fotos em alta resolução sem perder detalhes.',
         href: '/admin/arcano/upscaler',
         icon: ZoomIn,
-        gradient: 'from-indigo-700 to-violet-900',
     },
     {
         id: 'pose',
@@ -26,7 +26,6 @@ const tools = [
         desc: 'Mude a pose da sua foto usando qualquer imagem como referência. A IA replica a posição do corpo mantendo seu rosto.',
         href: '/admin/arcano/pose-changer',
         icon: PersonStanding,
-        gradient: 'from-fuchsia-700 to-purple-900',
     },
     {
         id: 'veste',
@@ -34,7 +33,6 @@ const tools = [
         desc: 'Troque a roupa da sua foto usando qualquer imagem como referência. A IA veste a peça na sua pessoa de forma realista.',
         href: '/admin/arcano/veste-ai',
         icon: Shirt,
-        gradient: 'from-pink-700 to-violet-900',
     },
     {
         id: 'imagem',
@@ -43,7 +41,6 @@ const tools = [
         href: '/admin/arcano/gerar-imagem',
         icon: Image,
         badge: 'Gemini',
-        gradient: 'from-blue-700 to-violet-900',
     },
 ];
 
@@ -55,49 +52,48 @@ export default function ArcanoHub() {
             <div className="min-h-full px-8 py-10">
                 {/* Header */}
                 <div className="mb-10">
-                    <h1 className="text-3xl font-black text-white mb-2">Seja bem vindo ao Arcano!</h1>
+                    <h1 className="text-3xl font-black text-white mb-2">
+                        Seja bem vindo ao <span style={{ color: LIME }}>Arcano!</span>
+                    </h1>
                     <p className="text-white/40 text-sm">A plataforma dos criadores do futuro.</p>
                 </div>
 
-                {/* Grid de ferramentas */}
+                {/* Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 max-w-5xl">
                     {tools.map((tool) => (
                         <div
                             key={tool.id}
                             onClick={() => navigate(tool.href)}
-                            className={`
-                relative group rounded-2xl overflow-hidden cursor-pointer
-                border border-white/10 hover:border-violet-400/40
-                transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-violet-900/30
-              `}
+                            className="relative group rounded-2xl overflow-hidden cursor-pointer border border-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02]"
+                            style={{ background: '#1c1c1c' }}
                         >
-                            {/* Gradient BG */}
-                            <div className={`absolute inset-0 bg-gradient-to-br ${tool.gradient} opacity-40`} />
-
-                            <div className="relative p-6">
-                                {/* Badge */}
+                            <div className="p-6">
                                 {tool.badge && (
-                                    <span className={`
-                    absolute top-4 right-4 text-[9px] font-bold px-2 py-0.5 rounded-full text-white
-                    ${tool.badge === 'Novo' ? 'bg-violet-500' : 'bg-blue-600'}
-                  `}>
+                                    <span className="absolute top-4 right-4 text-[9px] font-bold px-2 py-0.5 rounded-full text-black"
+                                        style={{ background: LIME }}>
                                         {tool.badge}
                                     </span>
                                 )}
 
                                 {/* Ícone */}
-                                <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center mb-4 group-hover:bg-white/15 transition-colors">
-                                    <tool.icon className="w-6 h-6 text-white" />
+                                <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-colors"
+                                    style={{ background: 'rgba(216,255,154,0.12)' }}>
+                                    <tool.icon className="w-6 h-6" style={{ color: LIME }} />
                                 </div>
 
                                 <h3 className="text-base font-bold text-white mb-2">{tool.title}</h3>
-                                <p className="text-white/50 text-xs leading-relaxed mb-4">{tool.desc}</p>
+                                <p className="text-white/40 text-xs leading-relaxed mb-4">{tool.desc}</p>
 
-                                <div className="flex items-center gap-1.5 text-violet-300 text-xs font-bold group-hover:gap-2.5 transition-all">
+                                <div className="flex items-center gap-1.5 text-xs font-bold group-hover:gap-2.5 transition-all"
+                                    style={{ color: LIME }}>
                                     <span>Acessar Ferramenta</span>
                                     <ArrowRight className="w-3.5 h-3.5" />
                                 </div>
                             </div>
+
+                            {/* Bottom highlight on hover */}
+                            <div className="absolute bottom-0 left-0 right-0 h-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                                style={{ background: LIME }} />
                         </div>
                     ))}
                 </div>

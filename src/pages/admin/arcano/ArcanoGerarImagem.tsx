@@ -90,7 +90,7 @@ export default function ArcanoGerarImagem() {
             <div className="min-h-full flex flex-col" style={{ background: '#0d0714' }}>
                 {/* Cabeçalho */}
                 <div className="px-6 pt-5 pb-2 border-b border-white/5 flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-violet-400" />
+                    <Sparkles className="w-4 h-4 text-lime-300" />
                     <span className="text-sm font-bold text-white">Gerar Imagem</span>
                     <span className="text-[10px] text-white/25 ml-1">NanoBanana • Google Gemini</span>
                 </div>
@@ -104,23 +104,23 @@ export default function ArcanoGerarImagem() {
                             </div>
                             <button onClick={handleDownload}
                                 className="w-full py-2.5 rounded-xl flex items-center justify-center gap-2 text-sm font-bold text-white hover:brightness-110"
-                                style={{ background: 'linear-gradient(135deg, #7c3aed, #a855f7)' }}>
+                                style={{ background: '#D8FF9A', color: '#000' }}>
                                 <Download className="w-4 h-4" />Baixar PNG
                             </button>
                         </div>
                     ) : (
                         <div className="text-center">
-                            <div className="w-16 h-16 rounded-2xl text-violet-400 mx-auto flex items-center justify-center mb-3" style={{ background: '#1a0a2e' }}>
+                            <div className="w-16 h-16 rounded-2xl text-lime-300 mx-auto flex items-center justify-center mb-3" style={{ background: '#1a0a2e' }}>
                                 <Sparkles className="w-8 h-8" />
                             </div>
                             {isGenerating ? (
                                 <>
-                                    <Loader2 className="w-8 h-8 text-violet-400 animate-spin mx-auto mb-2" />
+                                    <Loader2 className="w-8 h-8 text-lime-300 animate-spin mx-auto mb-2" />
                                     <p className="text-sm text-white/40">{progress || 'Gerando imagem...'}</p>
                                 </>
                             ) : (
                                 <>
-                                    <p className="text-sm text-violet-300 font-medium">Digite um prompt e clique em Gerar</p>
+                                    <p className="text-sm text-lime-300 font-medium">Digite um prompt e clique em Gerar</p>
                                     <p className="text-xs text-white/25 mt-1">Arraste imagens aqui ou cole com Ctrl+V para adicionar referências</p>
                                 </>
                             )}
@@ -170,7 +170,7 @@ export default function ArcanoGerarImagem() {
                                     className={cn(
                                         'px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all',
                                         proporcao === p.id
-                                            ? 'border-violet-500 bg-violet-600/30 text-white'
+                                            ? 'text-black font-bold'
                                             : 'border-white/10 text-white/30 hover:text-white/60'
                                     )}
                                 >
@@ -184,7 +184,7 @@ export default function ArcanoGerarImagem() {
                             onClick={handleGerar}
                             disabled={isGenerating || !prompt.trim()}
                             className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold text-white disabled:opacity-40 transition-all hover:brightness-110"
-                            style={{ background: 'linear-gradient(135deg, #7c3aed, #a855f7)' }}
+                            style={{ background: '#D8FF9A', color: '#000' }}
                         >
                             {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                             Gerar
