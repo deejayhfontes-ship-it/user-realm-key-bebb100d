@@ -23,7 +23,8 @@ import {
   Calendar,
   Building2,
   FolderOpen,
-  Film
+  Film,
+  Sparkles
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -60,6 +61,11 @@ const navItems = [
     title: 'Gerador Prompts',
     href: '/admin/prompt-generator',
     icon: Film
+  },
+  {
+    title: 'Arcano',
+    href: '/admin/arcano',
+    icon: Sparkles
   },
   {
     title: 'Pagamentos',

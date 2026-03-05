@@ -34,6 +34,8 @@ import NotFound from "@/pages/NotFound";
 import Platform from "@/pages/Platform";
 import AdminGeneratorPreview from "@/pages/admin/AdminGeneratorPreview";
 import PromptGenerator from "@/pages/PromptGenerator";
+import ArcanoHub from "@/pages/admin/ArcanoHub";
+import ArcanoCloner from "@/pages/admin/ArcanoCloner";
 
 // Public Pages
 import Terms from "@/pages/public/Terms";
@@ -152,6 +154,8 @@ const App = () => (
                 <Route path="prompt-generator" element={<PromptGenerator />} />
                 <Route path="gerador/:slug" element={<AdminGeneratorPreview />} />
                 <Route path="settings" element={<AdminSettings />} />
+                <Route path="arcano" element={<ArcanoHub />} />
+                <Route path="arcano/cloner" element={<ArcanoCloner />} />
               </Route>
 
               {/* Client routes */}
