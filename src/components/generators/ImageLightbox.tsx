@@ -54,6 +54,18 @@ export function ImageLightbox({ images, currentIndex, isOpen, onClose, onIndexCh
         return () => window.removeEventListener('keydown', handleKey);
     }, [isOpen, currentIndex, images.length, onClose, onIndexChange]);
 
+    // Download nativo (file-saver não usado neste projeto)
+    const downloadBlob = (blob: Blob, filename: string) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
+
     // Download handler
     const handleDownload = useCallback(async (format: 'png' | 'jpg') => {
         if (!image) return;
@@ -79,7 +91,7 @@ export function ImageLightbox({ images, currentIndex, isOpen, onClose, onIndexCh
                 ctx.drawImage(img, 0, 0);
                 canvas.toBlob((blob) => {
                     if (!blob) return;
-                    saveAs(blob, `${safeName}.jpg`);
+                    downloadBlob(blob, `${safeName}.jpg`);
                     toast({ title: `📥 Baixando ${safeName}.jpg` });
                 }, 'image/jpeg', 0.95);
             } else {
@@ -88,7 +100,7 @@ export function ImageLightbox({ images, currentIndex, isOpen, onClose, onIndexCh
                 if (!blob.type || blob.type === 'application/octet-stream') {
                     blob = new Blob([blob], { type: 'image/png' });
                 }
-                saveAs(blob, `${safeName}.png`);
+                downloadBlob(blob, `${safeName}.png`);
                 toast({ title: `📥 Baixando ${safeName}.png` });
             }
         } catch (err) {

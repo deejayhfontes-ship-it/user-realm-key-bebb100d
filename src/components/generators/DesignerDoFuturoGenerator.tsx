@@ -1427,7 +1427,14 @@ export function DesignerDoFuturoGenerator() {
                                                 const d = new Date(img.timestamp);
                                                 const pad = (n: number) => String(n).padStart(2, '0');
                                                 const safeName = `design-${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}.png`;
-                                                saveAs(blob, safeName);
+                                                const dlUrl = URL.createObjectURL(blob);
+                                                const a = document.createElement('a');
+                                                a.href = dlUrl;
+                                                a.download = safeName;
+                                                document.body.appendChild(a);
+                                                a.click();
+                                                document.body.removeChild(a);
+                                                URL.revokeObjectURL(dlUrl);
                                                 toast({ title: `📥 Baixando ${safeName}` });
                                             } catch (err) {
                                                 console.error('Erro no download:', err);
