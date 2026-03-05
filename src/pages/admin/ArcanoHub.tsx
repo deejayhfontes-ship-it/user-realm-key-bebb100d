@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { ArcanoLayout } from '@/components/admin/arcano/ArcanoLayout';
-import { ArrowRight, UserCheck, ZoomIn, PersonStanding, Shirt, Image } from 'lucide-react';
+import { ArrowRight, UserCheck, ZoomIn, PersonStanding, Shirt, Image, BookOpen, Wrench } from 'lucide-react';
 
 const LIME = '#D8FF9A';
 
@@ -41,6 +41,21 @@ const tools = [
         href: '/admin/arcano/gerar-imagem',
         icon: Image,
         badge: 'Gemini',
+    },
+    {
+        id: 'biblioteca',
+        title: 'Biblioteca de Prompts',
+        desc: 'Explore centenas de prompts prontos para gerar imagens incríveis. Copie e use nos seus projetos.',
+        href: '/admin/arcano/biblioteca-prompts',
+        icon: BookOpen,
+        badge: '450+',
+    },
+    {
+        id: 'ferramentas',
+        title: 'Ferramentas de IA',
+        desc: 'Upscaler, Cloner, Pose Changer e muito mais. Todas as ferramentas de IA em um só lugar.',
+        href: '/admin/arcano/ferramentas-ia',
+        icon: Wrench,
     },
 ];
 

@@ -40,6 +40,8 @@ import ArcanoUpscaler from "@/pages/admin/arcano/ArcanoUpscaler";
 import ArcanoPoseChanger from "@/pages/admin/arcano/ArcanoPoseChanger";
 import ArcanoVesteAI from "@/pages/admin/arcano/ArcanoVesteAI";
 import ArcanoGerarImagem from "@/pages/admin/arcano/ArcanoGerarImagem";
+import BibliotecaPrompts from "@/pages/admin/arcano/BibliotecaPrompts";
+import FerramentasIA from "@/pages/admin/arcano/FerramentasIA";
 
 // Public Pages
 import Terms from "@/pages/public/Terms";
@@ -166,6 +168,8 @@ const App = () => (
                 <Route path="arcano/pose-changer" element={<ArcanoPoseChanger />} />
                 <Route path="arcano/veste-ai" element={<ArcanoVesteAI />} />
                 <Route path="arcano/gerar-imagem" element={<ArcanoGerarImagem />} />
+                <Route path="arcano/biblioteca-prompts" element={<BibliotecaPrompts />} />
+                <Route path="arcano/ferramentas-ia" element={<FerramentasIA />} />
               </Route>
 
               {/* Client routes */}

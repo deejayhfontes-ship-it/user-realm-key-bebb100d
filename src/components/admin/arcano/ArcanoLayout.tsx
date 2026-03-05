@@ -2,7 +2,8 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import {
     UserCheck, ZoomIn, PersonStanding, Shirt,
-    Image, Video, Sparkles, Home, ChevronLeft
+    Image, Video, Sparkles, Home, ChevronLeft,
+    BookOpen, Wrench
 } from 'lucide-react';
 
 const sidebarTools = [
@@ -89,6 +90,31 @@ export function ArcanoLayout({ children }: ArcanoLayoutProps) {
                                 )}
                             </NavLink>
                         ))}
+                    </div>
+
+                    {/* Biblioteca & Conteúdo */}
+                    <div className="pt-3 pb-1">
+                        <p className="text-[9px] font-bold uppercase tracking-widest text-white/25 px-3 mb-1">
+                            Conteúdo
+                        </p>
+                        <NavLink to="/admin/arcano/biblioteca-prompts"
+                            className={({ isActive }) => cn(
+                                'flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all font-medium',
+                                isActive ? 'text-black' : 'text-white/50 hover:text-white hover:bg-white/5'
+                            )}
+                            style={({ isActive }) => isActive ? { background: LIME } : {}}>
+                            <BookOpen className="w-4 h-4 shrink-0" />
+                            <span>Biblioteca de Prompts</span>
+                        </NavLink>
+                        <NavLink to="/admin/arcano/ferramentas-ia"
+                            className={({ isActive }) => cn(
+                                'flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all font-medium',
+                                isActive ? 'text-black' : 'text-white/50 hover:text-white hover:bg-white/5'
+                            )}
+                            style={({ isActive }) => isActive ? { background: LIME } : {}}>
+                            <Wrench className="w-4 h-4 shrink-0" />
+                            <span>Ferramentas de IA</span>
+                        </NavLink>
                     </div>
                 </nav>
             </aside>
