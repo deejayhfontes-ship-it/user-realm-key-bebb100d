@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import html2canvas from "html2canvas";
-import { saveAs } from "file-saver";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -91,16 +90,24 @@ const CarrosselInteracoes = ({ onBack }: CarrosselInteracoesProps) => {
     toast.success("Ação desfeita");
   }, [history]);
 
-  // Listener para Ctrl+Z
+  // Listener para Ctrl+Z — só atua quando o foco NÃO está em input/textarea
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === "z") {
+      // Se o foco está em um input, textarea ou elemento editável, não intercepta
+      const target = e.target as HTMLElement;
+      const isTypingField =
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.isContentEditable;
+      if (isTypingField) return;
+
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
         e.preventDefault();
         undo();
       }
     };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [undo]);
 
   const updateSlide = (index: number, data: Partial<SlideData>) => {
@@ -218,7 +225,15 @@ const CarrosselInteracoes = ({ onBack }: CarrosselInteracoesProps) => {
         const blob = await new Promise<Blob>((resolve) =>
           canvas.toBlob((b) => resolve(b!), "image/png", 1.0)
         );
-        saveAs(blob, `carrossel_slide${i + 1}_${String(Date.now()).slice(-4)}.png`);
+        // Download nativo (file-saver não instalado)
+        const dlUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = dlUrl;
+        a.download = `carrossel_slide${i + 1}_${String(Date.now()).slice(-4)}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(dlUrl);
 
         // Small delay between downloads
         await new Promise((resolve) => setTimeout(resolve, 100));
