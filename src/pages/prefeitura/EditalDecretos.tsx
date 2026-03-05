@@ -177,28 +177,19 @@ const EditalDecretos = () => {
 
     const generateImages = async () => {
         setIsGenerating(true);
-        const container = captureRef.current;
-        if (!container) { setIsGenerating(false); return; }
-
-        // Torna o container visível temporariamente para captura
-        container.style.display = "flex";
-        container.style.position = "fixed";
-        container.style.left = "-9999px";
-        container.style.top = "0";
-        container.style.visibility = "visible";
-        container.style.opacity = "1";
-        container.style.zIndex = "-1";
-
         try {
             await document.fonts.ready;
-            await new Promise((r) => setTimeout(r, 500));
+            await new Promise((r) => setTimeout(r, 300));
 
             for (let i = 0; i < paginasBody.length; i++) {
                 const pageEl = document.getElementById(`capture-page-${i}`);
                 if (!pageEl) {
-                    toast.error(`Página ${i + 1} não encontrada`);
+                    toast.error(`Página ${i + 1} não encontrada no DOM`);
                     continue;
                 }
+
+                // Torna visível apenas durante a captura
+                pageEl.style.visibility = "visible";
 
                 const canvas = await html2canvas(pageEl, {
                     scale: 2,
@@ -210,10 +201,11 @@ const EditalDecretos = () => {
                     logging: false,
                 });
 
+                pageEl.style.visibility = "hidden";
+
                 const suffix = paginasBody.length > 1 ? `_pag${i + 1}` : "";
                 const filename = `decreto${suffix}_${String(Date.now()).slice(-4)}.png`;
 
-                // Download dentro do callback do toBlob (padrão correto)
                 canvas.toBlob((blob) => {
                     if (!blob) return;
                     const url = URL.createObjectURL(blob);
@@ -227,7 +219,7 @@ const EditalDecretos = () => {
                 }, "image/png");
 
                 if (i < paginasBody.length - 1) {
-                    await new Promise((r) => setTimeout(r, 500));
+                    await new Promise((r) => setTimeout(r, 400));
                 }
             }
 
@@ -236,9 +228,6 @@ const EditalDecretos = () => {
             console.error("Erro ao gerar:", error);
             toast.error("Erro ao gerar imagem");
         } finally {
-            // Esconde novamente
-            container.style.display = "none";
-            container.style.position = "absolute";
             setIsGenerating(false);
         }
     };
@@ -370,17 +359,20 @@ const EditalDecretos = () => {
                 {titulo}
             </div>
 
-            {/* Hidden capture container */}
+            {/* Hidden capture container — display:flex offscreen, nunca display:none (impede layout) */}
             <div
                 ref={captureRef}
                 style={{
-                    position: "absolute",
+                    position: "fixed",
                     top: "-9999px",
                     left: "-9999px",
-                    display: "none",
-                    width: `${PAGE_W}px`,
+                    display: "flex",
                     flexDirection: "column",
                     gap: "20px",
+                    width: `${PAGE_W}px`,
+                    visibility: "hidden",
+                    pointerEvents: "none",
+                    zIndex: -1,
                 }}
             >
                 {paginasBody.map((conteudo, index) => (
