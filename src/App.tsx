@@ -62,6 +62,7 @@ import PrefeituraArtePage from "@/pages/prefeitura/PrefeituraArtePage";
 import PublicTracking from "@/pages/PublicTracking";
 import AdminSolicitacoes from "@/pages/admin/AdminSolicitacoes";
 import AdminProtocols from "@/pages/admin/AdminProtocols";
+import AdminBiblioteca from "@/pages/admin/AdminBiblioteca";
 import SolicitarServico from "@/pages/public/SolicitarServico";
 
 // Client Pages
@@ -155,6 +156,7 @@ const App = () => (
                 <Route path="agenda" element={<AdminAgenda />} />
                 <Route path="solicitacoes-prefeitura" element={<AdminSolicitacoes />} />
                 <Route path="protocolos" element={<AdminProtocols />} />
+                <Route path="biblioteca" element={<AdminBiblioteca />} />
                 <Route path="prompt-generator" element={<PromptGenerator />} />
                 <Route path="gerador/:slug" element={<AdminGeneratorPreview />} />
                 <Route path="settings" element={<AdminSettings />} />

@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { backupImageToHostGator } from '@/hooks/useImageBackup';
 import { Link, useSearchParams } from "react-router-dom";
 import html2canvas from "html2canvas";
 import { saveAs } from "file-saver";
@@ -201,7 +202,14 @@ const PrefeituraMaisFacil = () => {
       const blob = await new Promise<Blob>((resolve) =>
         canvas.toBlob((b) => resolve(b!), "image/png", 1.0)
       );
-      saveAs(blob, `storieprefeitura_${String(Date.now()).slice(-4)}.png`);
+      const filename = `storieprefeitura_${String(Date.now()).slice(-4)}.png`;
+      saveAs(blob, filename);
+      // Backup automático no HostGator
+      backupImageToHostGator(blob, {
+        generator_type: 'prefeitura_mais_facil',
+        prompt: `${secretaria} - ${descricao}`,
+        filename: filename.replace('.png', ''),
+      });
 
       toast.success("Imagem gerada com sucesso!");
     } catch (error) {

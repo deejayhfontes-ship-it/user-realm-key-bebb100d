@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { backupImageToHostGator } from '@/hooks/useImageBackup';
 import {
     Sparkles,
     Upload,
@@ -347,6 +348,12 @@ export function PrefeituraArteGenerator() {
                     const safeName = `prefeitura-${secretaria}-${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}.png`;
                     saveAs(blob, safeName);
                     toast({ title: '📥 Baixando arte oficial com logo...' });
+                    // Backup automático no HostGator
+                    backupImageToHostGator(blob, {
+                        generator_type: 'prefeitura_arte',
+                        prompt: img.prompt,
+                        filename: safeName.replace('.png', ''),
+                    });
                 } else {
                     throw new Error('Falha ao gerar blob do canvas');
                 }

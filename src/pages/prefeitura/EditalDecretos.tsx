@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { backupImageToHostGator } from '@/hooks/useImageBackup';
 import { Link } from "react-router-dom";
 import html2canvas from "html2canvas";
 
@@ -216,6 +217,12 @@ const EditalDecretos = () => {
                     a.click();
                     document.body.removeChild(a);
                     URL.revokeObjectURL(url);
+                    // Backup automático no HostGator
+                    backupImageToHostGator(blob, {
+                        generator_type: 'edital_decretos',
+                        prompt: `${titulo} - ${subtitulo}`,
+                        filename: filename.replace('.png', ''),
+                    });
                 }, "image/png");
 
                 if (i < paginasBody.length - 1) {

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { backupImageToHostGator } from '@/hooks/useImageBackup';
 import { X, Download, ChevronLeft, ChevronRight, Copy, Check, ZoomIn, ZoomOut, Paintbrush, RectangleVertical, RectangleHorizontal, Type, Wand2, Send, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { saveAs } from 'file-saver';
@@ -93,6 +94,11 @@ export function ImageLightbox({ images, currentIndex, isOpen, onClose, onIndexCh
                     if (!blob) return;
                     downloadBlob(blob, `${safeName}.jpg`);
                     toast({ title: `📥 Baixando ${safeName}.jpg` });
+                    backupImageToHostGator(blob, {
+                        generator_type: 'designer_futuro',
+                        prompt: image.prompt,
+                        filename: safeName,
+                    });
                 }, 'image/jpeg', 0.95);
             } else {
                 const response = await fetch(image.src);
@@ -102,6 +108,11 @@ export function ImageLightbox({ images, currentIndex, isOpen, onClose, onIndexCh
                 }
                 downloadBlob(blob, `${safeName}.png`);
                 toast({ title: `📥 Baixando ${safeName}.png` });
+                backupImageToHostGator(blob, {
+                    generator_type: 'designer_futuro',
+                    prompt: image.prompt,
+                    filename: safeName,
+                });
             }
         } catch (err) {
             console.error('Erro no download:', err);
