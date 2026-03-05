@@ -514,7 +514,7 @@ export function useGeminiImageGeneration() {
     // Busca as API keys e modelos do Supabase (com cache + TTL)
     // ============================================================
     const getProviderData = useCallback(async () => {
-        // Cache com TTL de 5 minutos
+        // Cache com TTL de 30s
         if (providerCache.current && Date.now() - providerCache.current.fetchedAt < CACHE_TTL_MS) {
             return { ...providerCache.current, cacheHit: true };
         }
@@ -538,18 +538,25 @@ export function useGeminiImageGeneration() {
         if (data) {
             imageModel = data.model_name || DEFAULT_IMAGE_MODEL;
 
+            // Adiciona a key principal
             if (data.api_key_encrypted) {
                 keys.push(data.api_key_encrypted);
             }
 
-            // Lê apenas model_text do system_prompt (NÃO carrega pool de keys)
-            // Pool de APIs DESATIVADA por decisão do usuário — usa SOMENTE api_key_encrypted
+            // Carrega pool de keys do system_prompt (enabled:true)
             if (data.system_prompt) {
                 try {
                     const meta = JSON.parse(data.system_prompt);
                     if (meta.model_text) textModel = meta.model_text;
-                    // POOL DESATIVADA: não carrega meta.api_keys
-                    console.log('[getProviderData] Pool desativada — usando apenas key principal');
+                    // Pool ATIVA — carrega todas as keys habilitadas
+                    if (Array.isArray(meta.api_keys)) {
+                        for (const entry of meta.api_keys) {
+                            if (entry.enabled && entry.key && !keys.includes(entry.key)) {
+                                keys.push(entry.key);
+                            }
+                        }
+                    }
+                    console.log(`[getProviderData] Pool ativa — ${keys.length} keys carregadas`);
                 } catch {
                     // system_prompt não é JSON, ignorar
                 }
@@ -564,6 +571,7 @@ export function useGeminiImageGeneration() {
         providerCache.current = result;
         return { ...result, cacheHit: false };
     }, []);
+
 
     // ============================================================
     // Etapa 1: Gera o prompt de texto via SDK (systemInstruction)
