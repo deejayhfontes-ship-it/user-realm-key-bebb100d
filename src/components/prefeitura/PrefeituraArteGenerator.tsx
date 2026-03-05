@@ -16,7 +16,6 @@ import {
 import { toast } from '@/hooks/use-toast';
 import { useGeminiImageGeneration, GenerationConfig } from '@/hooks/useGeminiImageGeneration';
 import { ImageLightbox } from '@/components/generators/ImageLightbox';
-import { saveAs } from 'file-saver';
 import { useNavigate } from 'react-router-dom';
 import { usePrefeituraAssets } from '@/hooks/usePrefeituraAssets';
 
@@ -265,6 +264,18 @@ export function PrefeituraArteGenerator() {
         }
     };
 
+    // Download nativo (file-saver não instalado no projeto)
+    const downloadBlob = (blob: Blob, filename: string) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
+
     // ── Download com Overlay (Agente Visual) ──
     const handleDownload = async (img: GeneratedImage) => {
         try {
@@ -275,7 +286,7 @@ export function PrefeituraArteGenerator() {
                 if (!blob.type || blob.type === 'application/octet-stream') {
                     blob = new Blob([blob], { type: 'image/png' });
                 }
-                saveAs(blob, `prefeitura-${Date.now()}.png`);
+                downloadBlob(blob, `prefeitura-${Date.now()}.png`);
                 return;
             }
 
@@ -344,7 +355,9 @@ export function PrefeituraArteGenerator() {
         } catch (err) {
             console.error('Erro no download:', err);
             // Fallback
-            saveAs(img.src, `prefeitura-backup-${Date.now()}.png`);
+            const fallbackResp = await fetch(img.src);
+            const fallbackBlob = await fallbackResp.blob();
+            downloadBlob(new Blob([fallbackBlob], { type: 'image/png' }), `prefeitura-backup-${Date.now()}.png`);
             toast({ title: 'Baixando versão simples (erro no overlay)', variant: 'destructive' });
         }
     };
