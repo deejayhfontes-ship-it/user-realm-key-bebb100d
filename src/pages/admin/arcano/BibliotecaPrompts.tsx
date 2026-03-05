@@ -100,8 +100,8 @@ export default function BibliotecaPrompts() {
 
     function handleGenerate(p: Prompt, e?: React.MouseEvent) {
         e?.stopPropagation();
-        // Navigate to the image generator with the prompt pre-filled
-        navigate('/admin/arcano/gerar-imagem', { state: { prompt: p.prompt, referenceImage: p.image_url } });
+        // Navigate to the Arcano Cloner with the reference image pre-filled (like the original ArcanoApp)
+        navigate('/admin/arcano/cloner', { state: { prompt: p.prompt, referenceImage: p.image_url } });
     }
 
     const copyCount = (p: Prompt) => p.click_count + p.bonus_clicks;
