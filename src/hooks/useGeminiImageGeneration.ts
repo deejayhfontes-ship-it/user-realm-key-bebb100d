@@ -538,17 +538,25 @@ export function useGeminiImageGeneration() {
         if (data) {
             imageModel = data.model_name || DEFAULT_IMAGE_MODEL;
 
-            // Usa SOMENTE a key principal configurada pelo usuário
+            // Key principal
             if (data.api_key_encrypted) {
                 keys.push(data.api_key_encrypted);
             }
 
-            // Lê apenas model_text do system_prompt (pool desativado por decisão do usuário)
+            // Lê model_text + pool de keys do system_prompt
             if (data.system_prompt) {
                 try {
                     const meta = JSON.parse(data.system_prompt);
                     if (meta.model_text) textModel = meta.model_text;
-                    console.log('[getProviderData] Usando key principal — pool desativado');
+                    // Pool de keys ativas
+                    if (Array.isArray(meta.api_keys)) {
+                        for (const entry of meta.api_keys) {
+                            if (entry.enabled && entry.key && !keys.includes(entry.key)) {
+                                keys.push(entry.key);
+                            }
+                        }
+                    }
+                    console.log(`[getProviderData] ${keys.length} key(s) ativa(s) no pool`);
                 } catch {
                     // system_prompt não é JSON, ignorar
                 }
