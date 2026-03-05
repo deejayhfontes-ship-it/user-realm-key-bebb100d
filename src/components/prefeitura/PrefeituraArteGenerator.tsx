@@ -209,8 +209,8 @@ export function PrefeituraArteGenerator() {
             const generationConfig: GenerationConfig = {
                 niche,
                 gender: 'neutral',
-                subjectDescription: `[INSTRUÇÃO PRIORITÁRIA: NÃO gere foto de pessoa. Gere um DESIGN GRÁFICO / INFORMATIVO / FLYER / CARTAZ com o título "${titulo}" renderizado como texto tipográfico grande na composição.]\n\n${promptDoAgente}`,
-                environment: `Professional graphic design layout for government communication. Flat design style, clean layout with bold typography, institutional colors, geometric shapes, icons and decorative elements. This is a PRINTED FLYER/POSTER design, NOT a photograph.`,
+                subjectDescription: `[INSTRUÇÃO PRIORITÁRIA: NÃO gere foto de pessoa. Gere um DESIGN GRÁFICO / INFORMATIVO / FLYER / CARTAZ com o título "${titulo}" renderizado como texto tipográfico grande na composição. O design deve preencher 100% da imagem — SEM fundo branco, SEM bordas brancas, SEM efeito de papel impresso.]\n\n${promptDoAgente}`,
+                environment: `Professional graphic design layout for government communication. Flat design style, bold typography, institutional colors, geometric shapes. EDGE-TO-EDGE design, filling the entire canvas with NO white borders, NO white margins, NO paper background, NO mockup frame — the artwork goes to all 4 edges of the image.`,
                 sobriety: 70, // Mais sóbrio e institucional
                 style: estilo,
                 useStyle: !!estilo,
@@ -222,7 +222,7 @@ export function PrefeituraArteGenerator() {
                 useFloatingElements: false,
                 floatingElementsDescription: '',
                 shotType: 'CLOSE_UP', // Não importa para design gráfico — close reduz chance de corpo inteiro
-                additionalInstructions: `REGRA ABSOLUTA: O resultado DEVE ser um DESIGN GRÁFICO/INFORMATIVO com tipografia, NÃO uma fotografia. O título "${titulo}" deve aparecer em TEXTO GRANDE e legível. ${descricaoExtra || ''}`,
+                additionalInstructions: `REGRA ABSOLUTA: Gere um DESIGN GRÁFICO/INFORMATIVO com tipografia. O título "${titulo}" deve aparecer em TEXTO GRANDE e legível. CRITICAL: NO white borders, NO white frame, NO paper/mockup effect — the design MUST fill 100% of the canvas edge-to-edge with colored backgrounds. ${descricaoExtra || ''}`,
                 dimension: dimensions[formato] || '1080x1080',
                 safeAreaSide: 'CENTER',
                 personCount: 0, // SEM pessoas — é informativo gráfico
