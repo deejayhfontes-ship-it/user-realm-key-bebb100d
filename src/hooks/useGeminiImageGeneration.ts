@@ -538,25 +538,17 @@ export function useGeminiImageGeneration() {
         if (data) {
             imageModel = data.model_name || DEFAULT_IMAGE_MODEL;
 
-            // Adiciona a key principal
+            // Usa SOMENTE a key principal configurada pelo usuário
             if (data.api_key_encrypted) {
                 keys.push(data.api_key_encrypted);
             }
 
-            // Carrega pool de keys do system_prompt (enabled:true)
+            // Lê apenas model_text do system_prompt (pool desativado por decisão do usuário)
             if (data.system_prompt) {
                 try {
                     const meta = JSON.parse(data.system_prompt);
                     if (meta.model_text) textModel = meta.model_text;
-                    // Pool ATIVA — carrega todas as keys habilitadas
-                    if (Array.isArray(meta.api_keys)) {
-                        for (const entry of meta.api_keys) {
-                            if (entry.enabled && entry.key && !keys.includes(entry.key)) {
-                                keys.push(entry.key);
-                            }
-                        }
-                    }
-                    console.log(`[getProviderData] Pool ativa — ${keys.length} keys carregadas`);
+                    console.log('[getProviderData] Usando key principal — pool desativado');
                 } catch {
                     // system_prompt não é JSON, ignorar
                 }
@@ -571,6 +563,7 @@ export function useGeminiImageGeneration() {
         providerCache.current = result;
         return { ...result, cacheHit: false };
     }, []);
+
 
 
     // ============================================================
