@@ -1,62 +1,49 @@
 import { useNavigate } from 'react-router-dom';
-import { AdminHeader } from '@/components/admin/AdminHeader';
-import { Sparkles, ZoomIn, UserCheck, Shirt, Award, FileImage, ArrowRight, Clock } from 'lucide-react';
+import { ArcanoLayout } from '@/components/admin/arcano/ArcanoLayout';
+import { ArrowRight, UserCheck, ZoomIn, PersonStanding, Shirt, Image } from 'lucide-react';
 
-interface ToolCard {
-    id: string;
-    title: string;
-    description: string;
-    icon: React.ReactNode;
-    route?: string;
-    status: 'active' | 'soon';
-    badge?: string;
-}
-
-const tools: ToolCard[] = [
+const tools = [
     {
         id: 'cloner',
         title: 'Arcano Cloner',
-        description: 'Crie ensaios fotográficos ultra-realistas com IA a partir de uma foto',
-        icon: <UserCheck className="w-7 h-7" />,
-        route: '/admin/arcano/cloner',
-        status: 'active',
-        badge: 'NOVO',
+        desc: 'Transforme sua foto usando qualquer imagem como referência. A IA clona o estilo, pose e cenário na sua pessoa.',
+        href: '/admin/arcano/cloner',
+        icon: UserCheck,
+        badge: 'Novo',
+        gradient: 'from-violet-700 to-purple-900',
     },
     {
         id: 'upscaler',
-        title: 'Upscaler IA',
-        description: 'Aumente a resolução de imagens com inteligência artificial',
-        icon: <ZoomIn className="w-7 h-7" />,
-        route: '/admin/arcano/upscaler',
-        status: 'active',
+        title: 'Upscaler Arcano V3',
+        desc: 'Aumente a qualidade das suas imagens com inteligência artificial. Transforme fotos em alta resolução sem perder detalhes.',
+        href: '/admin/arcano/upscaler',
+        icon: ZoomIn,
+        gradient: 'from-indigo-700 to-violet-900',
     },
     {
         id: 'pose',
         title: 'Pose Changer',
-        description: 'Altere a pose de pessoas em fotos com IA',
-        icon: <Sparkles className="w-7 h-7" />,
-        status: 'soon',
+        desc: 'Mude a pose da sua foto usando qualquer imagem como referência. A IA replica a posição do corpo mantendo seu rosto.',
+        href: '/admin/arcano/pose-changer',
+        icon: PersonStanding,
+        gradient: 'from-fuchsia-700 to-purple-900',
     },
     {
         id: 'veste',
         title: 'Veste AI',
-        description: 'Troque roupas em fotos com inteligência artificial',
-        icon: <Shirt className="w-7 h-7" />,
-        status: 'soon',
+        desc: 'Troque a roupa da sua foto usando qualquer imagem como referência. A IA veste a peça na sua pessoa de forma realista.',
+        href: '/admin/arcano/veste-ai',
+        icon: Shirt,
+        gradient: 'from-pink-700 to-violet-900',
     },
     {
-        id: 'selos',
-        title: 'Forja de Selos 3D',
-        description: 'Crie selos e emblemas 3D animados com IA',
-        icon: <Award className="w-7 h-7" />,
-        status: 'soon',
-    },
-    {
-        id: 'flyer',
-        title: 'Flyer Maker',
-        description: 'Crie flyers para eventos incríveis com IA',
-        icon: <FileImage className="w-7 h-7" />,
-        status: 'soon',
+        id: 'imagem',
+        title: 'Gerar Imagem',
+        desc: 'Gere imagens incríveis com IA de última geração. Powered by Google Gemini.',
+        href: '/admin/arcano/gerar-imagem',
+        icon: Image,
+        badge: 'Gemini',
+        gradient: 'from-blue-700 to-violet-900',
     },
 ];
 
@@ -64,78 +51,57 @@ export default function ArcanoHub() {
     const navigate = useNavigate();
 
     return (
-        <div className="flex flex-col h-full bg-[#0a0a0f]">
-            <AdminHeader
-                title="Arcano"
-                subtitle="Ferramentas de IA para criação profissional"
-            />
-
-            <div className="flex-1 p-8">
-                {/* Header decorativo */}
-                <div className="mb-10 text-center">
-                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-violet-500/10 border border-violet-500/20 mb-4">
-                        <Sparkles className="w-3.5 h-3.5 text-violet-400" />
-                        <span className="text-xs font-bold uppercase tracking-wider text-violet-400">Plataforma Arcano</span>
-                    </div>
-                    <h1 className="text-3xl font-black text-white mb-2">Ferramentas de IA</h1>
-                    <p className="text-white/50 text-sm">Crie imagens profissionais com inteligência artificial — sem limites de créditos</p>
+        <ArcanoLayout>
+            <div className="min-h-full px-8 py-10">
+                {/* Header */}
+                <div className="mb-10">
+                    <h1 className="text-3xl font-black text-white mb-2">Seja bem vindo ao Arcano!</h1>
+                    <p className="text-white/40 text-sm">A plataforma dos criadores do futuro.</p>
                 </div>
 
                 {/* Grid de ferramentas */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 max-w-5xl mx-auto">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 max-w-5xl">
                     {tools.map((tool) => (
                         <div
                             key={tool.id}
-                            onClick={() => tool.status === 'active' && tool.route && navigate(tool.route)}
+                            onClick={() => navigate(tool.href)}
                             className={`
-                relative group rounded-2xl border p-6 transition-all duration-300
-                ${tool.status === 'active'
-                                    ? 'border-violet-500/20 bg-gradient-to-br from-violet-950/40 to-[#0d0d1a] hover:border-violet-400/50 hover:shadow-lg hover:shadow-violet-500/10 cursor-pointer'
-                                    : 'border-white/5 bg-white/[0.02] opacity-60 cursor-default'
-                                }
+                relative group rounded-2xl overflow-hidden cursor-pointer
+                border border-white/10 hover:border-violet-400/40
+                transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-violet-900/30
               `}
                         >
-                            {/* Badge */}
-                            {tool.badge && (
-                                <span className="absolute top-4 right-4 px-2 py-0.5 rounded-full bg-violet-500 text-white text-[9px] font-extrabold uppercase tracking-wider">
-                                    {tool.badge}
-                                </span>
-                            )}
-                            {tool.status === 'soon' && (
-                                <span className="absolute top-4 right-4 flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/10 text-white/40 text-[9px] font-bold uppercase">
-                                    <Clock className="w-2.5 h-2.5" />
-                                    Em Breve
-                                </span>
-                            )}
+                            {/* Gradient BG */}
+                            <div className={`absolute inset-0 bg-gradient-to-br ${tool.gradient} opacity-40`} />
 
-                            {/* Ícone */}
-                            <div className={`
-                w-14 h-14 rounded-2xl flex items-center justify-center mb-4 transition-all
-                ${tool.status === 'active'
-                                    ? 'bg-violet-500/20 text-violet-300 group-hover:bg-violet-500/30 group-hover:scale-110'
-                                    : 'bg-white/5 text-white/20'
-                                }
-              `}>
-                                {tool.icon}
-                            </div>
+                            <div className="relative p-6">
+                                {/* Badge */}
+                                {tool.badge && (
+                                    <span className={`
+                    absolute top-4 right-4 text-[9px] font-bold px-2 py-0.5 rounded-full text-white
+                    ${tool.badge === 'Novo' ? 'bg-violet-500' : 'bg-blue-600'}
+                  `}>
+                                        {tool.badge}
+                                    </span>
+                                )}
 
-                            <h3 className={`text-base font-bold mb-1.5 ${tool.status === 'active' ? 'text-white' : 'text-white/40'}`}>
-                                {tool.title}
-                            </h3>
-                            <p className={`text-xs leading-relaxed mb-4 ${tool.status === 'active' ? 'text-white/50' : 'text-white/20'}`}>
-                                {tool.description}
-                            </p>
+                                {/* Ícone */}
+                                <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center mb-4 group-hover:bg-white/15 transition-colors">
+                                    <tool.icon className="w-6 h-6 text-white" />
+                                </div>
 
-                            {tool.status === 'active' && (
-                                <div className="flex items-center gap-1 text-violet-400 text-xs font-bold group-hover:gap-2 transition-all">
-                                    <span>Acessar</span>
+                                <h3 className="text-base font-bold text-white mb-2">{tool.title}</h3>
+                                <p className="text-white/50 text-xs leading-relaxed mb-4">{tool.desc}</p>
+
+                                <div className="flex items-center gap-1.5 text-violet-300 text-xs font-bold group-hover:gap-2.5 transition-all">
+                                    <span>Acessar Ferramenta</span>
                                     <ArrowRight className="w-3.5 h-3.5" />
                                 </div>
-                            )}
+                            </div>
                         </div>
                     ))}
                 </div>
             </div>
-        </div>
+        </ArcanoLayout>
     );
 }

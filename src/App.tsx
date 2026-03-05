@@ -36,6 +36,10 @@ import AdminGeneratorPreview from "@/pages/admin/AdminGeneratorPreview";
 import PromptGenerator from "@/pages/PromptGenerator";
 import ArcanoHub from "@/pages/admin/ArcanoHub";
 import ArcanoCloner from "@/pages/admin/ArcanoCloner";
+import ArcanoUpscaler from "@/pages/admin/arcano/ArcanoUpscaler";
+import ArcanoPoseChanger from "@/pages/admin/arcano/ArcanoPoseChanger";
+import ArcanoVesteAI from "@/pages/admin/arcano/ArcanoVesteAI";
+import ArcanoGerarImagem from "@/pages/admin/arcano/ArcanoGerarImagem";
 
 // Public Pages
 import Terms from "@/pages/public/Terms";
@@ -156,6 +160,10 @@ const App = () => (
                 <Route path="settings" element={<AdminSettings />} />
                 <Route path="arcano" element={<ArcanoHub />} />
                 <Route path="arcano/cloner" element={<ArcanoCloner />} />
+                <Route path="arcano/upscaler" element={<ArcanoUpscaler />} />
+                <Route path="arcano/pose-changer" element={<ArcanoPoseChanger />} />
+                <Route path="arcano/veste-ai" element={<ArcanoVesteAI />} />
+                <Route path="arcano/gerar-imagem" element={<ArcanoGerarImagem />} />
               </Route>
 
               {/* Client routes */}
