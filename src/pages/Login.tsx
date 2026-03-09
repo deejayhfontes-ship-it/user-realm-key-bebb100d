@@ -38,12 +38,15 @@ export default function Login() {
         return;
       }
 
-      console.log('✅ Login OK! Role:', role);
+      console.log('✅ Login OK! Role:', role, '| Email:', email);
       toast.success('Login realizado com sucesso!');
 
-      // Check if user is a prefeitura VIP user
-      const isPrefeitura = email.toLowerCase().includes('@prefeitura');
-      const isFaculdade = email.toLowerCase().includes('@edicao.com');
+      // Normaliza o email e determina o destino
+      const emailLower = email.trim().toLowerCase();
+      const isPrefeitura = emailLower.includes('@prefeitura');
+      const isFaculdade = emailLower.includes('@edicao.com');
+
+      console.log('🔍 Checks — isPrefeitura:', isPrefeitura, '| isFaculdade:', isFaculdade, '| role:', role);
 
       if (role === 'admin') {
         console.log('➡️ Redirecionando para /admin/dashboard');
