@@ -69,10 +69,21 @@ const FORMATOS = [
 const ESTILOS = [
     { id: 'institutional', label: '🏛️ Institucional' },
     { id: 'classic', label: '📐 Clássico' },
-    { id: 'minimalist', label: '⚪ Minimalista' },
-    { id: 'playful', label: '🎨 Colorido' },
-    { id: 'ultra_realistic', label: '📸 Realista' },
+    { id: 'formal', label: '👔 Formal' },
     { id: 'elegant', label: '✨ Elegante' },
+    { id: 'minimalist', label: '⚪ Minimalista' },
+    { id: 'ultra_realistic', label: '📸 Realista' },
+    { id: 'pro_portrait', label: '🖼️ Retrato Pro' },
+    { id: 'tech', label: '💻 Tecnológico' },
+    { id: 'glassmorphism', label: '🔮 Glassmorphism' },
+    { id: 'ui_interface', label: '🎛️ Interface UI' },
+    { id: 'playful', label: '🎨 Lúdico' },
+    { id: 'cartoon', label: '🎪 Cartoon' },
+    { id: 'infoproduct', label: '📦 Infoproduto' },
+    { id: 'jovial', label: '😊 Jovial' },
+    { id: 'gamer', label: '🎮 Gamer' },
+    { id: 'sexy', label: '🔥 Sexy' },
+    { id: 'glow', label: '💫 Glow' },
 ];
 
 // ── Storage Keys (isolados da versão original) ──
@@ -82,7 +93,7 @@ const MAX_GALLERY = 50;
 // ── Componente Principal ──
 export function PrefeituraArteGenerator() {
     const navigate = useNavigate();
-    const { generate, isGenerating, progress } = useGeminiImageGeneration();
+    const { generate, inpaintImage, reframeImage, isGenerating, progress } = useGeminiImageGeneration();
 
     // ── Estado do formulário ──
     const [step, setStep] = useState(1); // Wizard steps: 1=Info, 2=Visual, 3=Resultado
@@ -93,6 +104,7 @@ export function PrefeituraArteGenerator() {
     const [formato, setFormato] = useState('quadrado');
     const [estilo, setEstilo] = useState('institutional');
     const [descricaoExtra, setDescricaoExtra] = useState('');
+    const [sobriedade, setSobriedade] = useState(70); // 0=Criativo, 100=Institucional
     const [subjectImage, setSubjectImage] = useState<ReferenceImage | null>(null);
     const [refImage, setRefImage] = useState<ReferenceImage | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -111,6 +123,70 @@ export function PrefeituraArteGenerator() {
 
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const [lightboxIndex, setLightboxIndex] = useState(0);
+    const [isRefining, setIsRefining] = useState(false);
+
+    // ── Handlers: Inpaint, Reframe, TextOverlay, Refine (por trás) ──
+    const handleInpaint = useCallback(async (imageSrc: string, maskBase64: string, editPrompt: string) => {
+        toast({ title: '🎨 Aplicando inpainting...', className: 'bg-emerald-600 text-white border-none' });
+        try {
+            const result = await inpaintImage(imageSrc, maskBase64, editPrompt);
+            const edited: GeneratedImage = {
+                src: `data:${result.mimeType};base64,${result.imageBase64}`,
+                prompt: `[Inpaint] ${editPrompt}`,
+                timestamp: Date.now(),
+            };
+            setGallery(prev => [edited, ...prev]);
+            setLightboxOpen(false);
+            toast({ title: '🎨 Inpainting concluído!', className: 'bg-emerald-600 text-white border-none' });
+        } catch (err: any) {
+            toast({ title: 'Erro no inpainting', description: err.message, variant: 'destructive' });
+        }
+    }, [inpaintImage]);
+
+    const handleReframe = useCallback(async (imageSrc: string, targetRatio: string, direction: 'vertical' | 'horizontal') => {
+        toast({ title: `↔ Reframe ${targetRatio}...`, className: 'bg-indigo-600 text-white border-none' });
+        try {
+            const result = await reframeImage(imageSrc, targetRatio, direction);
+            const reframed: GeneratedImage = {
+                src: `data:${result.mimeType};base64,${result.imageBase64}`,
+                prompt: `[Reframe ${targetRatio}]`,
+                timestamp: Date.now(),
+            };
+            setGallery(prev => [reframed, ...prev]);
+            setLightboxOpen(false);
+            toast({ title: `✅ Reframe ${targetRatio} concluído!`, className: 'bg-emerald-600 text-white border-none' });
+        } catch (err: any) {
+            toast({ title: 'Erro no reframe', description: err.message, variant: 'destructive' });
+        }
+    }, [reframeImage]);
+
+    const handleTextOverlay = useCallback((resultBase64: string) => {
+        const overlayed: GeneratedImage = {
+            src: resultBase64,
+            prompt: '[Texto Overlay]',
+            timestamp: Date.now(),
+        };
+        setGallery(prev => [overlayed, ...prev]);
+        setLightboxOpen(false);
+        toast({ title: '✅ Imagem salva com textos!', className: 'bg-emerald-600 text-white border-none' });
+    }, []);
+
+    const handleLightboxRefine = useCallback(async (imageSrc: string, refinePrompt: string) => {
+        toast({ title: '✨ Refinando imagem...', className: 'bg-fuchsia-600 text-white border-none' });
+        try {
+            const result = await inpaintImage(imageSrc, '', refinePrompt);
+            const refined: GeneratedImage = {
+                src: `data:${result.mimeType};base64,${result.imageBase64}`,
+                prompt: `[Refinado] ${refinePrompt}`,
+                timestamp: Date.now(),
+            };
+            setGallery(prev => [refined, ...prev]);
+            setLightboxIndex(0);
+            toast({ title: '✨ Refinamento concluído!', className: 'bg-emerald-600 text-white border-none' });
+        } catch (err: any) {
+            toast({ title: 'Erro no refinamento', description: err.message, variant: 'destructive' });
+        }
+    }, [inpaintImage]);
 
     // Persistir galeria
     useEffect(() => {
@@ -211,7 +287,7 @@ export function PrefeituraArteGenerator() {
                 gender: 'neutral',
                 subjectDescription: `[INSTRUÇÃO PRIORITÁRIA: NÃO gere foto de pessoa. Gere um DESIGN GRÁFICO / INFORMATIVO / FLYER / CARTAZ com o título "${titulo}" renderizado como texto tipográfico grande na composição. O design deve preencher 100% da imagem — SEM fundo branco, SEM bordas brancas, SEM efeito de papel impresso.]\n\n${promptDoAgente}`,
                 environment: `Professional graphic design layout for government communication. Flat design style, bold typography, institutional colors, geometric shapes. EDGE-TO-EDGE design, filling the entire canvas with NO white borders, NO white margins, NO paper background, NO mockup frame — the artwork goes to all 4 edges of the image.`,
-                sobriety: 70, // Mais sóbrio e institucional
+                sobriety: sobriedade, // Slider controlável pelo usuário
                 style: estilo,
                 useStyle: !!estilo,
                 colors: { ambient: '#ffffff', rim: '#ffffff', complementary: '#ffffff' },
@@ -505,7 +581,7 @@ export function PrefeituraArteGenerator() {
                             <label className="block text-sm font-semibold text-zinc-300 mb-3">
                                 📐 Tipo de Peça
                             </label>
-                            <div className="grid grid-cols-5 gap-2">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
                                 {TIPOS_PECA.map(t => (
                                     <button
                                         key={t.id}
@@ -551,7 +627,7 @@ export function PrefeituraArteGenerator() {
                             <label className="block text-sm font-semibold text-zinc-300 mb-3">
                                 🎨 Estilo Visual
                             </label>
-                            <div className="grid grid-cols-3 gap-2">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                                 {ESTILOS.map(s => (
                                     <button
                                         key={s.id}
@@ -564,6 +640,35 @@ export function PrefeituraArteGenerator() {
                                         {s.label}
                                     </button>
                                 ))}
+                            </div>
+                        </div>
+
+                        {/* Slider de Sobriedade */}
+                        <div className="bg-[#111] rounded-2xl border border-white/[0.06] p-6">
+                            <label className="block text-sm font-semibold text-zinc-300 mb-3">
+                                🎚️ Nível de Sobriedade
+                            </label>
+                            <div className="space-y-3">
+                                <input
+                                    type="range"
+                                    min={0}
+                                    max={100}
+                                    value={sobriedade}
+                                    onChange={(e) => setSobriedade(Number(e.target.value))}
+                                    aria-label="Nível de Sobriedade"
+                                    title={`Sobriedade: ${sobriedade}`}
+                                    className="w-full accent-emerald-400 h-2 bg-zinc-800 rounded-full cursor-pointer"
+                                />
+                                <div className="flex justify-between text-xs text-zinc-500">
+                                    <span className={sobriedade < 30 ? 'text-emerald-400 font-bold' : ''}>🎨 Criativo</span>
+                                    <span className="text-zinc-400 font-medium">{sobriedade}</span>
+                                    <span className={sobriedade > 70 ? 'text-emerald-400 font-bold' : ''}>🏛️ Institucional</span>
+                                </div>
+                                <p className="text-[10px] text-zinc-600">
+                                    {sobriedade > 70 ? 'Estética corporativa, limpa e profissional. Cores neutras.' :
+                                        sobriedade < 30 ? 'Estética criativa, vibrante e de alto impacto visual.' :
+                                            'Equilíbrio entre criatividade e formalidade.'}
+                                </p>
                             </div>
                         </div>
 
@@ -746,7 +851,7 @@ export function PrefeituraArteGenerator() {
                 )}
             </main>
 
-            {/* Lightbox */}
+            {/* Lightbox com todas as features: inpaint, reframe, textOverlay, refine */}
             {lightboxOpen && gallery.length > 0 && (
                 <ImageLightbox
                     images={gallery}
@@ -754,6 +859,10 @@ export function PrefeituraArteGenerator() {
                     isOpen={lightboxOpen}
                     onClose={() => setLightboxOpen(false)}
                     onIndexChange={setLightboxIndex}
+                    onInpaint={handleInpaint}
+                    onReframe={handleReframe}
+                    onTextOverlay={handleTextOverlay}
+                    onRefine={handleLightboxRefine}
                 />
             )}
         </div>

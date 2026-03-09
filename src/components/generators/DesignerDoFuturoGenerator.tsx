@@ -690,7 +690,35 @@ export function DesignerDoFuturoGenerator() {
     return (
         <div className="flex flex-col lg:flex-row h-[calc(100vh-100px)] gap-0 bg-[#0a0a0a] p-0 rounded-2xl overflow-hidden font-sans">
 
-            {/* ── SIDEBAR ── */}
+            {/* ── MOBILE NAV ── */}
+            <div className="flex lg:hidden items-center gap-1 px-3 py-2 border-b border-white/5 bg-[#111111] overflow-x-auto scrollbar-hide">
+                <button
+                    onClick={() => setSidebarTab('explore')}
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider whitespace-nowrap transition-all ${sidebarTab === 'explore' ? 'bg-lime-500/20 text-lime-300' : 'text-white/40 hover:text-white/70'}`}
+                >
+                    <Compass className="w-4 h-4" /> Explorar
+                </button>
+                <button
+                    onClick={() => setSidebarTab('create')}
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider whitespace-nowrap transition-all ${sidebarTab === 'create' ? 'bg-lime-500/20 text-lime-300' : 'text-white/40 hover:text-white/70'}`}
+                >
+                    <Brush className="w-4 h-4" /> Criar
+                </button>
+                <button
+                    onClick={() => setSidebarTab('gallery')}
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider whitespace-nowrap transition-all ${sidebarTab === 'gallery' ? 'bg-lime-500/20 text-lime-300' : 'text-white/40 hover:text-white/70'}`}
+                >
+                    <GalleryHorizontal className="w-4 h-4" /> Galeria
+                </button>
+                <button
+                    onClick={() => setChatOpen(o => !o)}
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider whitespace-nowrap transition-all ${chatOpen ? 'bg-lime-500/20 text-lime-300' : 'text-white/40 hover:text-white/70'}`}
+                >
+                    <Bot className="w-4 h-4" /> Chat IA
+                </button>
+            </div>
+
+            {/* ── SIDEBAR (desktop) ── */}
             <div className="hidden lg:flex flex-col w-[68px] bg-[#111111] border-r border-white/5 items-center py-4 gap-1 shrink-0">
                 <button
                     onClick={() => setSidebarTab('explore')}
@@ -910,7 +938,7 @@ export function DesignerDoFuturoGenerator() {
 
                             {/* DIMENSÕES */}
                             <SectionTitle>Dimensões</SectionTitle>
-                            <div className="grid grid-cols-2 gap-2 mb-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
                                 {[
                                     { id: 'STORIES', label: 'Stories (9:16)', icon: Smartphone },
                                     { id: 'HORIZONTAL', label: 'Horiz. (16:9)', icon: Monitor },
@@ -1070,7 +1098,7 @@ export function DesignerDoFuturoGenerator() {
 
                             {/* COMPOSIÇÃO */}
                             <SectionTitle>Composição</SectionTitle>
-                            <div className="grid grid-cols-1 gap-2 mb-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-1 gap-2 mb-3">
                                 {[
                                     { id: 'CLOSE_UP', label: 'Close-up (Rosto)', desc: 'Foco no rosto', icon: UserCircle },
                                     { id: 'MEDIUM', label: 'Plano Médio (Busto)', desc: 'Da cintura pra cima', icon: User },
@@ -1181,7 +1209,7 @@ export function DesignerDoFuturoGenerator() {
                                 <Switch checked={config.useVisualstyle} onCheckedChange={v => updateConfig('useVisualstyle', v)} />
                             </div>
 
-                            <div className={`grid grid-cols-3 gap-1.5 transition-opacity ${config.useVisualstyle ? 'opacity-100 pointer-events-auto' : 'opacity-40 pointer-events-none'}`}>
+                            <div className={`grid grid-cols-2 sm:grid-cols-3 gap-1.5 transition-opacity ${config.useVisualstyle ? 'opacity-100 pointer-events-auto' : 'opacity-40 pointer-events-none'}`}>
                                 {STYLES.map(s => (
                                     <button
                                         key={s.id}
@@ -1303,7 +1331,7 @@ export function DesignerDoFuturoGenerator() {
                         <span className="text-[9px] font-extrabold uppercase tracking-[0.12em] text-white/40">Explorar Estilos</span>
                     </div>
                     <ScrollArea className="flex-1">
-                        <div className="p-4 grid grid-cols-2 gap-3">
+                        <div className="p-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
                             {STYLES.map(style => (
                                 <button
                                     key={style.id}
@@ -1388,7 +1416,7 @@ export function DesignerDoFuturoGenerator() {
                     )}
 
                     {/* Grid */}
-                    <div className="w-full grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                    <div className="w-full grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
 
                         {/* Skeleton Loading */}
                         {isGenerating && (

@@ -16,7 +16,7 @@ export default function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email || !password) {
       toast.error('Preencha todos os campos');
       return;
@@ -40,16 +40,20 @@ export default function Login() {
 
       console.log('✅ Login OK! Role:', role);
       toast.success('Login realizado com sucesso!');
-      
+
       // Check if user is a prefeitura VIP user
       const isPrefeitura = email.toLowerCase().includes('@prefeitura');
-      
+      const isFaculdade = email.toLowerCase().includes('@edicao.com');
+
       if (role === 'admin') {
         console.log('➡️ Redirecionando para /admin/dashboard');
         navigate('/admin/dashboard');
       } else if (isPrefeitura) {
         console.log('➡️ Redirecionando para /prefeitura');
         navigate('/prefeitura');
+      } else if (isFaculdade) {
+        console.log('➡️ Redirecionando para /faculdade');
+        navigate('/faculdade');
       } else {
         console.log('➡️ Redirecionando para /client/dashboard');
         navigate('/client/dashboard');
@@ -66,13 +70,13 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4 md:p-6">
       {/* Large container with two columns */}
       <div className="w-full max-w-5xl flex flex-col lg:flex-row rounded-[2rem] md:rounded-[2.5rem] overflow-hidden soft-card-elevated">
-        
+
         {/* Left side - Branding / Decorative */}
         <div className="hidden lg:flex lg:w-1/2 bg-secondary p-12 flex-col justify-between relative overflow-hidden">
           {/* Decorative circles */}
           <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-primary/20 blur-3xl" />
           <div className="absolute -bottom-20 -left-20 w-64 h-64 rounded-full bg-primary/10 blur-3xl" />
-          
+
           {/* Logo area */}
           <div className="relative z-10">
             <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center mb-6">

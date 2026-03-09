@@ -86,6 +86,12 @@ import ClientOrcamentos from "@/pages/client/ClientOrcamentos";
 import ClientPedidos from "@/pages/client/ClientPedidos";
 import GeneratorPage from "@/pages/client/Generator";
 
+// Faculdade Pages
+import { FaculdadeRoute } from "@/components/FaculdadeRoute";
+import FaculdadeHub from "@/pages/client/faculdade/FaculdadeHub";
+import IFAHome from "@/pages/client/faculdade/IFAHome";
+import UniversitarioHome from "@/pages/client/faculdade/UniversitarioHome";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -125,6 +131,11 @@ const App = () => (
               <Route path="/prefeitura/arte" element={<PrefeituraArtePage />} />
               <Route path="/acompanhar/:protocolo" element={<PublicTracking />} />
               <Route path="/solicitar-servico" element={<SolicitarServico />} />
+
+              {/* Faculdade routes */}
+              <Route path="/faculdade" element={<FaculdadeRoute><FaculdadeHub /></FaculdadeRoute>} />
+              <Route path="/faculdade/ifa" element={<FaculdadeRoute><IFAHome /></FaculdadeRoute>} />
+              <Route path="/faculdade/universitario" element={<FaculdadeRoute><UniversitarioHome /></FaculdadeRoute>} />
 
               {/* Public Landing Page */}
               <Route path="/" element={<Home />} />
