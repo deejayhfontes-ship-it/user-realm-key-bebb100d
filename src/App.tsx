@@ -91,6 +91,7 @@ import { FaculdadeRoute } from "@/components/FaculdadeRoute";
 import FaculdadeHub from "@/pages/client/faculdade/FaculdadeHub";
 import IFAHome from "@/pages/client/faculdade/IFAHome";
 import UniversitarioHome from "@/pages/client/faculdade/UniversitarioHome";
+import FaculdadeSolicitacoes from "@/pages/client/faculdade/FaculdadeSolicitacoes";
 
 const queryClient = new QueryClient();
 
@@ -136,6 +137,7 @@ const App = () => (
               <Route path="/faculdade" element={<FaculdadeRoute><FaculdadeHub /></FaculdadeRoute>} />
               <Route path="/faculdade/ifa" element={<FaculdadeRoute><IFAHome /></FaculdadeRoute>} />
               <Route path="/faculdade/universitario" element={<FaculdadeRoute><UniversitarioHome /></FaculdadeRoute>} />
+              <Route path="/faculdade/solicitacoes" element={<FaculdadeRoute><FaculdadeSolicitacoes /></FaculdadeRoute>} />
 
               {/* Public Landing Page */}
               <Route path="/" element={<Home />} />

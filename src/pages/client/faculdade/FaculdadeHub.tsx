@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { GraduationCap, Building2, ArrowRight, LogOut, BookOpen, Palette } from 'lucide-react';
+import { GraduationCap, Building2, ArrowRight, LogOut, BookOpen, Palette, ClipboardList } from 'lucide-react';
 
 const AREAS = [
     {
@@ -28,6 +28,19 @@ const AREAS = [
         corIcone: 'text-purple-400',
         corHover: 'group-hover:shadow-purple-500/20',
         bgIcone: 'bg-purple-500/10',
+    },
+    {
+        id: 'solicitacoes',
+        nome: 'Solicitações',
+        descricao: 'Acompanhe e faça novas solicitações de materiais e serviços',
+        icone: ClipboardList,
+        rota: '/faculdade/solicitacoes',
+        gradiente: 'from-emerald-600 via-emerald-500 to-teal-400',
+        gradienteBg: 'from-emerald-600/10 to-teal-400/5',
+        corBorda: 'border-emerald-500/20',
+        corIcone: 'text-emerald-400',
+        corHover: 'group-hover:shadow-emerald-500/20',
+        bgIcone: 'bg-emerald-500/10',
     },
 ];
 
@@ -81,7 +94,7 @@ export default function FaculdadeHub() {
                 </div>
 
                 {/* Cards Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
                     {AREAS.map((area) => {
                         const Icone = area.icone;
                         return (
