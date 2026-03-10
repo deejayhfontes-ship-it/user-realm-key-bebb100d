@@ -10,9 +10,11 @@ import type { Campanha } from '@/types/campanhas';
 import { UNIT_LABELS } from '@/types/campanhas';
 import { useNavigate } from 'react-router-dom';
 import { ImageUploader } from '@/components/admin/portfolio/ImageUploader';
-import { FolderPlus } from 'lucide-react'; // needed for trailing button
+import { FolderPlus, Users } from 'lucide-react';
 
-const EMPTY_FORM: Omit<Campanha, 'id' | 'created_at' | 'updated_at'> = {
+interface ClienteBasic { id: string; name: string; }
+
+const EMPTY_FORM: Omit<Campanha, 'id' | 'created_at' | 'updated_at'> & { client_id: string | null } = {
     title: '',
     slug: '',
     unit: 'universitario',
@@ -23,6 +25,7 @@ const EMPTY_FORM: Omit<Campanha, 'id' | 'created_at' | 'updated_at'> = {
     starts_at: null,
     ends_at: null,
     sort_order: 0,
+    client_id: null,
 };
 
 function slugify(text: string): string {
@@ -37,10 +40,11 @@ function slugify(text: string): string {
 export default function AdminCampanhas() {
     const navigate = useNavigate();
     const [campanhas, setCampanhas] = useState<Campanha[]>([]);
+    const [clientes, setClientes] = useState<ClienteBasic[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
-    const [form, setForm] = useState(EMPTY_FORM);
+    const [form, setForm] = useState<typeof EMPTY_FORM>({ ...EMPTY_FORM });
     const [isSaving, setIsSaving] = useState(false);
     const [isCreatingFolder, setIsCreatingFolder] = useState(false);
     const [filterUnit, setFilterUnit] = useState<string>('all');
@@ -63,8 +67,14 @@ export default function AdminCampanhas() {
         setIsLoading(false);
     };
 
+    const fetchClientes = async () => {
+        const { data } = await supabase.from('clients' as any).select('id, name').order('name');
+        if (data) setClientes(data as any);
+    };
+
     useEffect(() => {
         fetchCampanhas();
+        fetchClientes();
     }, []);
 
     const handleEdit = (campanha: Campanha) => {
@@ -80,6 +90,7 @@ export default function AdminCampanhas() {
             starts_at: campanha.starts_at ? campanha.starts_at.split('T')[0] : null,
             ends_at: campanha.ends_at ? campanha.ends_at.split('T')[0] : null,
             sort_order: campanha.sort_order,
+            client_id: (campanha as any).client_id || null,
         });
         setShowForm(true);
     };
@@ -190,7 +201,9 @@ export default function AdminCampanhas() {
 
     const filtered = filterUnit === 'all'
         ? campanhas
-        : campanhas.filter(c => c.unit === filterUnit);
+        : filterUnit === 'clientes'
+            ? campanhas.filter(c => !!(c as any).client_id)
+            : campanhas.filter(c => c.unit === filterUnit && !(c as any).client_id);
 
     return (
         <div className="min-h-screen bg-[#050505] text-white">
@@ -228,8 +241,8 @@ export default function AdminCampanhas() {
 
             <main className="max-w-6xl mx-auto px-6 py-8">
                 {/* Filters */}
-                <div className="flex gap-2 mb-6">
-                    {['all', 'universitario', 'fasb'].map(unit => (
+                <div className="flex gap-2 mb-6 flex-wrap">
+                    {['all', 'universitario', 'fasb', 'clientes'].map(unit => (
                         <button
                             key={unit}
                             onClick={() => setFilterUnit(unit)}
@@ -238,7 +251,7 @@ export default function AdminCampanhas() {
                                 : 'bg-white/5 border border-white/10 text-white/40 hover:text-white/60'
                                 }`}
                         >
-                            {unit === 'all' ? 'Todas' : UNIT_LABELS[unit] || unit}
+                            {unit === 'all' ? 'Todas' : unit === 'clientes' ? '👤 Clientes' : UNIT_LABELS[unit] || unit}
                         </button>
                     ))}
                 </div>
@@ -424,6 +437,24 @@ export default function AdminCampanhas() {
                                         ))}
                                     </div>
                                 </div>
+                            </div>
+
+                            {/* Cliente (para materiais de clientes regulares) */}
+                            <div>
+                                <label className="block text-sm font-medium text-white/70 mb-2">
+                                    <Users className="w-4 h-4 inline mr-1.5 text-emerald-400" />
+                                    Cliente específico <span className="text-white/30 font-normal">(deixe vazio para campanhas de faculdade)</span>
+                                </label>
+                                <select
+                                    value={form.client_id || ''}
+                                    onChange={(e) => setForm({ ...form, client_id: e.target.value || null })}
+                                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-emerald-500/50 transition-all text-sm"
+                                >
+                                    <option value="" className="bg-[#0a0a0a]">— Sem cliente (faculdade) —</option>
+                                    {clientes.map(c => (
+                                        <option key={c.id} value={c.id} className="bg-[#0a0a0a]">{c.name}</option>
+                                    ))}
+                                </select>
                             </div>
 
                             {/* Descrição */}

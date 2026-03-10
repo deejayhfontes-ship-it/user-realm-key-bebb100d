@@ -19,6 +19,7 @@ import { NotificationsCard } from '@/components/client/dashboard/NotificationsCa
 import { QuickActionsCard } from '@/components/client/dashboard/QuickActionsCard';
 import { PlanCard } from '@/components/client/dashboard/PlanCard';
 import { MobileChatFAB } from '@/components/client/dashboard/MobileChatFAB';
+import { MateriaisCard } from '@/components/client/dashboard/MateriaisCard';
 
 export default function ClientDashboard() {
   const { profile } = useAuth();
@@ -33,7 +34,7 @@ export default function ClientDashboard() {
     queryKey: ['client-pedidos', profile?.client_id],
     queryFn: async () => {
       if (!profile?.client_id) return [];
-      
+
       const { data, error } = await supabase
         .from('pedidos')
         .select('*')
@@ -48,7 +49,7 @@ export default function ClientDashboard() {
   });
 
   // Get active order (not delivered or cancelled)
-  const activeOrder = pedidos?.find(p => 
+  const activeOrder = pedidos?.find(p =>
     !['entregue', 'cancelado'].includes(p.status || '')
   );
 
@@ -79,7 +80,7 @@ export default function ClientDashboard() {
     ativo: client.status === 'active',
     renovacao: client.access_expires_at,
     beneficios: [
-      client.type === 'fixed' 
+      client.type === 'fixed'
         ? `${client.monthly_credits || 'Ilimitado'} créditos por mês`
         : `${client.package_credits || 0} créditos no pacote`,
       `${generators?.length || 0} geradores disponíveis`,
@@ -88,7 +89,7 @@ export default function ClientDashboard() {
     ],
   } : null;
 
-  const activeOrdersCount = pedidos?.filter(p => 
+  const activeOrdersCount = pedidos?.filter(p =>
     !['entregue', 'cancelado'].includes(p.status || '')
   ).length || 0;
 
@@ -115,9 +116,9 @@ export default function ClientDashboard() {
     <div className="p-6 md:p-8 bg-muted/30 min-h-screen">
       <div className="max-w-[1400px] mx-auto">
         {/* Personalized Header */}
-        <DashboardHeader 
-          client={client} 
-          activeOrdersCount={activeOrdersCount} 
+        <DashboardHeader
+          client={client}
+          activeOrdersCount={activeOrdersCount}
         />
 
         {/* Main Grid */}
@@ -125,8 +126,8 @@ export default function ClientDashboard() {
           {/* Left Column - Main Content */}
           <div className="space-y-6">
             {/* Active Order or CTA */}
-            <ActiveOrderCard 
-              order={formattedActiveOrder} 
+            <ActiveOrderCard
+              order={formattedActiveOrder}
               onOpenChat={() => setChatOpen(true)}
             />
 
@@ -134,7 +135,7 @@ export default function ClientDashboard() {
             <RecentOrdersCard orders={formattedOrders} />
 
             {/* AI Generators */}
-            <GeneratorsCard 
+            <GeneratorsCard
               generators={generators || []}
               creditsUsed={creditsInfo.used}
               creditsTotal={creditsInfo.total}
@@ -142,20 +143,23 @@ export default function ClientDashboard() {
 
             {/* Files & Downloads */}
             <FilesCard files={files} />
+
+            {/* Materiais via Google Drive */}
+            <MateriaisCard />
           </div>
 
           {/* Right Column - Sidebar Widgets */}
           <div className="space-y-6">
             {/* Chat Widget - Desktop only */}
             <div className="hidden lg:block sticky top-6">
-              <ChatWidget 
+              <ChatWidget
                 isOpen={chatOpen}
                 onClose={() => setChatOpen(false)}
               />
-              
+
               {/* Notifications */}
               <div className="mt-6">
-                <NotificationsCard 
+                <NotificationsCard
                   notifications={notifications}
                   unreadCount={notificationUnreadCount}
                 />
@@ -176,7 +180,7 @@ export default function ClientDashboard() {
 
         {/* Mobile widgets below main content */}
         <div className="lg:hidden mt-6 space-y-6">
-          <NotificationsCard 
+          <NotificationsCard
             notifications={notifications}
             unreadCount={notificationUnreadCount}
           />

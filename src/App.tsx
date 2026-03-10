@@ -85,6 +85,8 @@ import ClientFaturas from "@/pages/client/Faturas";
 import ClientOrcamentos from "@/pages/client/ClientOrcamentos";
 import ClientPedidos from "@/pages/client/ClientPedidos";
 import GeneratorPage from "@/pages/client/Generator";
+import ClientMateriais from "@/pages/client/ClientMateriais";
+import ClientMateriaisDetail from "@/pages/client/ClientMateriaisDetail";
 
 // Faculdade Pages
 import { FaculdadeRoute } from "@/components/FaculdadeRoute";
@@ -208,6 +210,8 @@ const App = () => (
                 <Route path="pedidos" element={<ClientPedidos />} />
                 <Route path="faturas" element={<ClientFaturas />} />
                 <Route path="perfil" element={<ClientPerfil />} />
+                <Route path="materiais" element={<ClientMateriais />} />
+                <Route path="materiais/:slug" element={<ClientMateriaisDetail />} />
               </Route>
 
               {/* Generator page (standalone for full-screen experience) */}
