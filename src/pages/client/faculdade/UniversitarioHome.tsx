@@ -1,12 +1,12 @@
 import { useNavigate } from 'react-router-dom';
-import { GraduationCap, ArrowLeft, Wrench, Image, FileText, FolderOpen, Construction } from 'lucide-react';
+import { GraduationCap, ArrowLeft, Wrench, Image, FileText, FolderOpen, Construction, Megaphone, ArrowRight } from 'lucide-react';
 
 const MODULOS_FUTUROS = [
     { nome: 'Geradores', descricao: 'Geradores de artes exclusivos', icone: Image, disponivel: false },
     { nome: 'Canvas', descricao: 'Editor de imagens avançado', icone: FileText, disponivel: false },
     { nome: 'Ferramentas', descricao: 'Ferramentas exclusivas', icone: Wrench, disponivel: false },
-    { nome: 'Materiais', descricao: 'Biblioteca de materiais', icone: FolderOpen, disponivel: false },
 ];
+
 
 export default function UniversitarioHome() {
     const navigate = useNavigate();
@@ -47,6 +47,25 @@ export default function UniversitarioHome() {
                             Esta é sua área exclusiva. Em breve, novos módulos e ferramentas serão adicionados aqui.
                         </p>
                     </div>
+                </div>
+
+                {/* Campanhas Card */}
+                <div className="mb-10">
+                    <button
+                        onClick={() => navigate('/faculdade/universitario/campanhas')}
+                        className="group w-full text-left rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-600/10 to-orange-400/5 bg-[#0a0a0a] p-6 transition-all duration-300 hover:scale-[1.01] hover:shadow-2xl hover:shadow-amber-500/10 hover:border-amber-500/30"
+                    >
+                        <div className="flex items-center gap-5">
+                            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center flex-shrink-0 transition-transform duration-300 group-hover:scale-110">
+                                <Megaphone className="w-7 h-7 text-white" />
+                            </div>
+                            <div className="flex-1">
+                                <h4 className="text-xl font-bold text-white mb-1 group-hover:text-amber-400 transition-colors">Campanhas</h4>
+                                <p className="text-white/40 text-sm">Acesse materiais, logos, fotos e vídeos das campanhas ativas</p>
+                            </div>
+                            <ArrowRight className="w-5 h-5 text-amber-400 transition-transform duration-300 group-hover:translate-x-1" />
+                        </div>
+                    </button>
                 </div>
 
                 {/* Módulos Grid */}

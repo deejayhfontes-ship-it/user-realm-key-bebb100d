@@ -92,6 +92,9 @@ import FaculdadeHub from "@/pages/client/faculdade/FaculdadeHub";
 import IFAHome from "@/pages/client/faculdade/IFAHome";
 import UniversitarioHome from "@/pages/client/faculdade/UniversitarioHome";
 import FaculdadeSolicitacoes from "@/pages/client/faculdade/FaculdadeSolicitacoes";
+import CampanhasPage from "@/pages/client/faculdade/CampanhasPage";
+import CampanhaDetail from "@/pages/client/faculdade/CampanhaDetail";
+import AdminCampanhas from "@/pages/admin/AdminCampanhas";
 
 const queryClient = new QueryClient();
 
@@ -138,6 +141,8 @@ const App = () => (
               <Route path="/faculdade/ifa" element={<FaculdadeRoute><IFAHome /></FaculdadeRoute>} />
               <Route path="/faculdade/universitario" element={<FaculdadeRoute><UniversitarioHome /></FaculdadeRoute>} />
               <Route path="/faculdade/solicitacoes" element={<FaculdadeRoute><FaculdadeSolicitacoes /></FaculdadeRoute>} />
+              <Route path="/faculdade/:unit/campanhas" element={<FaculdadeRoute><CampanhasPage /></FaculdadeRoute>} />
+              <Route path="/faculdade/:unit/campanhas/:slug" element={<FaculdadeRoute><CampanhaDetail /></FaculdadeRoute>} />
 
               {/* Public Landing Page */}
               <Route path="/" element={<Home />} />
@@ -183,6 +188,7 @@ const App = () => (
                 <Route path="arcano/gerar-imagem" element={<ArcanoGerarImagem />} />
                 <Route path="arcano/biblioteca-prompts" element={<BibliotecaPrompts />} />
                 <Route path="arcano/ferramentas-ia" element={<FerramentasIA />} />
+                <Route path="campanhas" element={<AdminCampanhas />} />
               </Route>
 
               {/* Client routes */}
