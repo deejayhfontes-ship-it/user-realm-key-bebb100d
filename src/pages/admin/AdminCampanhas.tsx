@@ -40,6 +40,7 @@ export default function AdminCampanhas() {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [form, setForm] = useState(EMPTY_FORM);
     const [isSaving, setIsSaving] = useState(false);
+    const [isCreatingFolder, setIsCreatingFolder] = useState(false);
     const [filterUnit, setFilterUnit] = useState<string>('all');
 
     const fetchCampanhas = async () => {
@@ -84,6 +85,35 @@ export default function AdminCampanhas() {
         setEditingId(null);
         setForm({ ...EMPTY_FORM });
         setShowForm(true);
+    };
+
+    const handleCreateDriveFolder = async () => {
+        if (!form.title.trim()) {
+            toast.error('Preencha o título antes de criar a pasta');
+            return;
+        }
+
+        setIsCreatingFolder(true);
+        try {
+            const folderName = `[${form.unit.toUpperCase()}] ${form.title}`;
+            const { data, error } = await supabase.functions.invoke('drive-files', {
+                body: {
+                    action: 'CREATE_CAMPAIGN_FOLDER',
+                    folder_name: folderName,
+                },
+            });
+
+            if (error) throw error;
+            if (data?.error) throw new Error(data.error);
+
+            setForm({ ...form, drive_folder_id: data.folder_id });
+            toast.success('📁 Pasta criada no Google Drive com subpastas!');
+        } catch (err: any) {
+            console.error('[handleCreateDriveFolder]', err);
+            toast.error(err.message || 'Erro ao criar pasta no Drive');
+        } finally {
+            setIsCreatingFolder(false);
+        }
     };
 
     const handleSave = async () => {
@@ -200,8 +230,8 @@ export default function AdminCampanhas() {
                             key={unit}
                             onClick={() => setFilterUnit(unit)}
                             className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${filterUnit === unit
-                                    ? 'bg-amber-500/20 border border-amber-500/30 text-amber-400'
-                                    : 'bg-white/5 border border-white/10 text-white/40 hover:text-white/60'
+                                ? 'bg-amber-500/20 border border-amber-500/30 text-amber-400'
+                                : 'bg-white/5 border border-white/10 text-white/40 hover:text-white/60'
                                 }`}
                         >
                             {unit === 'all' ? 'Todas' : UNIT_LABELS[unit] || unit}
@@ -241,8 +271,8 @@ export default function AdminCampanhas() {
                                     <div className="flex items-center gap-2 mb-1">
                                         <h3 className="font-semibold text-white truncate">{campanha.title}</h3>
                                         <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${campanha.status === 'active'
-                                                ? 'bg-green-500/20 text-green-400'
-                                                : 'bg-red-500/20 text-red-400'
+                                            ? 'bg-green-500/20 text-green-400'
+                                            : 'bg-red-500/20 text-red-400'
                                             }`}>
                                             {campanha.status === 'active' ? 'Ativa' : 'Inativa'}
                                         </span>
@@ -361,8 +391,8 @@ export default function AdminCampanhas() {
                                                 type="button"
                                                 onClick={() => setForm({ ...form, unit })}
                                                 className={`flex-1 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all ${form.unit === unit
-                                                        ? 'bg-amber-500/20 border-amber-500/30 text-amber-400'
-                                                        : 'bg-white/5 border-white/10 text-white/40'
+                                                    ? 'bg-amber-500/20 border-amber-500/30 text-amber-400'
+                                                    : 'bg-white/5 border-white/10 text-white/40'
                                                     }`}
                                             >
                                                 {UNIT_LABELS[unit]}
@@ -379,10 +409,10 @@ export default function AdminCampanhas() {
                                                 type="button"
                                                 onClick={() => setForm({ ...form, status })}
                                                 className={`flex-1 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all ${form.status === status
-                                                        ? status === 'active'
-                                                            ? 'bg-green-500/20 border-green-500/30 text-green-400'
-                                                            : 'bg-red-500/20 border-red-500/30 text-red-400'
-                                                        : 'bg-white/5 border-white/10 text-white/40'
+                                                    ? status === 'active'
+                                                        ? 'bg-green-500/20 border-green-500/30 text-green-400'
+                                                        : 'bg-red-500/20 border-red-500/30 text-red-400'
+                                                    : 'bg-white/5 border-white/10 text-white/40'
                                                     }`}
                                             >
                                                 {status === 'active' ? 'Ativa' : 'Inativa'}
@@ -425,17 +455,72 @@ export default function AdminCampanhas() {
                             <div>
                                 <label className="block text-sm font-medium text-white/70 mb-2">
                                     <FolderOpen className="w-4 h-4 inline mr-1" />
-                                    Google Drive Folder ID
+                                    Google Drive
                                 </label>
-                                <input
-                                    type="text"
-                                    value={form.drive_folder_id || ''}
-                                    onChange={(e) => setForm({ ...form, drive_folder_id: e.target.value })}
-                                    placeholder="Ex: 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms"
-                                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-amber-500/50 transition-all font-mono text-sm"
-                                />
-                                <p className="text-xs text-white/30 mt-1">
-                                    Abra a pasta no Drive → copie o ID da URL (após /folders/)
+
+                                {form.drive_folder_id ? (
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex-1 px-4 py-3 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 text-sm font-mono flex items-center gap-2">
+                                            <FolderOpen className="w-4 h-4 flex-shrink-0" />
+                                            <span className="truncate">{form.drive_folder_id}</span>
+                                        </div>
+                                        <a
+                                            href={`https://drive.google.com/drive/folders/${form.drive_folder_id}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center gap-1 px-3 py-3 rounded-xl bg-white/5 border border-white/10 text-white/60 hover:text-white hover:bg-white/10 transition-all text-sm"
+                                            title="Abrir no Drive"
+                                        >
+                                            <ExternalLink className="w-4 h-4" />
+                                        </a>
+                                        <button
+                                            type="button"
+                                            onClick={() => setForm({ ...form, drive_folder_id: '' })}
+                                            className="px-3 py-3 rounded-xl bg-white/5 border border-white/10 text-red-400/60 hover:text-red-400 hover:bg-red-500/10 transition-all text-sm"
+                                            title="Remover"
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-3">
+                                        <button
+                                            type="button"
+                                            onClick={handleCreateDriveFolder}
+                                            disabled={isCreatingFolder}
+                                            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 hover:border-blue-500/30 disabled:opacity-50 transition-all text-sm font-medium"
+                                        >
+                                            {isCreatingFolder ? (
+                                                <>
+                                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                                    Criando pasta no Drive...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <FolderOpen className="w-4 h-4" />
+                                                    Criar Pasta no Google Drive
+                                                </>
+                                            )}
+                                        </button>
+                                        <div className="relative">
+                                            <div className="absolute inset-0 flex items-center">
+                                                <div className="w-full border-t border-white/5"></div>
+                                            </div>
+                                            <div className="relative flex justify-center text-xs">
+                                                <span className="bg-[#111] px-2 text-white/20">ou cole o ID</span>
+                                            </div>
+                                        </div>
+                                        <input
+                                            type="text"
+                                            value={form.drive_folder_id || ''}
+                                            onChange={(e) => setForm({ ...form, drive_folder_id: e.target.value })}
+                                            placeholder="Cole aqui o ID da pasta do Drive"
+                                            className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-amber-500/50 transition-all font-mono text-sm"
+                                        />
+                                    </div>
+                                )}
+                                <p className="text-xs text-white/30 mt-2">
+                                    Cria automaticamente subpastas: logos, fotos, social-media, videos, pdfs
                                 </p>
                             </div>
 
