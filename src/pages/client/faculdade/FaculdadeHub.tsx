@@ -15,21 +15,7 @@ const TODAS_AREAS = [
         corIcone: 'text-blue-400',
         corHover: 'group-hover:shadow-blue-500/20',
         bgIcone: 'bg-blue-500/10',
-        units: ['ifa-universitario'], // emails com este prefixo veem este card
-    },
-    {
-        id: 'ifa',
-        nome: 'IFA',
-        descricao: 'Acesse os materiais, geradores e ferramentas do IFA',
-        icone: Building2,
-        rota: '/faculdade/ifa',
-        gradiente: 'from-purple-600 via-purple-500 to-pink-400',
-        gradienteBg: 'from-purple-600/10 to-pink-400/5',
-        corBorda: 'border-purple-500/20',
-        corIcone: 'text-purple-400',
-        corHover: 'group-hover:shadow-purple-500/20',
-        bgIcone: 'bg-purple-500/10',
-        units: ['ifa-universitario'], // só usuário IFA vê este card
+        units: ['ifa-universitario'], // email ifa-universitario@ vê este card
     },
     {
         id: 'fasb',
@@ -43,7 +29,7 @@ const TODAS_AREAS = [
         corIcone: 'text-orange-400',
         corHover: 'group-hover:shadow-orange-500/20',
         bgIcone: 'bg-orange-500/10',
-        units: ['fasb'], // só usuário FASB vê este card
+        units: ['fasb'], // email fasb@ vê este card
     },
     {
         id: 'solicitacoes',
@@ -60,6 +46,7 @@ const TODAS_AREAS = [
         units: ['ifa-universitario', 'fasb'], // todos veem
     },
 ];
+
 
 export default function FaculdadeHub() {
     const navigate = useNavigate();

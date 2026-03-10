@@ -89,7 +89,6 @@ import GeneratorPage from "@/pages/client/Generator";
 // Faculdade Pages
 import { FaculdadeRoute } from "@/components/FaculdadeRoute";
 import FaculdadeHub from "@/pages/client/faculdade/FaculdadeHub";
-import IFAHome from "@/pages/client/faculdade/IFAHome";
 import FASBHome from "@/pages/client/faculdade/FASBHome";
 import UniversitarioHome from "@/pages/client/faculdade/UniversitarioHome";
 import FaculdadeSolicitacoes from "@/pages/client/faculdade/FaculdadeSolicitacoes";
@@ -139,7 +138,6 @@ const App = () => (
 
               {/* Faculdade routes */}
               <Route path="/faculdade" element={<FaculdadeRoute><FaculdadeHub /></FaculdadeRoute>} />
-              <Route path="/faculdade/ifa" element={<FaculdadeRoute><IFAHome /></FaculdadeRoute>} />
               <Route path="/faculdade/fasb" element={<FaculdadeRoute><FASBHome /></FaculdadeRoute>} />
               <Route path="/faculdade/universitario" element={<FaculdadeRoute><UniversitarioHome /></FaculdadeRoute>} />
               <Route path="/faculdade/solicitacoes" element={<FaculdadeRoute><FaculdadeSolicitacoes /></FaculdadeRoute>} />
