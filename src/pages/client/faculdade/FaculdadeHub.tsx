@@ -36,7 +36,7 @@ const TODAS_AREAS = [
         nome: 'FASB',
         descricao: 'Acesse os materiais, geradores e ferramentas da FASB',
         icone: Building2,
-        rota: '/faculdade/ifa', // reutiliza a mesma rota por ora
+        rota: '/faculdade/fasb',
         gradiente: 'from-orange-600 via-orange-500 to-amber-400',
         gradienteBg: 'from-orange-600/10 to-amber-400/5',
         corBorda: 'border-orange-500/20',
