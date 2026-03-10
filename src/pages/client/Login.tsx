@@ -17,7 +17,7 @@ export default function ClientLogin() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email || !password) {
       toast.error('Preencha todos os campos');
       return;
@@ -40,15 +40,19 @@ export default function ClientLogin() {
       }
 
       console.log('✅ Login OK! Role:', role);
-      
+
       const isPrefeitura = email.toLowerCase().includes('@prefeitura');
-      
+      const isFaculdade = email.toLowerCase().includes('@edicao.com');
+
       if (role === 'admin') {
         toast.info('Redirecionando para área administrativa...');
         navigate('/admin/dashboard');
       } else if (isPrefeitura) {
         toast.success('Bem-vindo! Redirecionando para área VIP...');
         navigate('/prefeitura');
+      } else if (isFaculdade) {
+        toast.success('Bem-vindo à área da Faculdade!');
+        navigate('/faculdade');
       } else {
         toast.success('Bem-vindo de volta!');
         navigate('/client/dashboard');
@@ -191,7 +195,7 @@ export default function ClientLogin() {
                 Ver Planos e Preços
               </Button>
             </Link>
-            
+
             <Button
               variant="ghost"
               className="w-full h-12 rounded-2xl text-[#1a1a1a] hover:text-primary"
@@ -218,7 +222,7 @@ export default function ClientLogin() {
         <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-primary/20 blur-3xl" />
         <div className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full bg-primary/10 blur-3xl" />
         <div className="absolute top-1/4 right-1/4 w-32 h-32 rounded-full bg-primary/15 blur-2xl" />
-        
+
         <div className="relative z-10 max-w-lg ml-16">
           {/* Main headline */}
           <div className="mb-12">
