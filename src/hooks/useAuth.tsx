@@ -48,7 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-        
+
         // Defer profile fetch with setTimeout to avoid deadlock
         if (session?.user) {
           setTimeout(() => {
@@ -64,7 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      
+
       if (session?.user) {
         fetchProfile(session.user.id).then((p) => {
           setProfile(p);
@@ -81,7 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signIn = async (email: string, password: string): Promise<{ error: Error | null; role?: string }> => {
     try {
       console.log('🔐 [1] Iniciando login para:', email);
-      
+
       // 1. Login via Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
@@ -95,16 +95,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       console.log('✅ [2] Login Supabase Auth OK, user:', authData.user?.id);
 
-      // 2. Buscar role na tabela users
+      // 2. Buscar role na tabela users pelo ID (respeita RLS: auth.uid() = id)
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('role, client_id')
-        .eq('email', email)
+        .eq('id', authData.user!.id)
         .maybeSingle();
 
       if (userError) {
         console.error('❌ [3] Erro ao buscar role:', userError.message);
-        return { error: userError };
+        // Não bloquear login por erro de RLS - usar role padrão
+        return { error: null, role: 'client' };
       }
 
       if (!userData) {
@@ -113,7 +114,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       console.log('✅ [3] Role encontrado:', userData.role);
-      
+
       // Update profile state
       setProfile({
         id: authData.user!.id,
