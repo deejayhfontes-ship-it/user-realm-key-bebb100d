@@ -29,7 +29,7 @@ const TODAS_AREAS = [
         corIcone: 'text-orange-400',
         corHover: 'group-hover:shadow-orange-500/20',
         bgIcone: 'bg-orange-500/10',
-        units: ['fasb'], // email fasb@ vê este card
+        units: ['fasb', 'ifa-universitario'], // ambos veem o card FASB
     },
     {
         id: 'solicitacoes',
