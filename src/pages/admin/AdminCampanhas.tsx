@@ -9,6 +9,8 @@ import {
 import type { Campanha } from '@/types/campanhas';
 import { UNIT_LABELS } from '@/types/campanhas';
 import { useNavigate } from 'react-router-dom';
+import { ImageUploader } from '@/components/admin/portfolio/ImageUploader';
+import { FolderPlus } from 'lucide-react'; // needed for trailing button
 
 const EMPTY_FORM: Omit<Campanha, 'id' | 'created_at' | 'updated_at'> = {
     title: '',
@@ -42,6 +44,7 @@ export default function AdminCampanhas() {
     const [isSaving, setIsSaving] = useState(false);
     const [isCreatingFolder, setIsCreatingFolder] = useState(false);
     const [filterUnit, setFilterUnit] = useState<string>('all');
+    const [subfolders, setSubfolders] = useState<string>('Posts Feed, Stories, Vídeos');
 
     const fetchCampanhas = async () => {
         setIsLoading(true);
@@ -100,6 +103,7 @@ export default function AdminCampanhas() {
                 body: {
                     action: 'CREATE_CAMPAIGN_FOLDER',
                     folder_name: folderName,
+                    subfolders: subfolders.split(',').map(s => s.trim()).filter(Boolean)
                 },
             });
 
@@ -258,11 +262,11 @@ export default function AdminCampanhas() {
                                 className="group rounded-xl border border-white/5 bg-[#0a0a0a] p-5 flex items-center gap-5 hover:border-white/10 transition-all"
                             >
                                 {/* Cover */}
-                                <div className="w-20 h-20 rounded-xl bg-white/5 overflow-hidden flex-shrink-0 flex items-center justify-center">
+                                <div className="w-16 rounded-xl bg-white/5 overflow-hidden flex-shrink-0 flex items-center justify-center" style={{ aspectRatio: '3/4' }}>
                                     {campanha.cover_image ? (
                                         <img src={campanha.cover_image} alt="" className="w-full h-full object-cover" />
                                     ) : (
-                                        <ImageIcon className="w-8 h-8 text-white/20" />
+                                        <ImageIcon className="w-6 h-6 text-white/20" />
                                     )}
                                 </div>
 
@@ -436,19 +440,15 @@ export default function AdminCampanhas() {
 
                             {/* Capa */}
                             <div>
-                                <label className="block text-sm font-medium text-white/70 mb-2">URL da Capa</label>
-                                <input
-                                    type="url"
+                                <label className="block text-sm font-medium text-white/70 mb-2">Imagem da Capa (Otimizada)</label>
+                                <ImageUploader
+                                    folder="campanhas"
                                     value={form.cover_image || ''}
-                                    onChange={(e) => setForm({ ...form, cover_image: e.target.value })}
-                                    placeholder="https://..."
-                                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-amber-500/50 transition-all"
+                                    onUpload={(result) => setForm({ ...form, cover_image: result.url })}
+                                    onRemove={() => setForm({ ...form, cover_image: '' })}
+                                    maxSizeMB={1}
+                                    maxWidthOrHeight={1920}
                                 />
-                                {form.cover_image && (
-                                    <div className="mt-2 rounded-xl overflow-hidden border border-white/5 h-32">
-                                        <img src={form.cover_image} alt="Preview" className="w-full h-full object-cover" />
-                                    </div>
-                                )}
                             </div>
 
                             {/* Drive Folder ID */}
@@ -464,15 +464,17 @@ export default function AdminCampanhas() {
                                             <FolderOpen className="w-4 h-4 flex-shrink-0" />
                                             <span className="truncate">{form.drive_folder_id}</span>
                                         </div>
-                                        <a
-                                            href={`https://drive.google.com/drive/folders/${form.drive_folder_id}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                window.open(`https://drive.google.com/drive/folders/${form.drive_folder_id}`, '_blank', 'noopener,noreferrer');
+                                            }}
                                             className="flex items-center gap-1 px-3 py-3 rounded-xl bg-white/5 border border-white/10 text-white/60 hover:text-white hover:bg-white/10 transition-all text-sm"
                                             title="Abrir no Drive"
                                         >
                                             <ExternalLink className="w-4 h-4" />
-                                        </a>
+                                        </button>
                                         <button
                                             type="button"
                                             onClick={() => setForm({ ...form, drive_folder_id: '' })}
@@ -483,31 +485,40 @@ export default function AdminCampanhas() {
                                         </button>
                                     </div>
                                 ) : (
-                                    <div className="space-y-3">
-                                        <button
-                                            type="button"
-                                            onClick={handleCreateDriveFolder}
-                                            disabled={isCreatingFolder}
-                                            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 hover:border-blue-500/30 disabled:opacity-50 transition-all text-sm font-medium"
-                                        >
-                                            {isCreatingFolder ? (
-                                                <>
-                                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                                    Criando pasta no Drive...
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <FolderOpen className="w-4 h-4" />
-                                                    Criar Pasta no Google Drive
-                                                </>
-                                            )}
-                                        </button>
+                                    <div className="space-y-4">
+                                        <div className="flex flex-col gap-3">
+                                            <input
+                                                type="text"
+                                                value={subfolders}
+                                                onChange={(e) => setSubfolders(e.target.value)}
+                                                placeholder="Subpastas (ex: Feed, Stories, Vídeos) ou deixe vazio"
+                                                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-amber-500/50 transition-all text-sm"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={handleCreateDriveFolder}
+                                                disabled={isCreatingFolder || !form.title}
+                                                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 hover:border-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm font-medium"
+                                            >
+                                                {isCreatingFolder ? (
+                                                    <>
+                                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                                        Criando pastas...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <FolderOpen className="w-4 h-4" />
+                                                        Criar Pasta e Subpastas
+                                                    </>
+                                                )}
+                                            </button>
+                                        </div>
                                         <div className="relative">
                                             <div className="absolute inset-0 flex items-center">
                                                 <div className="w-full border-t border-white/5"></div>
                                             </div>
                                             <div className="relative flex justify-center text-xs">
-                                                <span className="bg-[#111] px-2 text-white/20">ou cole o ID</span>
+                                                <span className="bg-[#111] px-2 text-white/20">ou cole o ID de uma pasta que já existe</span>
                                             </div>
                                         </div>
                                         <input
@@ -516,6 +527,7 @@ export default function AdminCampanhas() {
                                             onChange={(e) => setForm({ ...form, drive_folder_id: e.target.value })}
                                             placeholder="Cole aqui o ID da pasta do Drive"
                                             className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-amber-500/50 transition-all font-mono text-sm"
+
                                         />
                                     </div>
                                 )}
@@ -524,27 +536,7 @@ export default function AdminCampanhas() {
                                 </p>
                             </div>
 
-                            {/* Datas */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-white/70 mb-2">Início</label>
-                                    <input
-                                        type="date"
-                                        value={form.starts_at || ''}
-                                        onChange={(e) => setForm({ ...form, starts_at: e.target.value || null })}
-                                        className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-amber-500/50 transition-all"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-white/70 mb-2">Fim</label>
-                                    <input
-                                        type="date"
-                                        value={form.ends_at || ''}
-                                        onChange={(e) => setForm({ ...form, ends_at: e.target.value || null })}
-                                        className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-amber-500/50 transition-all"
-                                    />
-                                </div>
-                            </div>
+
 
                             {/* Sort Order */}
                             <div>

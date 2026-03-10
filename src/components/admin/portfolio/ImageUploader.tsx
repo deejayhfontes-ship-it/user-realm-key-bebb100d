@@ -91,8 +91,8 @@ export function ImageUploader({
   };
 
   const uploadToStorage = async (blob: Blob, originalName: string): Promise<string> => {
-    const extension = blob.type === 'image/webp' ? 'webp' : 
-                     blob.type === 'image/png' ? 'png' : 'jpg';
+    const extension = blob.type === 'image/webp' ? 'webp' :
+      blob.type === 'image/png' ? 'png' : 'jpg';
     const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(7)}.${extension}`;
 
     const { data, error } = await supabase.storage
@@ -132,7 +132,7 @@ export function ImageUploader({
       // Compress
       setUploadProgress(30);
       const { blob, wasCompressed } = await compressImage(file);
-      
+
       const compressedSizeKb = Math.round(blob.size / 1024);
       const originalSizeKb = Math.round(file.size / 1024);
 
@@ -212,7 +212,8 @@ export function ImageUploader({
           <img
             src={displayUrl}
             alt="Preview"
-            className="w-full h-48 object-cover rounded-lg border border-border"
+            className="w-full object-cover rounded-lg border border-border"
+            style={{ aspectRatio: '3/4', maxHeight: '200px', objectPosition: 'top' }}
           />
           <Button
             type="button"
@@ -225,20 +226,20 @@ export function ImageUploader({
           </Button>
           {fileInfo && (
             <div className="absolute bottom-2 left-2 flex items-center gap-2 text-xs bg-background/80 backdrop-blur-sm px-2 py-1 rounded">
-          {fileInfo.wasCompressed ? (
-            <>
-              <Check className="h-3 w-3 text-primary" />
-              <span>{fileInfo.compressedSize}KB</span>
-              <span className="text-muted-foreground">
-                (de {fileInfo.originalSize}KB)
-              </span>
-            </>
-          ) : (
-            <>
-              <Check className="h-3 w-3 text-primary" />
-              <span>{fileInfo.compressedSize}KB - Otimizado ✓</span>
-            </>
-          )}
+              {fileInfo.wasCompressed ? (
+                <>
+                  <Check className="h-3 w-3 text-primary" />
+                  <span>{fileInfo.compressedSize}KB</span>
+                  <span className="text-muted-foreground">
+                    (de {fileInfo.originalSize}KB)
+                  </span>
+                </>
+              ) : (
+                <>
+                  <Check className="h-3 w-3 text-primary" />
+                  <span>{fileInfo.compressedSize}KB - Otimizado ✓</span>
+                </>
+              )}
             </div>
           )}
         </div>
@@ -249,7 +250,7 @@ export function ImageUploader({
           onDragLeave={handleDragLeave}
           onClick={() => inputRef.current?.click()}
           className={cn(
-            'border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors',
+            'border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors',
             isDragging
               ? 'border-primary bg-primary/5'
               : 'border-muted-foreground/25 hover:border-primary/50',
@@ -263,25 +264,25 @@ export function ImageUploader({
             onChange={handleFileSelect}
             className="hidden"
           />
-          
+
           {isProcessing ? (
             <div className="space-y-3">
               <Loader2 className="h-10 w-10 mx-auto animate-spin text-muted-foreground" />
               <p className="text-sm text-muted-foreground">
                 {uploadProgress < 30 ? 'Preparando...' :
-                 uploadProgress < 60 ? 'Otimizando imagem...' :
-                 uploadProgress < 100 ? 'Enviando...' : 'Concluído!'}
+                  uploadProgress < 60 ? 'Otimizando imagem...' :
+                    uploadProgress < 100 ? 'Enviando...' : 'Concluído!'}
               </p>
               <Progress value={uploadProgress} className="w-full max-w-xs mx-auto" />
             </div>
           ) : (
             <>
-              <Upload className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
+              <Upload className="h-7 w-7 mx-auto text-muted-foreground mb-2" />
               <p className="text-sm font-medium">
-                Arraste uma imagem aqui ou clique para selecionar
+                Clique ou arraste uma imagem
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                Máx: {maxSizeMB}MB • JPG, PNG ou WebP • Até {maxWidthOrHeight}px
+                Máx: {maxSizeMB}MB • JPG, PNG ou WebP
               </p>
             </>
           )}
