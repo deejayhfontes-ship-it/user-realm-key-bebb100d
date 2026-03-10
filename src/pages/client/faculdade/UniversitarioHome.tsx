@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
-import { GraduationCap, ArrowLeft, Wrench, Image, FileText, FolderOpen, Construction, Megaphone, ArrowRight } from 'lucide-react';
+import { GraduationCap, ArrowLeft, Wrench, Image, FileText, Megaphone } from 'lucide-react';
+
 
 const MODULOS_FUTUROS = [
     { nome: 'Geradores', descricao: 'Geradores de artes exclusivos', icone: Image, disponivel: false },
@@ -49,31 +50,21 @@ export default function UniversitarioHome() {
                     </div>
                 </div>
 
-                {/* Campanhas Card */}
-                <div className="mb-10">
+                {/* Módulos Grid — Campanhas junto com os outros */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {/* Card Campanhas — clicável */}
                     <button
                         onClick={() => navigate('/faculdade/universitario/campanhas')}
-                        className="group w-full text-left rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-600/10 to-orange-400/5 bg-[#0a0a0a] p-6 transition-all duration-300 hover:scale-[1.01] hover:shadow-2xl hover:shadow-amber-500/10 hover:border-amber-500/30"
+                        className="group rounded-xl border border-amber-500/20 bg-[#0a0a0a] p-6 text-left transition-all duration-300 hover:border-amber-500/40 hover:bg-amber-500/5 hover:scale-[1.02]"
                     >
-                        <div className="flex items-center gap-5">
-                            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center flex-shrink-0 transition-transform duration-300 group-hover:scale-110">
-                                <Megaphone className="w-7 h-7 text-white" />
-                            </div>
-                            <div className="flex-1">
-                                <h4 className="text-xl font-bold text-white mb-1 group-hover:text-amber-400 transition-colors">Campanhas</h4>
-                                <p className="text-white/40 text-sm">Acesse materiais, logos, fotos e vídeos das campanhas ativas</p>
-                            </div>
-                            <ArrowRight className="w-5 h-5 text-amber-400 transition-transform duration-300 group-hover:translate-x-1" />
+                        <div className="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110">
+                            <Megaphone className="w-6 h-6 text-amber-400" />
                         </div>
+                        <h4 className="font-semibold text-white mb-1 group-hover:text-amber-400 transition-colors">Campanhas</h4>
+                        <p className="text-white/30 text-sm">Materiais, logos, fotos e vídeos das campanhas ativas</p>
                     </button>
-                </div>
 
-                {/* Módulos Grid */}
-                <h3 className="text-lg font-semibold text-white/70 mb-4 flex items-center gap-2">
-                    <Construction className="w-5 h-5 text-blue-400" />
-                    Módulos em desenvolvimento
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {/* Módulos futuros */}
                     {MODULOS_FUTUROS.map((modulo) => {
                         const Icone = modulo.icone;
                         return (
