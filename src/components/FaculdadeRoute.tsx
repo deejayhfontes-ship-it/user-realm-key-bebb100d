@@ -18,7 +18,7 @@ export function FaculdadeRoute({ children }: FaculdadeRouteProps) {
     }
 
     if (!user) {
-        return <Navigate to="/login" replace />;
+        return <Navigate to="/client/login" replace />;
     }
 
     return <>{children}</>;

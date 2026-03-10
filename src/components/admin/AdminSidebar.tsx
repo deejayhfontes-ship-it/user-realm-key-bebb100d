@@ -25,7 +25,8 @@ import {
   FolderOpen,
   Film,
   Sparkles,
-  Archive
+  Archive,
+  Megaphone
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -137,6 +138,11 @@ const navItems = [
     title: 'Protocolos Drive',
     href: '/admin/protocolos',
     icon: FolderOpen
+  },
+  {
+    title: 'Campanhas Faculdade',
+    href: '/admin/campanhas',
+    icon: Megaphone
   },
   {
     title: 'Arquivo / Biblioteca',
