@@ -18,7 +18,7 @@ const TITLE_X = 80;  const TITLE_Y = 410;          // "O CRAS"
 const BAIRRO_X = 80; const BAIRRO_Y = 660;         // "bairro da floresta"
 const VAN_X  = 450;  const VAN_Y  = 530;           // van mais à direita
 const VAN_W  = 700;
-const DESC_X = 80;  const DESC_Y  = 1010;          // texto descritivo
+const DESC_X = 80;  const DESC_Y  = 940;           // texto descritivo
 const DESC_MAX_WIDTH = 410;                         // ½ esquerda → van ocupa direita
 const DESC_LINE_H = 34;
 const DESC_MAX_LINES = 8;                           // caber antes do rodapé
@@ -148,7 +148,7 @@ export default function CrasItineranteGerador() {
     ctx.font = '900 110px Inter, Arial, sans-serif';
     ctx.fillText('O CRAS', TITLE_X, TITLE_Y);
     ctx.font = '600 78px Inter, Arial, sans-serif';
-    ctx.fillText('vai até você!', TITLE_X, TITLE_Y + 122);
+    ctx.fillText('vai até você!', TITLE_X, TITLE_Y + 106);
     ctx.restore();
 
     // ── 6. BAIRRO editável — tarja azul alinhada + texto branco ──────────────
