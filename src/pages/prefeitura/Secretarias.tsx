@@ -51,7 +51,7 @@ const SECRETARIAS = [
         corBorder: 'hover:border-violet-400/30',
         corShadow: 'hover:shadow-[0_0_40px_-15px_rgba(167,139,250,0.2)]',
         subcards: [
-            { titulo: 'CRAS Itinerante', cor: 'from-violet-400 to-fuchsia-500' },
+            { titulo: 'CRAS Itinerante', cor: 'from-violet-400 to-fuchsia-500', rota: '/prefeitura/secretarias/assistencia-social/cras-itinerante' },
         ],
     },
     {
@@ -192,7 +192,8 @@ export default function Secretarias() {
                             {selected.subcards.map((sub) => (
                                 <button
                                     key={sub.titulo}
-                                    className={`group relative bg-[#111111] border border-white/[0.08] rounded-2xl p-6 text-left transition-all duration-300 hover:border-white/20 hover:-translate-y-0.5 cursor-pointer`}
+                                    onClick={() => sub.rota ? navigate(sub.rota) : undefined}
+                                    className={`group relative bg-[#111111] border border-white/[0.08] rounded-2xl p-6 text-left transition-all duration-300 hover:border-violet-400/30 hover:shadow-[0_0_40px_-15px_rgba(167,139,250,0.25)] hover:-translate-y-0.5 cursor-pointer`}
                                 >
                                     <div className={`w-12 h-12 bg-gradient-to-br ${sub.cor} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
                                         <selected.icone className="w-6 h-6 text-white" />
@@ -200,6 +201,9 @@ export default function Secretarias() {
                                     <h3 className="text-lg font-bold text-white group-hover:text-violet-300 transition-colors">
                                         {sub.titulo}
                                     </h3>
+                                    {sub.rota && (
+                                        <p className="text-xs text-zinc-500 mt-1">Gerador de Arte Instagram</p>
+                                    )}
                                     <div className={`absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r ${sub.cor} w-0 group-hover:w-full transition-all duration-500 rounded-b-2xl`} />
                                 </button>
                             ))}
