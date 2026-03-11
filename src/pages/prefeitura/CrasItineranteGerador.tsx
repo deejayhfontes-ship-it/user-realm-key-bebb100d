@@ -138,20 +138,16 @@ export default function CrasItineranteGerador() {
     ctx.fillText(campos.bairro, DATE_X, DATE_Y + 60);
     ctx.restore();
 
-    // ── 5. HEADLINE "O CRAS vai até você!" ────────────────────────────────
+    // ── 5. HEADLINE ─────────────────────────────────────────────────────────
     ctx.save();
     ctx.textAlign = 'left';
-    const titleGrad = ctx.createLinearGradient(0, TITLE_Y - 100, 0, TITLE_Y + 110);
-    titleGrad.addColorStop(0, '#022b44');
-    titleGrad.addColorStop(1, '#0771b6');
-    ctx.fillStyle = titleGrad;
-    ctx.font = '900 110px Inter, Arial, sans-serif';
-    ctx.strokeStyle = '#022b44';
-    ctx.lineWidth = 3;
-    ctx.lineJoin = 'round';
-    ctx.strokeText('O CRAS', TITLE_X, TITLE_Y);
+    // "O CRAS" — navy, extra-bold
+    ctx.fillStyle = '#022b44';
+    ctx.font = 'bold 110px Inter, Arial, sans-serif';
     ctx.fillText('O CRAS', TITLE_X, TITLE_Y);
-    ctx.font = '600 78px Inter, Arial, sans-serif';
+    // "vai até você!" — azul, menor
+    ctx.fillStyle = '#0771b6';
+    ctx.font = 'bold 78px Inter, Arial, sans-serif';
     ctx.fillText('vai até você!', TITLE_X, TITLE_Y + 88);
     ctx.restore();
 
