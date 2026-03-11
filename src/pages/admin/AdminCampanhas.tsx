@@ -398,25 +398,27 @@ export default function AdminCampanhas() {
                             </div>
 
                             {/* Unit + Status */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-white/70 mb-2">Unidade *</label>
-                                    <div className="flex gap-2">
-                                        {(['universitario', 'fasb'] as const).map(unit => (
-                                            <button
-                                                key={unit}
-                                                type="button"
-                                                onClick={() => setForm({ ...form, unit })}
-                                                className={`flex-1 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all ${form.unit === unit
-                                                    ? 'bg-amber-500/20 border-amber-500/30 text-amber-400'
-                                                    : 'bg-white/5 border-white/10 text-white/40'
-                                                    }`}
-                                            >
-                                                {UNIT_LABELS[unit]}
-                                            </button>
-                                        ))}
+                            <div className="grid gap-4" style={{ gridTemplateColumns: form.client_id ? '1fr' : '1fr 1fr' }}>
+                                {!form.client_id && (
+                                    <div>
+                                        <label className="block text-sm font-medium text-white/70 mb-2">Unidade *</label>
+                                        <div className="flex gap-2">
+                                            {(['universitario', 'fasb'] as const).map(unit => (
+                                                <button
+                                                    key={unit}
+                                                    type="button"
+                                                    onClick={() => setForm({ ...form, unit })}
+                                                    className={`flex-1 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all ${form.unit === unit
+                                                        ? 'bg-amber-500/20 border-amber-500/30 text-amber-400'
+                                                        : 'bg-white/5 border-white/10 text-white/40'
+                                                        }`}
+                                                >
+                                                    {UNIT_LABELS[unit]}
+                                                </button>
+                                            ))}
+                                        </div>
                                     </div>
-                                </div>
+                                )}
                                 <div>
                                     <label className="block text-sm font-medium text-white/70 mb-2">Status</label>
                                     <div className="flex gap-2">
