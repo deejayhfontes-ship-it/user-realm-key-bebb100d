@@ -16,7 +16,7 @@ const DATE_X = W - 60;
 const DATE_Y = 100;
 const TITLE_X = 80;  const TITLE_Y = 410;          // "O CRAS"
 const BAIRRO_X = 80; const BAIRRO_Y = 660;         // "bairro da floresta"
-const VAN_X  = 360;  const VAN_Y  = 530;           // van à direita
+const VAN_X  = 450;  const VAN_Y  = 530;           // van mais à direita
 const VAN_W  = 700;
 const DESC_X = 80;  const DESC_Y  = 1010;          // texto descritivo
 const DESC_MAX_WIDTH = 410;                         // ½ esquerda → van ocupa direita
@@ -151,13 +151,29 @@ export default function CrasItineranteGerador() {
     ctx.fillText('vai até você!', TITLE_X, TITLE_Y + 114);
     ctx.restore();
 
-    // ── 6. BAIRRO editável (metade esquerda) ──────────────────────────────
+    // ── 6. BAIRRO editável — tarja azul atrás + texto branco ──────────────
     ctx.save();
     ctx.textAlign = 'left';
     ctx.font = '700 68px Inter, Arial, sans-serif';
-    ctx.fillStyle = '#0771b6';
     const bLines = wrapText(ctx, campos.bairro.toLowerCase(), 400, 3);
     let by = BAIRRO_Y;
+    const TARJA_PAD_X = 18;
+    const TARJA_PAD_Y = 14;
+    // desenhar tarjas primeiro (atrás do texto)
+    for (const line of bLines) {
+      const tw = ctx.measureText(line).width;
+      ctx.fillStyle = '#0771b6';
+      ctx.fillRect(
+        BAIRRO_X - TARJA_PAD_X,
+        by - 68 + TARJA_PAD_Y,
+        tw + TARJA_PAD_X * 2,
+        68 + TARJA_PAD_Y
+      );
+      by += 80;
+    }
+    // agora o texto branco sobre a tarja
+    ctx.fillStyle = '#ffffff';
+    by = BAIRRO_Y;
     for (const line of bLines) {
       ctx.fillText(line, BAIRRO_X, by);
       by += 80;
