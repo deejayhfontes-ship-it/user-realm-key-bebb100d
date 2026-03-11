@@ -70,24 +70,26 @@ export default function CrasItineranteGerador() {
     // ══════════════════════════════════════════════════════════════
     // 1. FUNDO — gradiente branco → azul claro (inspirado na referência)
     // ══════════════════════════════════════════════════════════════
-    const bg = ctx.createLinearGradient(W, 0, 0, H);
-    bg.addColorStop(0.00, '#e8f6ff');  // azul muito suave canto sup-dir
-    bg.addColorStop(0.35, '#f5fbff');  // quase branco no meio
-    bg.addColorStop(0.70, '#dff0fc');  // retoma azul suave
-    bg.addColorStop(1.00, '#c5e4f7');  // azul mais vivo no rodapé
+    // Fundo: branco → azul institucional CRAS claro (sem roxo nem ciano genérico)
+    const bg = ctx.createLinearGradient(W * 0.8, 0, 0, H);
+    bg.addColorStop(0.00, '#eaf3fb');  // azul CRAS muito claro
+    bg.addColorStop(0.40, '#f8fbff');  // quase branco
+    bg.addColorStop(0.75, '#ddeefa');  // retoma azul suave CRAS
+    bg.addColorStop(1.00, '#c2dff4');  // azul CRAS mais definido
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, W, H);
 
-    // Círculo de luz backdrop (efeito glow suave como na referência)
-    const glow = ctx.createRadialGradient(W * 0.7, H * 0.15, 0, W * 0.7, H * 0.15, 600);
-    glow.addColorStop(0, 'rgba(120,210,255,0.25)');
-    glow.addColorStop(1, 'rgba(120,210,255,0)');
+    // Glow: azul institucional CRAS (#0771b6), sem ciano
+    const glow = ctx.createRadialGradient(W * 0.75, H * 0.12, 0, W * 0.75, H * 0.12, 580);
+    glow.addColorStop(0, 'rgba(7,113,182,0.18)');
+    glow.addColorStop(1, 'rgba(7,113,182,0)');
     ctx.fillStyle = glow;
     ctx.fillRect(0, 0, W, H);
 
-    const glow2 = ctx.createRadialGradient(W * 0.1, H * 0.75, 0, W * 0.1, H * 0.75, 500);
-    glow2.addColorStop(0, 'rgba(0,180,255,0.15)');
-    glow2.addColorStop(1, 'rgba(0,180,255,0)');
+    // Glow amarelo sutil canto inferior (acento dourado CRAS)
+    const glow2 = ctx.createRadialGradient(W * 0.08, H * 0.72, 0, W * 0.08, H * 0.72, 420);
+    glow2.addColorStop(0, 'rgba(245,196,0,0.10)');
+    glow2.addColorStop(1, 'rgba(245,196,0,0)');
     ctx.fillStyle = glow2;
     ctx.fillRect(0, 0, W, H);
 
@@ -95,9 +97,9 @@ export default function CrasItineranteGerador() {
     // 2. TEXTO DECORATIVO OUTLINE no fundo (como na referência)
     // ══════════════════════════════════════════════════════════════
     ctx.save();
-    ctx.globalAlpha = 0.07;
+    ctx.globalAlpha = 0.065;
     ctx.font = '900 360px Inter, Arial, sans-serif';
-    ctx.strokeStyle = '#0069a8';
+    ctx.strokeStyle = '#0771b6';  // azul institucional CRAS
     ctx.lineWidth = 3;
     ctx.textAlign = 'right';
     ctx.strokeText('CRAS', W + 40, 440);
@@ -119,23 +121,22 @@ export default function CrasItineranteGerador() {
     // ══════════════════════════════════════════════════════════════
     // 4. LOGO + ÍCONE DE SETA (como na referência)
     // ══════════════════════════════════════════════════════════════
-    // Seta decorativa (estilo da referência — ícone geométrico em cyan)
+    // Seta decorativa — azul institucional CRAS #0771b6
     ctx.save();
-    ctx.strokeStyle = '#00aadd';
+    ctx.strokeStyle = '#0771b6';
     ctx.lineWidth = 12;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    // Seta: diagonal + traços de base
     ctx.beginPath();
     ctx.moveTo(52, 180);
-    ctx.lineTo(118, 114);   // diagonal principal
+    ctx.lineTo(118, 114);
     ctx.stroke();
     ctx.beginPath();
     ctx.moveTo(118, 114);
-    ctx.lineTo(118, 158);   // braço vertical
+    ctx.lineTo(118, 158);
     ctx.stroke();
     ctx.beginPath();
-    ctx.moveTo(72, 114);    // braço horizontal
+    ctx.moveTo(72, 114);
     ctx.lineTo(118, 114);
     ctx.stroke();
     ctx.restore();
@@ -160,16 +161,17 @@ export default function CrasItineranteGerador() {
     ctx.fillStyle = '#1a3a52';
     ctx.fillText(`${campos.data}  •  ${campos.hora}  •  ${campos.local}`, 50, 260);
 
-    // Linha decorativa fina abaixo
+    // Linha decorativa — amarelo CRAS (#f5c400) fade para transparente
     ctx.save();
-    const lineGrad = ctx.createLinearGradient(50, 0, 500, 0);
-    lineGrad.addColorStop(0, '#00aadd');
-    lineGrad.addColorStop(1, 'rgba(0,170,221,0)');
+    const lineGrad = ctx.createLinearGradient(50, 0, 560, 0);
+    lineGrad.addColorStop(0, '#f5c400');
+    lineGrad.addColorStop(0.6, '#0771b6');
+    lineGrad.addColorStop(1, 'rgba(7,113,182,0)');
     ctx.strokeStyle = lineGrad;
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.moveTo(50, 278);
-    ctx.lineTo(600, 278);
+    ctx.lineTo(620, 278);
     ctx.stroke();
     ctx.restore();
 
@@ -222,38 +224,37 @@ export default function CrasItineranteGerador() {
       }
     }
 
-    // Gradiente cyan → azul para o texto grande
-    const tGrad = ctx.createLinearGradient(0, bairroY - bsz, W, bairroY + bLines.length * (bsz + 10));
-    tGrad.addColorStop(0,   '#00c6ff');  // cyan
-    tGrad.addColorStop(0.5, '#0088cc');  // azul
-    tGrad.addColorStop(1,   '#004e88');  // azul escuro
+    // Gradiente azul institucional CRAS: #0771b6 → #022b44 (sem ciano, sem roxo)
+    const tGrad = ctx.createLinearGradient(0, bairroY - bsz, 0, bairroY + bLines.length * (bsz + 10));
+    tGrad.addColorStop(0,   '#0771b6');  // azul CRAS principal
+    tGrad.addColorStop(1,   '#022b44');  // navy CRAS escuro
     ctx.fillStyle = tGrad;
     ctx.textAlign = 'left';
     ctx.font = `900 ${bsz}px Inter, Arial, sans-serif`;
 
     let bly = bairroY;
     for (const bl of bLines) {
-      // Sombra suave para depth
       ctx.save();
-      ctx.shadowColor = 'rgba(0,150,220,0.20)';
-      ctx.shadowBlur = 20;
-      ctx.shadowOffsetY = 6;
+      ctx.shadowColor = 'rgba(7,113,182,0.22)';
+      ctx.shadowBlur = 18;
+      ctx.shadowOffsetY = 5;
       ctx.fillStyle = tGrad;
       ctx.fillText(bl, 50, bly);
       ctx.restore();
       bly += bsz + 14;
     }
 
-    // Linha de acento abaixo do bairro
+    // Linha de acento: amarelo CRAS
     ctx.save();
-    const acGrad = ctx.createLinearGradient(50, 0, 700, 0);
-    acGrad.addColorStop(0, '#00c6ff');
-    acGrad.addColorStop(1, 'rgba(0,198,255,0)');
+    const acGrad = ctx.createLinearGradient(50, 0, 720, 0);
+    acGrad.addColorStop(0,   '#f5c400');
+    acGrad.addColorStop(0.5, '#0771b6');
+    acGrad.addColorStop(1,   'rgba(7,113,182,0)');
     ctx.strokeStyle = acGrad;
-    ctx.lineWidth = 4;
+    ctx.lineWidth = 5;
     ctx.beginPath();
-    ctx.moveTo(50, bly + 10);
-    ctx.lineTo(700, bly + 10);
+    ctx.moveTo(50, bly + 14);
+    ctx.lineTo(720, bly + 14);
     ctx.stroke();
     ctx.restore();
 
@@ -266,12 +267,13 @@ export default function CrasItineranteGerador() {
     // Linha superior rodapé
     ctx.save();
     const divGrad = ctx.createLinearGradient(0, 0, W, 0);
-    divGrad.addColorStop(0,   'rgba(0,100,180,0)');
-    divGrad.addColorStop(0.2, '#0069a8');
-    divGrad.addColorStop(0.8, '#0069a8');
-    divGrad.addColorStop(1,   'rgba(0,100,180,0)');
+    divGrad.addColorStop(0,   'rgba(7,113,182,0)');
+    divGrad.addColorStop(0.15, '#0771b6');  // azul institucional CRAS
+    divGrad.addColorStop(0.5,  '#f5c400');  // amarelo CRAS no centro
+    divGrad.addColorStop(0.85, '#0771b6');
+    divGrad.addColorStop(1,   'rgba(7,113,182,0)');
     ctx.strokeStyle = divGrad;
-    ctx.lineWidth = 1.5;
+    ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(0, rpY);
     ctx.lineTo(W, rpY);
@@ -329,7 +331,7 @@ export default function CrasItineranteGerador() {
             <p className="text-xs text-slate-400">1080 × 1440 · Instagram Portrait</p>
           </div>
           <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg,#00aadd,#004e88)' }}>
+            style={{ background: 'linear-gradient(135deg,#0771b6,#022b44)' }}>
             <Download className="w-4 h-4 text-white" />
           </div>
         </div>
@@ -394,7 +396,7 @@ export default function CrasItineranteGerador() {
               </button>
               <button onClick={baixar}
                 className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-white font-bold transition-all shadow-lg hover:shadow-xl"
-                style={{ background: 'linear-gradient(135deg,#00aadd,#004e88)' }}>
+                style={{ background: 'linear-gradient(135deg,#0771b6,#022b44)' }}>
                 <Download className="w-5 h-5" /> Baixar PNG (1080 × 1440)
               </button>
             </div>
