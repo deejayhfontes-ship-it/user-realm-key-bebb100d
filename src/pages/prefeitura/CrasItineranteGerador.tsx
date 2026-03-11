@@ -2,17 +2,17 @@ import { useRef, useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Download, RefreshCw } from 'lucide-react';
 
-// Assets Figma Dev Mode
-const IMG_RODAPE = 'http://localhost:3845/assets/9c9293deb83f8fb9ac456ee714f3a40fdf34b966.png';
-const IMG_LOGO   = 'http://localhost:3845/assets/52add733f1e2711ee7ac0494890ee51c52ba9920.png';
+// Assets locais (Vite resolve para URL correta em build e dev)
+import rodapeImg from '@/assets/prefeitura/rodape-heliodora.png';
+import logoImg   from '@/assets/prefeitura/logo-heliodora.png';
 
 interface Campos {
   bairro: string;
   data: string;
   hora: string;
   local: string;
-  subtitulo: string;
-  texto: string;
+  subtituloLight: string;
+  subtituloBold: string;
 }
 
 const DEFAULT: Campos = {
@@ -20,8 +20,8 @@ const DEFAULT: Campos = {
   data: '22 de Março',
   hora: '13H',
   local: 'Praça Principal',
-  subtitulo: 'O CRAS vai até você com atendimento social, orientações e acesso a direitos.',
-  texto: 'Venha participar. Sua presença fortalece nossa comunidade.',
+  subtituloLight: 'O CRAS Itinerante vai até você com atendimento social, orientações e',
+  subtituloBold: 'acesso a direitos para o seu Bairro.',
 };
 
 const W = 1080;
@@ -29,8 +29,10 @@ const H = 1440;
 
 function loadImg(src: string): Promise<HTMLImageElement | null> {
   return new Promise(r => {
-    const i = new Image(); i.crossOrigin = 'anonymous';
-    i.onload = () => r(i); i.onerror = () => r(null);
+    const i = new Image();
+    i.crossOrigin = 'anonymous';
+    i.onload = () => r(i);
+    i.onerror = () => r(null);
     i.src = src;
   });
 }
@@ -50,12 +52,6 @@ function wrap(ctx: CanvasRenderingContext2D, text: string, maxW: number): string
   return out;
 }
 
-// ── Paleta extraída do refe001 ──────────────────────────────────────────────
-// Fundo: branco → azul claro → ciano suave (direita)
-// Texto principal: azul #0053a0 → ciano #00e5c8
-// Texto descritivo: cinza escuro #1a2d3d
-// Seta: turquesa #00c8b0
-
 export default function CrasItineranteGerador() {
   const navigate = useNavigate();
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -69,209 +65,213 @@ export default function CrasItineranteGerador() {
     cv.width = W; cv.height = H;
     ctx.clearRect(0, 0, W, H);
 
+    // Carrega assets locais
     const [imgRodape, imgLogo] = await Promise.all([
-      loadImg(IMG_RODAPE), loadImg(IMG_LOGO),
+      loadImg(rodapeImg),
+      loadImg(logoImg),
     ]);
 
-    // ══════════════════════════════════════════════════════════════════════
-    // 1. FUNDO — replica o gradiente do refe001:
-    //    branco puro (sup-esq) → azul claro → ciano (dir) e branco (inf)
-    // ══════════════════════════════════════════════════════════════════════
-    const bg = ctx.createLinearGradient(0, 0, W, H * 0.6);
+    // ════════════════════════════════════════════════════════════════════
+    // 1. FUNDO — branco (sup-esq) → azul claro → ciano vibrante (sup-dir)
+    //    exatamente como no refe001
+    // ════════════════════════════════════════════════════════════════════
+    const bg = ctx.createLinearGradient(0, 0, W, H * 0.55);
     bg.addColorStop(0.00, '#ffffff');
-    bg.addColorStop(0.25, '#e8f8ff');
-    bg.addColorStop(0.60, '#b8eef8');
-    bg.addColorStop(1.00, '#c2f0f5');
+    bg.addColorStop(0.20, '#e4f7ff');
+    bg.addColorStop(0.55, '#a8e8f5');
+    bg.addColorStop(1.00, '#b8f0f5');
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, W, H);
 
-    // Glow radial direita superior (ciano vibrante como na ref)
-    const gr = ctx.createRadialGradient(W * 0.9, H * 0.08, 0, W * 0.9, H * 0.08, W * 0.7);
-    gr.addColorStop(0, 'rgba(0,229,200,0.30)');
-    gr.addColorStop(1, 'rgba(0,229,200,0)');
+    // Glow radial ciano — canto superior direito (como na referência)
+    const gr = ctx.createRadialGradient(W * 0.88, H * 0.06, 0, W * 0.88, H * 0.06, W * 0.75);
+    gr.addColorStop(0, 'rgba(0,229,200,0.45)');
+    gr.addColorStop(0.5, 'rgba(0,180,230,0.20)');
+    gr.addColorStop(1, 'rgba(0,180,230,0)');
     ctx.fillStyle = gr;
     ctx.fillRect(0, 0, W, H);
 
-    // Glow azul centro
-    const gb = ctx.createRadialGradient(W * 0.5, H * 0.45, 0, W * 0.5, H * 0.45, W * 0.6);
-    gb.addColorStop(0, 'rgba(0,83,160,0.08)');
-    gb.addColorStop(1, 'rgba(0,83,160,0)');
-    ctx.fillStyle = gb;
-    ctx.fillRect(0, 0, W, H);
-
-    // Fade branco no rodapé (como na ref — base fica quase branca)
-    const gf = ctx.createLinearGradient(0, H * 0.72, 0, H);
+    // Fade branco no rodapé (área baixa mais clara, como na ref)
+    const gf = ctx.createLinearGradient(0, H * 0.68, 0, H);
     gf.addColorStop(0, 'rgba(255,255,255,0)');
-    gf.addColorStop(1, 'rgba(255,255,255,0.85)');
+    gf.addColorStop(1, 'rgba(255,255,255,0.90)');
     ctx.fillStyle = gf;
-    ctx.fillRect(0, H * 0.72, W, H * 0.28);
+    ctx.fillRect(0, H * 0.68, W, H * 0.32);
 
-    // ══════════════════════════════════════════════════════════════════════
-    // 2. TEXTO DECORATIVO OUTLINE grande no topo (exatamente como na ref)
-    //    letras-fantasma em outline, muito claras
-    // ══════════════════════════════════════════════════════════════════════
+    // ════════════════════════════════════════════════════════════════════
+    // 2. TEXTO OUTLINE DECORATIVO — GIGANTE no topo (≈560px)
+    //    No refe001 vemos "IND" parcialmente, aqui usamos "CRAS" e "BAIRRO"
+    //    São MUITO transparentes, apenas fantasma de contorno
+    // ════════════════════════════════════════════════════════════════════
     ctx.save();
-    ctx.globalAlpha = 0.10;
-    ctx.strokeStyle = '#005fad';
-    ctx.lineWidth = 2.5;
-    ctx.font = '900 400px Inter, Arial, sans-serif';
+    ctx.globalAlpha = 0.08;
+    ctx.strokeStyle = '#006fad';
+    ctx.lineWidth = 2;
+    ctx.font = '900 560px Inter, Arial, sans-serif';
     ctx.textAlign = 'left';
-    // Retângulos-fantasma do texto decorativo (alinhados ao topo como no refe001)
-    // Na referência vemos letras "IND" outline no topo
-    ctx.strokeText('CRAS', -30, 310);
+    // "CRAS" alinhado ao topo, saindo ligeiramente pela esquerda e direita
+    ctx.strokeText('CRAS', -20, 430);
     ctx.restore();
 
-    // ══════════════════════════════════════════════════════════════════════
-    // 3. SETA — turquesa #00c8b0, traçado geométrico (igual à referência)
-    // ══════════════════════════════════════════════════════════════════════
-    const arrowX = 50;
-    const arrowY = 340;
-    const arrowSize = 100;
+    // ════════════════════════════════════════════════════════════════════
+    // 3. ÍCONE SETA — turquesa #00c8b0, grande (~130px), como na referência
+    // ════════════════════════════════════════════════════════════════════
+    const ax = 60;           // X base
+    const ay = 460;          // Y base (abaixo do outline)
+    const as = 130;          // tamanho da seta
 
     ctx.save();
     ctx.strokeStyle = '#00c8b0';
-    ctx.lineWidth = 14;
-    ctx.lineCap = 'round';
+    ctx.lineWidth = 18;
+    ctx.lineCap  = 'round';
     ctx.lineJoin = 'round';
     // Diagonal ↗
     ctx.beginPath();
-    ctx.moveTo(arrowX, arrowY + arrowSize);
-    ctx.lineTo(arrowX + arrowSize, arrowY);
+    ctx.moveTo(ax, ay + as);
+    ctx.lineTo(ax + as, ay);
     ctx.stroke();
-    // Braço horizontal (topo)
+    // Braço horizontal (parte de cima, da esquerda até o ponto)
     ctx.beginPath();
-    ctx.moveTo(arrowX + arrowSize * 0.35, arrowY);
-    ctx.lineTo(arrowX + arrowSize, arrowY);
+    ctx.moveTo(ax + as * 0.38, ay);
+    ctx.lineTo(ax + as, ay);
     ctx.stroke();
-    // Braço vertical (direita)
+    // Braço vertical (desce pelo ponto)
     ctx.beginPath();
-    ctx.moveTo(arrowX + arrowSize, arrowY);
-    ctx.lineTo(arrowX + arrowSize, arrowY + arrowSize * 0.65);
+    ctx.moveTo(ax + as, ay);
+    ctx.lineTo(ax + as, ay + as * 0.62);
     ctx.stroke();
     ctx.restore();
 
-    // ══════════════════════════════════════════════════════════════════════
-    // 4. TEXTO DESCRITIVO (acima do bairro — estilo ref: light + bold mix)
-    //    data + local em destaque menor
-    // ══════════════════════════════════════════════════════════════════════
-    // Data / Local / Hora — linha discreta
-    ctx.font = '400 30px Inter, Arial, sans-serif';
-    ctx.fillStyle = '#3a5f7a';
+    // ════════════════════════════════════════════════════════════════════
+    // 4. DATA · HORA · LOCAL — linha discreta, ~36px
+    // ════════════════════════════════════════════════════════════════════
+    ctx.save();
+    ctx.font = '400 36px Inter, Arial, sans-serif';
+    ctx.fillStyle = '#3d6a88';
     ctx.textAlign = 'left';
-    ctx.fillText(`${campos.data}  ·  ${campos.hora}  ·  ${campos.local}`, 50, 490);
+    ctx.fillText(`${campos.data}  ·  ${campos.hora}  ·  ${campos.local}`, 60, 650);
+    ctx.restore();
 
-    // Subtítulo — mistura regular + bold (como na ref: "Enquanto... nós substituímos...")
-    const subLines = wrap(ctx, campos.subtitulo, W - 100);
-    let ty = 560;
-    ctx.textAlign = 'left';
-    for (const line of subLines) {
-      if (!line) { ty += 30; continue; }
-      // Verifica se começa com marcadores de negrito simulado
-      ctx.font = '400 40px Inter, Arial, sans-serif';
-      ctx.fillStyle = '#1a2d3d';
-      ctx.fillText(line, 50, ty);
-      ty += 58;
-    }
+    // ════════════════════════════════════════════════════════════════════
+    // 5. SUBTÍTULO LIGHT (~52px) + BOLD (~56px)
+    //    Na referência: 4 linhas light depois 2 linhas bold
+    // ════════════════════════════════════════════════════════════════════
+    let ty = 730;
+    const maxTW = W - 120;
 
-    // Texto complementar (menor)
-    if (campos.texto) {
-      ty += 10;
-      ctx.font = '700 40px Inter, Arial, sans-serif';
+    // Light
+    if (campos.subtituloLight) {
+      ctx.font = '400 52px Inter, Arial, sans-serif';
       ctx.fillStyle = '#1a2d3d';
-      const tLines = wrap(ctx, campos.texto, W - 100);
-      for (const line of tLines) {
-        if (!line) { ty += 20; continue; }
-        ctx.fillText(line, 50, ty);
-        ty += 58;
+      ctx.textAlign = 'left';
+      const lLines = wrap(ctx, campos.subtituloLight, maxTW);
+      for (const line of lLines) {
+        if (!line) { ty += 30; continue; }
+        ctx.fillText(line, 60, ty);
+        ty += 68;
       }
     }
 
-    // ══════════════════════════════════════════════════════════════════════
-    // 5. BAIRRO — tipografia gigante, gradiente azul→ciano (como "SISTEMAS AUTÔNOMOS")
-    // ══════════════════════════════════════════════════════════════════════
+    // Bold
+    if (campos.subtituloBold) {
+      ctx.font = '700 56px Inter, Arial, sans-serif';
+      ctx.fillStyle = '#1a2d3d';
+      const bLines2 = wrap(ctx, campos.subtituloBold, maxTW);
+      for (const line of bLines2) {
+        if (!line) { ty += 30; continue; }
+        ctx.fillText(line, 60, ty);
+        ty += 72;
+      }
+    }
+
+    // ════════════════════════════════════════════════════════════════════
+    // 6. BAIRRO — tipografia GIGANTE (200-240px), gradiente azul→ciano
+    //    Na referência "SISTEMAS" e "AUTÔNOMOS" ocupam quase toda a largura
+    // ════════════════════════════════════════════════════════════════════
     const bairroUP = campos.bairro.toUpperCase();
     const bWords = bairroUP.split(' ');
 
-    // Quebra em até 2 linhas para maximizar o tamanho
+    // Quebra em até 2 linhas para maximizar
     let bLines: string[];
     if (bWords.length === 1) {
       bLines = [bairroUP];
+    } else if (bWords.length === 2) {
+      bLines = [bWords[0], bWords[1]];
     } else {
       const mid = Math.ceil(bWords.length / 2);
       bLines = [bWords.slice(0, mid).join(' '), bWords.slice(mid).join(' ')];
     }
 
-    // Tamanho máximo que cabe na largura
-    let bsz = 170;
-    const calcMaxW = (sz: number) => {
+    // Ajusta tamanho para que cada linha caiba — começa em 230px
+    let bsz = 230;
+    const maxLineW = (sz: number) => {
       ctx.font = `900 ${sz}px Inter, Arial, sans-serif`;
       return bLines.reduce((m, l) => Math.max(m, ctx.measureText(l).width), 0);
     };
-    while (calcMaxW(bsz) > W - 80 && bsz > 60) bsz -= 6;
+    while (maxLineW(bsz) > W - 110 && bsz > 80) bsz -= 5;
 
     ctx.font = `900 ${bsz}px Inter, Arial, sans-serif`;
 
-    // Posição Y — abaixo do texto descritivo, na parte inferior da arte
-    const bairroStartY = Math.max(ty + 50, H * 0.62);
+    // Posição Y: abaixo do subtítulo + espaço, garantindo não recortar o rodapé
+    const rodapeH = 130;
+    const bairroStartY = Math.min(Math.max(ty + 55, H * 0.63), H - rodapeH - bLines.length * (bsz + 20) - 40);
 
-    // Gradiente azul → ciano (exatamente como na ref)
-    const bgText = ctx.createLinearGradient(0, bairroStartY - bsz, W * 0.9, bairroStartY + bLines.length * (bsz + 20));
-    bgText.addColorStop(0,   '#0053a0');  // azul
-    bgText.addColorStop(0.5, '#00a8d4');  // azul-ciano
-    bgText.addColorStop(1,   '#00e5c8');  // ciano/turquesa
+    // Gradiente diagonal: azul puro → ciano vibrante (como "SISTEMAS AUTÔNOMOS")
+    const bgText = ctx.createLinearGradient(0, bairroStartY, W, bairroStartY + bLines.length * (bsz + 20));
+    bgText.addColorStop(0,   '#0060cc');  // azul
+    bgText.addColorStop(0.45, '#00a8e8'); // azul-ciano
+    bgText.addColorStop(1,   '#00e5c8'); // ciano/turquesa
     ctx.fillStyle = bgText;
     ctx.textAlign = 'left';
 
     let by = bairroStartY;
     for (const bl of bLines) {
       ctx.save();
-      ctx.shadowColor = 'rgba(0,83,160,0.18)';
-      ctx.shadowBlur = 20;
+      ctx.shadowColor = 'rgba(0,83,160,0.15)';
+      ctx.shadowBlur = 22;
       ctx.shadowOffsetY = 6;
+      ctx.font = `900 ${bsz}px Inter, Arial, sans-serif`;
       ctx.fillStyle = bgText;
-      ctx.fillText(bl, 50, by);
+      ctx.fillText(bl, 55, by);
       ctx.restore();
       by += bsz + 20;
     }
 
-    // ══════════════════════════════════════════════════════════════════════
-    // 6. RODAPÉ — exatamente como na refe001:
-    //    Logo Prefeitura Heliodora | Secretaria de Assistência Social
-    //    linha fina separadora abaixo
-    // ══════════════════════════════════════════════════════════════════════
-    const rpH = 110;
-    const rpY = H - rpH - 20;
+    // ════════════════════════════════════════════════════════════════════
+    // 7. RODAPÉ — imagem rodape-heliodora.png centralizada
+    //    + linha fina separadora embaixo (exatamente como na referência)
+    // ════════════════════════════════════════════════════════════════════
+    const rpY = H - rodapeH - 16;
 
     if (imgRodape) {
-      // Centraliza verticalmente o rodapé
-      ctx.drawImage(imgRodape, 0, rpY, W, rpH);
-    } else {
-      // Fallback: logo CRAS + texto
-      if (imgLogo) {
-        const lw = 260;
-        const lh = (imgLogo.height / imgLogo.width) * lw;
-        const lx = (W - lw) / 2;
-        ctx.drawImage(imgLogo, lx, rpY + (rpH - lh) / 2, lw, lh);
-      }
-      ctx.font = '400 22px Inter, Arial, sans-serif';
+      // Proporção original, centralizada
+      const rpW = (imgRodape.width / imgRodape.height) * rodapeH;
+      const rpX = (W - rpW) / 2;
+      ctx.drawImage(imgRodape, rpX, rpY, rpW, rodapeH);
+    } else if (imgLogo) {
+      // Fallback: logo pequena + texto
+      const lh = 70;
+      const lw = (imgLogo.width / imgLogo.height) * lh;
+      ctx.drawImage(imgLogo, (W - lw) / 2, rpY + 15, lw, lh);
+      ctx.font = '600 26px Inter, Arial, sans-serif';
       ctx.fillStyle = '#1a2d3d';
       ctx.textAlign = 'center';
-      ctx.fillText('Prefeitura Municipal de Heliodora  |  Secretaria de Assistência Social', W / 2, rpY + rpH * 0.65);
+      ctx.fillText('SECRETARIA DE ASSISTÊNCIA SOCIAL', W / 2, rpY + lh + 40);
       ctx.textAlign = 'left';
     }
 
-    // Linha fina separadora abaixo do rodapé (como na ref)
+    // Linha fina na base (azul→ciano, como na referência)
     ctx.save();
-    const lineGrad = ctx.createLinearGradient(0, H - 18, W, H - 18);
-    lineGrad.addColorStop(0,   'rgba(0,200,176,0)');
-    lineGrad.addColorStop(0.15, '#00c8b0');
-    lineGrad.addColorStop(0.85, '#0053a0');
-    lineGrad.addColorStop(1,   'rgba(0,83,160,0)');
-    ctx.strokeStyle = lineGrad;
+    const lGrad = ctx.createLinearGradient(0, H - 12, W, H - 12);
+    lGrad.addColorStop(0,   'rgba(0,200,176,0)');
+    lGrad.addColorStop(0.1, '#00c8b0');
+    lGrad.addColorStop(0.9, '#0060cc');
+    lGrad.addColorStop(1,   'rgba(0,96,204,0)');
+    ctx.strokeStyle = lGrad;
     ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.moveTo(0, H - 18);
-    ctx.lineTo(W, H - 18);
+    ctx.moveTo(0, H - 12);
+    ctx.lineTo(W, H - 12);
     ctx.stroke();
     ctx.restore();
 
@@ -286,12 +286,12 @@ export default function CrasItineranteGerador() {
   function baixar() {
     const cv = canvasRef.current; if (!cv) return;
     const a = document.createElement('a');
-    a.download = `cras-${campos.bairro.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}.png`;
+    const slug = campos.bairro.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    a.download = `cras-itinerante-${slug}.png`;
     a.href = cv.toDataURL('image/png', 1.0);
     a.click();
   }
 
-  // ── Estilos do formulário (inspiração na refe001: fundo branco/azul claro)
   const inp = `w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-800
     placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all bg-white`;
   const lbl = 'block text-[11px] font-bold uppercase tracking-widest mb-1.5 text-slate-400';
@@ -299,7 +299,7 @@ export default function CrasItineranteGerador() {
   return (
     <div className="min-h-screen" style={{ background: 'linear-gradient(135deg,#f0faff 0%,#e0f5fb 60%,#d0f0f8 100%)' }}>
 
-      {/* Header — clean, como a referência */}
+      {/* Header */}
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-100">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <button onClick={() => navigate('/prefeitura/secretarias')}
@@ -311,7 +311,7 @@ export default function CrasItineranteGerador() {
             <p className="text-xs text-slate-400">1080 × 1440 · Instagram Portrait</p>
           </div>
           <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg,#00c8b0,#0053a0)' }}>
+            style={{ background: 'linear-gradient(135deg,#00c8b0,#0060cc)' }}>
             <Download className="w-4 h-4 text-white" />
           </div>
         </div>
@@ -320,11 +320,11 @@ export default function CrasItineranteGerador() {
       <main className="max-w-7xl mx-auto px-6 py-10">
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-10 items-start">
 
-          {/* ── FORMULÁRIO ──────────────────────────────────────────────── */}
+          {/* ── FORMULÁRIO ─────────────────────────────────────────────── */}
           <div className="space-y-4">
             <div>
               <h2 className="text-2xl font-bold text-slate-800">Personalizar Arte</h2>
-              <p className="text-sm text-slate-500 mt-0.5">Preview ao vivo · PNG 1080×1440</p>
+              <p className="text-sm text-slate-500 mt-0.5">Preview ao vivo · PNG 1080 × 1440</p>
             </div>
 
             {/* BAIRRO */}
@@ -332,52 +332,44 @@ export default function CrasItineranteGerador() {
               <label htmlFor="f-bairro" className={lbl + ' !text-cyan-500'}>
                 ✦  Nome do Bairro — destaque principal
               </label>
-              <input id="f-bairro" title="Bairro" type="text"
-                value={campos.bairro} onChange={set('bairro')}
+              <input id="f-bairro" type="text" value={campos.bairro} onChange={set('bairro')}
                 placeholder="Ex: Centro, Vila Nova..."
                 className={inp + ' text-xl font-bold'} />
             </div>
 
-            {/* DATA + HORA */}
+            {/* DATA + HORA + LOCAL */}
             <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
-              <p className={lbl}>Data e Hora</p>
-              <div className="grid grid-cols-2 gap-3">
+              <p className={lbl}>Quando e onde</p>
+              <div className="grid grid-cols-3 gap-3">
                 <div>
                   <label htmlFor="f-data" className="block text-xs text-slate-400 mb-1">Data</label>
-                  <input id="f-data" title="Data" type="text"
-                    value={campos.data} onChange={set('data')}
+                  <input id="f-data" type="text" value={campos.data} onChange={set('data')}
                     placeholder="22 de Março" className={inp} />
                 </div>
                 <div>
                   <label htmlFor="f-hora" className="block text-xs text-slate-400 mb-1">Hora</label>
-                  <input id="f-hora" title="Hora" type="text"
-                    value={campos.hora} onChange={set('hora')}
+                  <input id="f-hora" type="text" value={campos.hora} onChange={set('hora')}
                     placeholder="13H" className={inp} />
+                </div>
+                <div>
+                  <label htmlFor="f-local" className="block text-xs text-slate-400 mb-1">Local</label>
+                  <input id="f-local" type="text" value={campos.local} onChange={set('local')}
+                    placeholder="Praça Principal" className={inp} />
                 </div>
               </div>
             </div>
 
-            {/* LOCAL */}
+            {/* SUBTÍTULO LIGHT */}
             <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
-              <label htmlFor="f-local" className={lbl}>Local</label>
-              <input id="f-local" title="Local" type="text"
-                value={campos.local} onChange={set('local')}
-                placeholder="Ex: Praça Principal" className={inp} />
-            </div>
-
-            {/* SUBTÍTULO */}
-            <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
-              <label htmlFor="f-sub" className={lbl}>Texto de apoio (light)</label>
-              <textarea id="f-sub" title="Subtítulo" rows={3}
-                value={campos.subtitulo} onChange={set('subtitulo')}
+              <label htmlFor="f-sub-light" className={lbl}>Texto de apoio (leve)</label>
+              <textarea id="f-sub-light" rows={3} value={campos.subtituloLight} onChange={set('subtituloLight')}
                 className={inp + ' resize-none text-sm'} />
             </div>
 
-            {/* TEXTO BOLD */}
+            {/* SUBTÍTULO BOLD */}
             <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
-              <label htmlFor="f-texto" className={lbl}>Texto de ênfase (bold)</label>
-              <textarea id="f-texto" title="Texto" rows={2}
-                value={campos.texto} onChange={set('texto')}
+              <label htmlFor="f-sub-bold" className={lbl}>Texto de ênfase (negrito)</label>
+              <textarea id="f-sub-bold" rows={2} value={campos.subtituloBold} onChange={set('subtituloBold')}
                 className={inp + ' resize-none text-sm font-bold'} />
             </div>
 
@@ -389,13 +381,13 @@ export default function CrasItineranteGerador() {
               </button>
               <button onClick={baixar}
                 className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-white font-bold shadow-lg hover:opacity-90 transition-all"
-                style={{ background: 'linear-gradient(135deg,#00c8b0,#0053a0)' }}>
+                style={{ background: 'linear-gradient(135deg,#00c8b0,#0060cc)' }}>
                 <Download className="w-5 h-5" /> Baixar PNG (1080 × 1440)
               </button>
             </div>
           </div>
 
-          {/* ── PREVIEW ─────────────────────────────────────────────────── */}
+          {/* ── PREVIEW ──────────────────────────────────────────────────── */}
           <div className="sticky top-24">
             <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
               <div className="flex items-center justify-between mb-3">
