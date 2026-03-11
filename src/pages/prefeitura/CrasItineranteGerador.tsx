@@ -134,7 +134,8 @@ export default function CrasItineranteGerador() {
     ctx.fillText(`${campos.data} ${campos.hora}`, DATE_X, DATE_Y);
     ctx.font = '700 34px Inter, Arial, sans-serif';
     ctx.fillStyle = '#0771b6';
-    ctx.fillText(campos.local, DATE_X, DATE_Y + 60);
+    // mesmo nome do bairro abaixo da data
+    ctx.fillText(campos.bairro.toLowerCase(), DATE_X, DATE_Y + 60);
     ctx.restore();
 
     // ── 5. HEADLINE "O CRAS vai até você!" ────────────────────────────────
@@ -144,38 +145,37 @@ export default function CrasItineranteGerador() {
     titleGrad.addColorStop(0, '#022b44');
     titleGrad.addColorStop(1, '#0771b6');
     ctx.fillStyle = titleGrad;
-    ctx.font = '800 100px Inter, Arial, sans-serif';
+    ctx.font = '900 110px Inter, Arial, sans-serif';
     ctx.fillText('O CRAS', TITLE_X, TITLE_Y);
-    ctx.font = '600 100px Inter, Arial, sans-serif';
-    ctx.fillText('vai até você!', TITLE_X, TITLE_Y + 114);
+    ctx.font = '600 78px Inter, Arial, sans-serif';
+    ctx.fillText('vai até você!', TITLE_X, TITLE_Y + 122);
     ctx.restore();
 
-    // ── 6. BAIRRO editável — tarja azul atrás + texto branco ──────────────
+    // ── 6. BAIRRO editável — tarja azul alinhada + texto branco ──────────────
     ctx.save();
     ctx.textAlign = 'left';
-    ctx.font = '700 68px Inter, Arial, sans-serif';
+    const BFONT = 68;
+    ctx.font = `700 ${BFONT}px Inter, Arial, sans-serif`;
     const bLines = wrapText(ctx, campos.bairro.toLowerCase(), 400, 3);
-    let by = BAIRRO_Y;
     const TARJA_PAD_X = 18;
-    const TARJA_PAD_Y = 14;
-    // desenhar tarjas primeiro (atrás do texto)
+    const TARJA_PAD_V = 10;
+    let by = BAIRRO_Y;
     for (const line of bLines) {
       const tw = ctx.measureText(line).width;
       ctx.fillStyle = '#0771b6';
       ctx.fillRect(
         BAIRRO_X - TARJA_PAD_X,
-        by - 68 + TARJA_PAD_Y,
+        by - BFONT - TARJA_PAD_V,
         tw + TARJA_PAD_X * 2,
-        68 + TARJA_PAD_Y
+        BFONT + TARJA_PAD_V * 2
       );
-      by += 80;
+      by += BFONT + 16;
     }
-    // agora o texto branco sobre a tarja
     ctx.fillStyle = '#ffffff';
     by = BAIRRO_Y;
     for (const line of bLines) {
       ctx.fillText(line, BAIRRO_X, by);
-      by += 80;
+      by += BFONT + 16;
     }
     ctx.restore();
 
