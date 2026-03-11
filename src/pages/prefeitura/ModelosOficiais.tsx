@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Crown, FileText, AlertTriangle, Megaphone, ScrollText, ArrowUpRight } from 'lucide-react';
+import { ArrowLeft, Crown, FileText, AlertTriangle, Megaphone, ScrollText, ArrowUpRight, Building2 } from 'lucide-react';
 
 const MODELOS = [
     {
@@ -46,6 +46,15 @@ const MODELOS = [
         cor: 'from-zinc-600 to-zinc-700',
         corTexto: 'text-zinc-500',
         ativo: false,
+    },
+    {
+        titulo: 'Secretarias',
+        descricao: 'Modelos e comunicados por secretaria: Educação, Saúde, Obras, Agricultura e mais',
+        icone: Building2,
+        rota: '/prefeitura/secretarias',
+        cor: 'from-violet-400 to-purple-500',
+        corTexto: 'text-violet-400',
+        ativo: true,
     },
 ];
 
