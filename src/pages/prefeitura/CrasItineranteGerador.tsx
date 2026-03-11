@@ -126,20 +126,15 @@ export default function CrasItineranteGerador() {
       ctx.drawImage(logo, LOGO_X, LOGO_Y, LOGO_W, LOGO_H);
     }
 
-    // ── 4. DATA · HORA  (topo direito) ────────────────────────────────────
+    // ── 4. DATA · HORA  (topo direito) ─────────────────────
     ctx.save();
     ctx.textAlign = 'right';
-    ctx.letterSpacing = '-2px';
     ctx.font = '900 52px Inter, Arial, sans-serif';
     ctx.fillStyle = '#022b44';
-    ctx.shadowColor = 'rgba(0,0,0,0.08)';
-    ctx.shadowBlur = 4;
     ctx.fillText(`${campos.data} ${campos.hora}`, DATE_X, DATE_Y);
     ctx.font = '700 34px Inter, Arial, sans-serif';
     ctx.fillStyle = '#0771b6';
-    ctx.shadowBlur = 0;
     ctx.fillText(campos.local, DATE_X, DATE_Y + 60);
-    ctx.letterSpacing = '0px';
     ctx.restore();
 
     // ── 5. HEADLINE "O CRAS vai até você!" ────────────────────────────────
