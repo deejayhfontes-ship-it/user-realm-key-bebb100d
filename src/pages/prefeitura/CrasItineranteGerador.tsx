@@ -129,10 +129,11 @@ export default function CrasItineranteGerador() {
     // ── 4. DATA · HORA  (topo direito) ────────────────────────────────────
     ctx.save();
     ctx.textAlign = 'right';
+    ctx.letterSpacing = '-10px';
     ctx.font = '900 42px Inter, Arial, sans-serif';
     ctx.fillStyle = '#022b44';
     ctx.fillText(`${campos.data} ${campos.hora}`, DATE_X, DATE_Y);
-    ctx.font = '500 30px Inter, Arial, sans-serif';
+    ctx.font = '700 30px Inter, Arial, sans-serif';
     ctx.fillStyle = '#0771b6';
     ctx.fillText(campos.local, DATE_X, DATE_Y + 46);
     ctx.restore();
