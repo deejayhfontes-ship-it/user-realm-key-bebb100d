@@ -135,7 +135,7 @@ export default function CrasItineranteGerador() {
     ctx.font = '700 34px Inter, Arial, sans-serif';
     ctx.fillStyle = '#0771b6';
     // mesmo nome do bairro abaixo da data
-    ctx.fillText(campos.bairro.toLowerCase(), DATE_X, DATE_Y + 60);
+    ctx.fillText(campos.bairro, DATE_X, DATE_Y + 60);
     ctx.restore();
 
     // ── 5. HEADLINE "O CRAS vai até você!" ────────────────────────────────
@@ -148,7 +148,7 @@ export default function CrasItineranteGerador() {
     ctx.font = '900 110px Inter, Arial, sans-serif';
     ctx.fillText('O CRAS', TITLE_X, TITLE_Y);
     ctx.font = '600 78px Inter, Arial, sans-serif';
-    ctx.fillText('vai até você!', TITLE_X, TITLE_Y + 106);
+    ctx.fillText('vai até você!', TITLE_X, TITLE_Y + 88);
     ctx.restore();
 
     // ── 6. BAIRRO editável — tarja azul alinhada + texto branco ──────────────
@@ -156,7 +156,7 @@ export default function CrasItineranteGerador() {
     ctx.textAlign = 'left';
     const BFONT = 68;
     ctx.font = `700 ${BFONT}px Inter, Arial, sans-serif`;
-    const bLines = wrapText(ctx, campos.bairro.toLowerCase(), 400, 3);
+    const bLines = wrapText(ctx, campos.bairro, 400, 3);
     const TARJA_PAD_X = 18;
     const TARJA_PAD_V = 10;
     let by = BAIRRO_Y;
