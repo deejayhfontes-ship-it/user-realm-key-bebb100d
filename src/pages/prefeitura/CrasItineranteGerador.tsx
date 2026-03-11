@@ -145,7 +145,7 @@ export default function CrasItineranteGerador() {
     titleGrad.addColorStop(0, '#022b44');
     titleGrad.addColorStop(1, '#0771b6');
     ctx.fillStyle = titleGrad;
-    ctx.font = 'bold 900 110px Inter, Arial, sans-serif';
+    ctx.font = '900 110px Inter, Arial, sans-serif';
     ctx.strokeStyle = '#022b44';
     ctx.lineWidth = 3;
     ctx.lineJoin = 'round';
