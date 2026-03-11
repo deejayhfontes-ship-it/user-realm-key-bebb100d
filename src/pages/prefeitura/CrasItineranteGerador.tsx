@@ -2,10 +2,30 @@ import { useRef, useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Download, RefreshCw } from 'lucide-react';
 
-// Assets locais salvos do Figma
+// Assets salvos localmente do Figma dev mode
 import imgLogoCras from '@/assets/prefeitura/arte/logo-cras-itinerante.png';
 import imgVan      from '@/assets/prefeitura/arte/van-cras.png';
-import imgRodape   from '@/assets/prefeitura/rodape-heliodora.png';
+import imgRodape   from '@/assets/prefeitura/arte/rodape-cras.png';
+
+// ────────────────────────────────────────────────────────────────────────────
+// O Figma original tem 1080×1350. Nosso canvas será 1080×1440.
+// Fator de escala vertical: 1440/1350 ≈ 1.0667 — aplicado a todos os Y.
+// ────────────────────────────────────────────────────────────────────────────
+const W  = 1080;
+const H  = 1440;
+const SY = H / 1350;  // escala vertical ≈ 1.067
+
+// Posições do Figma (Y escaladas)
+const LOGO_X = 53;  const LOGO_Y = 42  * SY;  const LOGO_W = 498; const LOGO_H = 268 * SY;
+const DATE_X = W - 50; // alinhado à direita
+const DATE_Y = (80 + 40) * SY;
+const TITLE_X = 80; const TITLE_Y = 350 * SY;
+const BAIRRO_X = 80; const BAIRRO_Y = 589 * SY;
+const VAN_X  = 353 + 51; const VAN_Y_F  = (324 + 233) * SY;
+const VAN_W  = 717; const VAN_H_F  = 665 * SY;
+const DESC_X = 80;  const DESC_Y  = 759 * SY;
+const RP_Y   = (324 + 923) * SY;   // rodapé original: y=1247*SY → clampado
+const RP_H   = 104 * SY;
 
 interface Campos {
   bairro: string;
@@ -19,13 +39,10 @@ const DEFAULT: Campos = {
   bairro: 'bairro da floresta',
   data: '22 MARÇO',
   hora: '13H',
-  local: 'Praça Principal',
+  local: 'bairro da floresta',
   texto:
     'Participe de uma tarde especial de acolhimento, informação e convivência para toda a comunidade. Será um momento para esclarecer dúvidas, conhecer serviços, fortalecer vínculos e garantir direitos. Sua presença é muito importante.\nEsperamos por você!',
 };
-
-const W = 1080;
-const H = 1440;
 
 function loadImg(src: string): Promise<HTMLImageElement | null> {
   return new Promise(r => {
@@ -37,7 +54,7 @@ function loadImg(src: string): Promise<HTMLImageElement | null> {
   });
 }
 
-function wrap(ctx: CanvasRenderingContext2D, text: string, maxW: number): string[] {
+function wrapText(ctx: CanvasRenderingContext2D, text: string, maxW: number): string[] {
   const out: string[] = [];
   for (const para of text.split('\n')) {
     if (!para.trim()) { out.push(''); continue; }
@@ -71,134 +88,144 @@ export default function CrasItineranteGerador() {
       loadImg(imgRodape),
     ]);
 
-    // ═══════════════════════════════════════════════════════════
-    // 1. FUNDO — azul muito claro → branco (exato do Figma)
-    // ═══════════════════════════════════════════════════════════
-    const bg = ctx.createLinearGradient(0, 0, W * 0.8, H * 0.5);
-    bg.addColorStop(0.0, '#d6eef8');
-    bg.addColorStop(0.4, '#e8f6ff');
-    bg.addColorStop(0.7, '#f4faff');
-    bg.addColorStop(1.0, '#ffffff');
+    // ══════════════════════════════════════════════════════════════════════
+    // 1. FUNDO — estética refe001: branco (sup-esq) → ciano vibrante (sup-dir)
+    // ══════════════════════════════════════════════════════════════════════
+    const bg = ctx.createLinearGradient(0, 0, W, H * 0.6);
+    bg.addColorStop(0.00, '#ffffff');
+    bg.addColorStop(0.20, '#e2f5ff');
+    bg.addColorStop(0.55, '#a5e5f5');
+    bg.addColorStop(1.00, '#b8eef5');
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, W, H);
 
-    // Glow ciano superior-direito
-    const gc = ctx.createRadialGradient(W * 0.85, H * 0.05, 0, W * 0.85, H * 0.05, W * 0.7);
-    gc.addColorStop(0, 'rgba(120,220,240,0.40)');
-    gc.addColorStop(1, 'rgba(120,220,240,0)');
+    // Bloom ciano superior-direito (refe001)
+    const gc = ctx.createRadialGradient(W * 0.88, H * 0.06, 0, W * 0.88, H * 0.06, W * 0.72);
+    gc.addColorStop(0, 'rgba(100, 220, 245, 0.50)');
+    gc.addColorStop(0.5, 'rgba(100, 210, 235, 0.20)');
+    gc.addColorStop(1, 'rgba(100, 210, 235, 0)');
     ctx.fillStyle = gc;
     ctx.fillRect(0, 0, W, H);
 
-    // ═══════════════════════════════════════════════════════════
-    // 2. LOGO CRAS ITINERANTE — topo esquerdo
-    //    No Figma: x=53, y=42, w=498, h=268
-    //    Proporção: 1080 canvas → mantemos escala
-    // ═══════════════════════════════════════════════════════════
+    // Fade branco na base (rodapé fica em área mais clara)
+    const gf = ctx.createLinearGradient(0, H * 0.70, 0, H);
+    gf.addColorStop(0, 'rgba(255,255,255,0)');
+    gf.addColorStop(1, 'rgba(255,255,255,0.92)');
+    ctx.fillStyle = gf;
+    ctx.fillRect(0, H * 0.70, W, H * 0.30);
+
+    // ══════════════════════════════════════════════════════════════════════
+    // 2. TEXTO OUTLINE DECORATIVO — estética refe001 (outline gigante no topo)
+    // ══════════════════════════════════════════════════════════════════════
+    ctx.save();
+    ctx.globalAlpha = 0.07;
+    ctx.strokeStyle = '#005fad';
+    ctx.lineWidth = 2;
+    ctx.font = '900 500px Inter, Arial, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.strokeText('CRAS', W + 30, 390);
+    ctx.restore();
+
+    // ══════════════════════════════════════════════════════════════════════
+    // 3. LOGO CRAS ITINERANTE — coordenadas Figma (topo esquerdo)
+    // ══════════════════════════════════════════════════════════════════════
     if (logo) {
-      const lw = 520;
-      const lh = (logo.height / logo.width) * lw;
-      ctx.drawImage(logo, 40, 30, lw, lh);
+      ctx.drawImage(logo, LOGO_X, LOGO_Y, LOGO_W, LOGO_H);
     }
 
-    // ═══════════════════════════════════════════════════════════
-    // 3. DATA + HORA + LOCAL — topo direito (como no Figma)
-    // ═══════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════════════════════
+    // 4. DATA · HORA · LOCAL — topo direito (Figma: x=80+616=696, y=80)
+    //    Fonte: Inter Black 40px + Medium 32px, cor #0771b6
+    // ══════════════════════════════════════════════════════════════════════
     ctx.save();
     ctx.textAlign = 'right';
-    // Data + hora — bold grande
-    ctx.font = '800 56px Inter, Arial, sans-serif';
-    ctx.fillStyle = '#0d2d4a';
-    ctx.fillText(`${campos.data} ${campos.hora}`, W - 50, 110);
-    // Bairro (local referência) — regular menor, azul
-    ctx.font = '400 42px Inter, Arial, sans-serif';
-    ctx.fillStyle = '#3a7aaa';
-    ctx.fillText(campos.local, W - 50, 168);
+    ctx.font = '900 40px Inter, Arial, sans-serif';
+    ctx.fillStyle = '#0771b6';
+    ctx.fillText(`${campos.data} ${campos.hora}`, DATE_X, DATE_Y);
+    ctx.font = '500 32px Inter, Arial, sans-serif';
+    ctx.fillStyle = '#0771b6';
+    ctx.fillText(campos.local, DATE_X, DATE_Y + 44);
     ctx.restore();
 
-    // ═══════════════════════════════════════════════════════════
-    // 4. "O CRAS vai até você!" — texto grande navy
-    //    No Figma: x=80, y=350, fonte ~110px bold
-    // ═══════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════════════════════
+    // 5. HEADLINE "O CRAS vai até você!"
+    //    Figma: x=80, y=350, 96px ExtraBold, gradiente #043555→#0771b6
+    // ══════════════════════════════════════════════════════════════════════
     ctx.save();
     ctx.textAlign = 'left';
-    ctx.font = '800 112px Inter, Arial, sans-serif';
-    ctx.fillStyle = '#0d2d4a';
-    const headline1 = 'O CRAS';
-    const headline2 = 'vai até você!';
-    ctx.fillText(headline1, 70, 420);
-    ctx.fillText(headline2, 70, 545);
+    const titleGrad = ctx.createLinearGradient(0, TITLE_Y - 96, 0, TITLE_Y + 96);
+    titleGrad.addColorStop(0, '#043555');
+    titleGrad.addColorStop(1, '#0771b6');
+    ctx.fillStyle = titleGrad;
+    ctx.font = '800 96px Inter, Arial, sans-serif';
+    ctx.letterSpacing = '-4px';
+    ctx.fillText('O CRAS', TITLE_X, TITLE_Y);
+    ctx.font = '600 96px Inter, Arial, sans-serif';
+    ctx.fillText('vai até você!', TITLE_X, TITLE_Y + 108);
     ctx.restore();
 
-    // ═══════════════════════════════════════════════════════════
-    // 5. BAIRRO — texto editável grande azul-ciano
-    //    No Figma: x=80, y=589, fonte ~100px bold azul
-    // ═══════════════════════════════════════════════════════════
-    const bairroText = campos.bairro.toLowerCase();
+    // ══════════════════════════════════════════════════════════════════════
+    // 6. BAIRRO — editável, Figma: x=80, y=589, 64px Bold, #0771b6
+    //    max-width ≈ 430px (metade esquerda, van fica à direita)
+    // ══════════════════════════════════════════════════════════════════════
     ctx.save();
     ctx.textAlign = 'left';
-    ctx.font = '700 100px Inter, Arial, sans-serif';
-    ctx.fillStyle = '#005fa3';
-
-    // Auto-quebra se bairro for longo (max ~430px de largura — metade do card)
-    const bMaxW = 420;
-    const bLines = wrap(ctx, bairroText, bMaxW);
-    let by = 680;
+    ctx.font = '700 64px Inter, Arial, sans-serif';
+    ctx.fillStyle = '#0771b6';
+    const bLines = wrapText(ctx, campos.bairro.toLowerCase(), 430);
+    let by = BAIRRO_Y;
     for (const line of bLines) {
-      ctx.fillText(line, 70, by);
-      by += 118;
+      ctx.fillText(line, BAIRRO_X, by);
+      by += 76;
     }
     ctx.restore();
 
-    // ═══════════════════════════════════════════════════════════
-    // 6. TEXTO DESCRITIVO — menor, cinza-escuro
-    //    No Figma: x=80, y=759, fonte ~28-30px regular
-    // ═══════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════════════════════
+    // 7. VAN CRAS — direita, coordenadas Figma escaladas
+    //    Original: left=404, top=557(escalado), w=717, h=665(escalado)
+    // ══════════════════════════════════════════════════════════════════════
+    if (van) {
+      // Mantém proporção original da imagem
+      const ratio = van.height / van.width;
+      const vw = VAN_W;
+      const vh = Math.min(vw * ratio, VAN_H_F * 1.05);
+      ctx.drawImage(van, VAN_X - 10, VAN_Y_F - 40, vw, vh);
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    // 8. TEXTO DESCRITIVO — Figma: x=80, y=759, 24px Medium, #0771b6
+    // ══════════════════════════════════════════════════════════════════════
     if (campos.texto) {
       ctx.save();
-      ctx.font = '400 32px Inter, Arial, sans-serif';
-      ctx.fillStyle = '#1a3a52';
       ctx.textAlign = 'left';
-      const tLines = wrap(ctx, campos.texto, 420);
-      let ty = by + 30;
-      for (const line of tLines) {
-        if (!line) { ty += 18; continue; }
-        ctx.fillText(line, 70, ty);
-        ty += 44;
+      ctx.font = '500 26px Inter, Arial, sans-serif';
+      ctx.fillStyle = '#0771b6';
+      const dLines = wrapText(ctx, campos.texto, 400);
+      let dy = DESC_Y;
+      for (const line of dLines) {
+        if (!line) { dy += 16; continue; }
+        ctx.fillText(line, DESC_X, dy);
+        dy += 38;
       }
       ctx.restore();
     }
 
-    // ═══════════════════════════════════════════════════════════
-    // 7. VAN CRAS ITINERANTE — direita, ocupa metade inferior
-    //    No Figma: x=353+51=404, y=324+233=557, w~685, h~665
-    // ═══════════════════════════════════════════════════════════
-    if (van) {
-      // A van ocupa a metade direita da arte, do meio pra baixo
-      const vw = 660;
-      const vh = (van.height / van.width) * vw;
-      const vx = W - vw - 20;  // alinhada à direita
-      const vy = 580;
-      ctx.drawImage(van, vx, vy, vw, vh);
-    }
-
-    // ═══════════════════════════════════════════════════════════
-    // 8. RODAPÉ — centralizado, como no Figma
-    //    Logo Heliodora + Secretaria de Assistência Social
-    // ═══════════════════════════════════════════════════════════
-    const rpH = 104;
-    const rpY = H - rpH - 14;
-
+    // ══════════════════════════════════════════════════════════════════════
+    // 9. RODAPÉ — Figma: y=1247(escalado)→clamp ao final do canvas
+    //    Centralizado, h=104*SY
+    // ══════════════════════════════════════════════════════════════════════
     if (rodape) {
-      const rpW = (rodape.width / rodape.height) * rpH;
+      const rpY = Math.min(RP_Y, H - RP_H - 10);
+      const rpW = (rodape.width / rodape.height) * RP_H;
       const rpX = (W - rpW) / 2;
-      ctx.drawImage(rodape, rpX, rpY, rpW, rpH);
+      ctx.drawImage(rodape, rpX, rpY, rpW, RP_H);
     }
 
-    // Linha fina na base
+    // Linha fina na base — estética refe001 (turquesa → azul)
     ctx.save();
     const lg = ctx.createLinearGradient(0, H - 10, W, H - 10);
-    lg.addColorStop(0,   'rgba(0,100,180,0)');
-    lg.addColorStop(0.1, '#005fa3');
+    lg.addColorStop(0,   'rgba(0,113,182,0)');
+    lg.addColorStop(0.1, '#0771b6');
     lg.addColorStop(0.9, '#00c8b0');
     lg.addColorStop(1,   'rgba(0,200,176,0)');
     ctx.strokeStyle = lg;
@@ -227,11 +254,11 @@ export default function CrasItineranteGerador() {
   }
 
   const inp = `w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-800
-    placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all bg-white`;
+    placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-all bg-white`;
   const lbl = 'block text-[11px] font-bold uppercase tracking-widest mb-1.5 text-slate-400';
 
   return (
-    <div className="min-h-screen" style={{ background: 'linear-gradient(135deg,#d6f0fc 0%,#f0faff 100%)' }}>
+    <div className="min-h-screen" style={{ background: 'linear-gradient(135deg,#e2f5ff 0%,#f0faff 100%)' }}>
 
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-100">
@@ -245,7 +272,7 @@ export default function CrasItineranteGerador() {
             <p className="text-xs text-slate-400">1080 × 1440 · Instagram Portrait</p>
           </div>
           <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg,#00c8b0,#005fa3)' }}>
+            style={{ background: 'linear-gradient(135deg,#0771b6,#00c8b0)' }}>
             <Download className="w-4 h-4 text-white" />
           </div>
         </div>
@@ -261,19 +288,19 @@ export default function CrasItineranteGerador() {
               <p className="text-sm text-slate-500 mt-0.5">Preview ao vivo · PNG 1080 × 1440</p>
             </div>
 
-            {/* BAIRRO */}
-            <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
+            {/* BAIRRO — campo principal */}
+            <div className="bg-white border-2 border-blue-100 rounded-2xl p-5 shadow-sm">
               <label htmlFor="f-bairro" className={lbl + ' !text-blue-500'}>
                 📍  Nome do Bairro — destaque principal
               </label>
               <input id="f-bairro" type="text" value={campos.bairro} onChange={set('bairro')}
                 placeholder="Ex: bairro da floresta"
-                className={inp + ' text-xl font-bold text-blue-600'} />
+                className={inp + ' text-xl font-bold text-blue-700'} />
             </div>
 
             {/* DATA + HORA + LOCAL */}
             <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
-              <p className={lbl}>Data, Hora e Local</p>
+              <p className={lbl}>Quando e onde (canto superior direito)</p>
               <div className="grid grid-cols-3 gap-3">
                 <div>
                   <label htmlFor="f-data" className="block text-xs text-slate-400 mb-1">Data</label>
@@ -286,14 +313,14 @@ export default function CrasItineranteGerador() {
                     placeholder="13H" className={inp} />
                 </div>
                 <div>
-                  <label htmlFor="f-local" className="block text-xs text-slate-400 mb-1">Local</label>
+                  <label htmlFor="f-local" className="block text-xs text-slate-400 mb-1">Local / referência</label>
                   <input id="f-local" type="text" value={campos.local} onChange={set('local')}
-                    placeholder="Praça Principal" className={inp} />
+                    placeholder="bairro da floresta" className={inp} />
                 </div>
               </div>
             </div>
 
-            {/* TEXTO */}
+            {/* TEXTO DESCRITIVO */}
             <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
               <label htmlFor="f-texto" className={lbl}>Texto descritivo</label>
               <textarea id="f-texto" rows={6} value={campos.texto} onChange={set('texto')}
@@ -308,7 +335,7 @@ export default function CrasItineranteGerador() {
               </button>
               <button onClick={baixar}
                 className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-white font-bold shadow-lg hover:opacity-90 transition-all"
-                style={{ background: 'linear-gradient(135deg,#00c8b0,#005fa3)' }}>
+                style={{ background: 'linear-gradient(135deg,#0771b6,#00c8b0)' }}>
                 <Download className="w-5 h-5" /> Baixar PNG (1080 × 1440)
               </button>
             </div>
