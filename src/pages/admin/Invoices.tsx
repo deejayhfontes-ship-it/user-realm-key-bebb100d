@@ -79,19 +79,45 @@ const Invoices = () => {
   };
 
   const handleGeneratePDF = async (invoice?: InvoiceRow) => {
-    if (!invoiceRef.current) return;
-
     setIsGeneratingPDF(true);
     toast.loading("Gerando PDF...", { id: "pdf-loading" });
 
     try {
+      // Aguarda renderização completa (especialmente quando chamado da lista)
+      await new Promise(res => setTimeout(res, 300));
+
+      if (!invoiceRef.current) {
+        toast.error("Erro: preview não encontrado", { id: "pdf-loading" });
+        return;
+      }
+
       const element = invoiceRef.current;
+
+      // Salva estilos originais do elemento pai scroll para remover clipping
+      const scrollParent = element.closest('[class*="overflow"]') as HTMLElement | null;
+      const originalOverflow = scrollParent?.style.overflow || '';
+      const originalMaxHeight = scrollParent?.style.maxHeight || '';
+      if (scrollParent) {
+        scrollParent.style.overflow = 'visible';
+        scrollParent.style.maxHeight = 'none';
+      }
+
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
         logging: false,
         backgroundColor: "#ffffff",
+        height: element.scrollHeight,
+        windowHeight: element.scrollHeight,
+        scrollY: 0,
+        scrollX: 0,
       });
+
+      // Restaura estilos
+      if (scrollParent) {
+        scrollParent.style.overflow = originalOverflow;
+        scrollParent.style.maxHeight = originalMaxHeight;
+      }
 
       const imgData = canvas.toDataURL("image/png");
       const pdfWidth = 210;
@@ -100,10 +126,10 @@ const Invoices = () => {
       const pdf = new jsPDF({
         orientation: "portrait",
         unit: "mm",
-        format: [pdfWidth, pdfHeight + 20],
+        format: [pdfWidth, pdfHeight + 10],
       });
 
-      pdf.addImage(imgData, "PNG", 0, 10, pdfWidth, pdfHeight);
+      pdf.addImage(imgData, "PNG", 0, 5, pdfWidth, pdfHeight);
 
       const clientName = invoice ? invoice.bill_to_name : invoiceData.billTo.name;
       const invNumber = invoice ? invoice.invoice_number : invoiceData.invoiceNumber;
@@ -118,6 +144,7 @@ const Invoices = () => {
       setIsGeneratingPDF(false);
     }
   };
+
 
   const handleViewInvoice = (invoice: InvoiceRow) => {
     setSelectedInvoice(invoice);
