@@ -138,8 +138,7 @@ export default function CrasItineranteGerador() {
     ctx.fillText(`${campos.data} ${campos.hora}`, DATE_X, DATE_Y);
     ctx.font = '700 34px Inter, Arial, sans-serif';
     ctx.fillStyle = '#0771b6';
-    // mesmo nome do bairro abaixo da data
-    ctx.fillText(campos.bairro, DATE_X, DATE_Y + 60);
+    ctx.fillText(campos.local, DATE_X, DATE_Y + 60);
     ctx.restore();
 
     // ── 5. HEADLINE ─────────────────────────────────────────────────────────
