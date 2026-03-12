@@ -193,7 +193,7 @@ export default function CrasItineranteGerador() {
 
     // ── 7A. LOGO ASSISTÊNCIA SOCIAL — acima da van, alinhada com a data ──────
     if (assist) {
-      const AS_H = 110;
+      const AS_H = 150;
       const asW = (assist.width / assist.height) * AS_H;
       // alinhada à direita com a data (DATE_X) e posicionada acima da van
       const asX = DATE_X - asW;
