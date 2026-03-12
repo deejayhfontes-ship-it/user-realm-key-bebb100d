@@ -68,6 +68,8 @@ import AdminSolicitacoes from "@/pages/admin/AdminSolicitacoes";
 import AdminProtocols from "@/pages/admin/AdminProtocols";
 import AdminBiblioteca from "@/pages/admin/AdminBiblioteca";
 import SolicitarServico from "@/pages/public/SolicitarServico";
+import CorridaAutismo from "@/pages/public/CorridaAutismo";
+import AdminCorridaAutismo from "@/pages/admin/AdminCorridaAutismo";
 
 // Client Pages
 import ClientLogin from "@/pages/client/Login";
@@ -137,10 +139,12 @@ const App = () => (
               <Route path="/prefeitura/edital-decretos" element={<EditalDecretos />} />
               <Route path="/prefeitura/secretarias" element={<Secretarias />} />
               <Route path="/prefeitura/secretarias/assistencia-social/cras-itinerante" element={<CrasItineranteGerador />} />
+              <Route path="/prefeitura/secretarias/diretoria-esporte/corrida-autismo" element={<AdminCorridaAutismo />} />
               <Route path="/prefeitura/consultar" element={<ConsultarSolicitacao />} />
               <Route path="/prefeitura/arte" element={<PrefeituraArtePage />} />
               <Route path="/acompanhar/:protocolo" element={<PublicTracking />} />
               <Route path="/solicitar-servico" element={<SolicitarServico />} />
+              <Route path="/corridadoautismo" element={<CorridaAutismo />} />
 
               {/* Faculdade routes */}
               <Route path="/faculdade" element={<FaculdadeRoute><FaculdadeHub /></FaculdadeRoute>} />

@@ -61,8 +61,16 @@ const SECRETARIAS = [
         corTexto: 'text-yellow-400',
         corBorder: 'hover:border-yellow-400/30',
         corShadow: 'hover:shadow-[0_0_40px_-15px_rgba(250,204,21,0.2)]',
-        subcards: [],
+        subcards: [
+            {
+                titulo: 'Inscrições Corrida do Autismo',
+                cor: 'from-yellow-400 to-amber-500',
+                rota: '/prefeitura/secretarias/diretoria-esporte/corrida-autismo',
+                descricao: 'Gerenciar inscrições da 1ª Corrida de Conscientização do Autismo',
+            },
+        ],
     },
+
     {
         titulo: 'Secretaria de Cultura e Turismo',
         icone: Music,
