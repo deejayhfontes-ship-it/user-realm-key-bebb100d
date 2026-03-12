@@ -68,7 +68,7 @@ const initialForm: FormData = {
   nome_completo: '', data_nascimento: '', sexo: '', cpf: '', rg: '',
   telefone: '', email: '', cep: '', logradouro: '', numero: '',
   complemento: '', bairro: '', cidade: '', estado: '',
-  tamanho_camiseta: '', equipe_assessoria: '',
+  tamanho_camiseta: 'Tamanho Único', equipe_assessoria: '',
   contato_emergencia: '', telefone_emergencia: '',
   possui_problema_saude: 'nao', descricao_problema_saude: '',
   nome_responsavel: '', cpf_responsavel: '',
@@ -237,7 +237,7 @@ export default function CorridaAutismo() {
     if (!form.telefone) e.telefone = 'Telefone obrigatório';
     if (!form.email || !/\S+@\S+\.\S+/.test(form.email)) e.email = 'E-mail inválido';
     if (!form.cidade.trim()) e.cidade = 'Cidade obrigatória';
-    if (!form.tamanho_camiseta) e.tamanho_camiseta = 'Selecione o tamanho';
+    // tamanho_camiseta é sempre 'Tamanho Único'
     if (!form.contato_emergencia.trim()) e.contato_emergencia = 'Contato de emergência obrigatório';
     if (!form.telefone_emergencia) e.telefone_emergencia = 'Telefone de emergência obrigatório';
     if (form.possui_problema_saude === 'sim' && !form.descricao_problema_saude.trim())
@@ -640,12 +640,8 @@ export default function CorridaAutismo() {
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="label">Tamanho da Camiseta *</label>
-                    <select name="tamanho_camiseta" value={form.tamanho_camiseta} onChange={handle} className={`input ${erros.tamanho_camiseta ? 'border-red-400' : ''}`}>
-                      <option value="">Selecione</option>
-                      {['PP','P','M','G','GG','XGG'].map(t => <option key={t} value={t}>{t}</option>)}
-                    </select>
-                    {erros.tamanho_camiseta && <p className="err">{erros.tamanho_camiseta}</p>}
+                    <label className="label">Tamanho da Camiseta</label>
+                    <div className="input bg-gray-100 text-gray-500 cursor-not-allowed select-none">Tamanho Único</div>
                   </div>
                   <div>
                     <label className="label">Equipe / Assessoria / Grupo (opcional)</label>
@@ -750,11 +746,11 @@ export default function CorridaAutismo() {
 
       {/* ── ESTILOS INLINE SCOPED ── */}
       <style>{`
-        .label { display: block; font-size: 0.8125rem; font-weight: 600; color: #374151; margin-bottom: 0.375rem; }
-        .input { width: 100%; padding: 0.625rem 0.875rem; border: 1.5px solid #e5e7eb; border-radius: 0.75rem; font-size: 0.9375rem; color: #111827; background: #f9fafb; transition: border-color 0.2s, box-shadow 0.2s; outline: none; }
+        .label { display: block; font-size: 1rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem; }
+        .input { width: 100%; padding: 0.75rem 1rem; border: 1.5px solid #e5e7eb; border-radius: 0.75rem; font-size: 1.0625rem; color: #111827; background: #f9fafb; transition: border-color 0.2s, box-shadow 0.2s; outline: none; }
         .input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.12); background: #fff; }
         textarea.input { min-height: 80px; }
-        .err { font-size: 0.75rem; color: #ef4444; margin-top: 0.25rem; }
+        .err { font-size: 0.875rem; color: #ef4444; margin-top: 0.25rem; }
       `}</style>
     </div>
   );
