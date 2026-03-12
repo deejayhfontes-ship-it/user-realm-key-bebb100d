@@ -7,6 +7,7 @@ import {
   Heart, Users, Download, ArrowLeft, Timer, Loader2
 } from 'lucide-react';
 import jsPDF from 'jspdf';
+import bannerCorrida from '../prefeitura/assets/fotosimagens/02corrida.png';
 
 const MAX_VAGAS = 300;
 
@@ -395,21 +396,20 @@ export default function CorridaAutismo() {
     <div className="min-h-screen bg-gray-50">
 
       {/* ── HERO ─────────────────────────────────────────────────── */}
-      <div className="bg-gradient-to-br from-blue-950 via-blue-900 to-cyan-800 text-white">
+      <div style={{ backgroundColor: '#d8dde3' }}>
         <div className="max-w-5xl mx-auto px-4 pt-8 pb-10 text-center">
 
           {/* ── BANNER OFICIAL ── */}
-          <div className="mb-8 rounded-2xl overflow-hidden shadow-2xl border border-white/20">
+          <div className="mb-8 rounded-2xl overflow-hidden shadow-2xl">
             <img
-              src="/images/banner-corrida-autismo.png"
+              src={bannerCorrida}
               alt="1ª Corrida de Conscientização do Autismo - Heliodora MG"
               className="w-full object-cover"
-              style={{ maxHeight: '380px', objectPosition: 'center' }}
             />
           </div>
 
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur border border-white/20 rounded-full px-5 py-2 text-sm font-medium mb-6">
+          <div className="inline-flex items-center gap-2 bg-blue-900 text-white border border-blue-700 rounded-full px-5 py-2 text-sm font-semibold mb-6 shadow">
             <span className="text-2xl">🧩</span>
             <span>Prefeitura Municipal de Heliodora — MG</span>
           </div>
@@ -422,25 +422,26 @@ export default function CorridaAutismo() {
               { Icon: MapPin, label: 'Heliodora - MG' },
               { Icon: Trophy, label: '7 km' },
             ].map(({ Icon, label }) => (
-              <div key={label} className="flex items-center gap-2 bg-white/10 border border-white/20 rounded-xl px-4 py-2 text-sm font-medium">
-                <Icon className="w-4 h-4 text-cyan-300" />
+              <div key={label} className="flex items-center gap-2 bg-blue-900 text-white border border-blue-700 rounded-xl px-4 py-2 text-sm font-semibold shadow">
+                <Icon className="w-4 h-4 text-cyan-400" />
                 {label}
               </div>
             ))}
           </div>
+
           {/* Contador de vagas */}
-          <div className="bg-white/10 backdrop-blur border border-white/20 rounded-2xl p-6 max-w-md mx-auto">
+          <div className="bg-white border border-gray-200 rounded-2xl p-6 max-w-md mx-auto shadow-md">
             <div className="flex justify-between text-sm mb-2">
-              <span className="text-blue-200">Inscrições realizadas</span>
-              <span className="font-bold text-white">{totalInscritos}/{MAX_VAGAS}</span>
+              <span className="text-gray-600 font-medium">Inscrições realizadas</span>
+              <span className="font-bold text-blue-900">{totalInscritos}/{MAX_VAGAS}</span>
             </div>
-            <div className="h-3 bg-white/10 rounded-full overflow-hidden mb-2">
+            <div className="h-3 bg-gray-200 rounded-full overflow-hidden mb-2">
               <div
                 className="h-full rounded-full transition-all duration-700"
-                style={{ width: `${pct}%`, background: pct >= 90 ? '#ef4444' : pct >= 70 ? '#f59e0b' : '#22d3ee' }}
+                style={{ width: `${pct}%`, background: pct >= 90 ? '#ef4444' : pct >= 70 ? '#f59e0b' : '#0ea5e9' }}
               />
             </div>
-            <p className={`text-sm font-semibold ${esgotado ? 'text-red-400' : 'text-cyan-300'}`}>
+            <p className={`text-sm font-semibold ${esgotado ? 'text-red-600' : 'text-blue-700'}`}>
               {esgotado ? 'Inscrições encerradas — limite de 300 vagas atingido' : `${vagasRestantes} vagas restantes`}
             </p>
           </div>
