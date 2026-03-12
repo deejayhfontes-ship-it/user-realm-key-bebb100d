@@ -396,19 +396,24 @@ export default function CorridaAutismo() {
 
       {/* ── HERO ─────────────────────────────────────────────────── */}
       <div className="bg-gradient-to-br from-blue-950 via-blue-900 to-cyan-800 text-white">
-        <div className="max-w-5xl mx-auto px-4 py-16 text-center">
-          {/* Ícone Puzzle (identidade autismo) */}
+        <div className="max-w-5xl mx-auto px-4 pt-8 pb-10 text-center">
+
+          {/* ── BANNER OFICIAL ── */}
+          <div className="mb-8 rounded-2xl overflow-hidden shadow-2xl border border-white/20">
+            <img
+              src="/images/banner-corrida-autismo.png"
+              alt="1ª Corrida de Conscientização do Autismo - Heliodora MG"
+              className="w-full object-cover"
+              style={{ maxHeight: '380px', objectPosition: 'center' }}
+            />
+          </div>
+
+          {/* Badge */}
           <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur border border-white/20 rounded-full px-5 py-2 text-sm font-medium mb-6">
             <span className="text-2xl">🧩</span>
             <span>Prefeitura Municipal de Heliodora — MG</span>
           </div>
-          <h1 className="text-4xl sm:text-5xl font-black mb-3 leading-tight tracking-tight">
-            1ª Corrida de<br className="hidden sm:block" />
-            <span className="text-cyan-300"> Conscientização do Autismo</span>
-          </h1>
-          <p className="text-blue-200 text-lg mb-8 max-w-2xl mx-auto">
-            Participar é uma forma de apoio. Venha correr pela causa e fazer a diferença!
-          </p>
+
           {/* Info destaque */}
           <div className="flex flex-wrap justify-center gap-4 mb-10">
             {[
@@ -441,6 +446,7 @@ export default function CorridaAutismo() {
           </div>
         </div>
       </div>
+
 
       {/* ── INFORMAÇÕES DO EVENTO ────────────────────────────────── */}
       <div className="max-w-5xl mx-auto px-4 py-12">
