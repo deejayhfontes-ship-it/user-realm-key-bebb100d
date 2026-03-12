@@ -197,7 +197,7 @@ export default function CrasItineranteGerador() {
       const asW = (assist.width / assist.height) * AS_H;
       // alinhada à direita com a data (DATE_X) e posicionada acima da van
       const asX = DATE_X - asW;
-      const asY = 380;
+      const asY = 300;
       ctx.drawImage(assist, asX, asY, asW, AS_H);
     }
 
@@ -223,7 +223,7 @@ export default function CrasItineranteGerador() {
     if (campos.texto) {
       ctx.save();
       ctx.textAlign = 'left';
-      ctx.font = '400 26px Inter, Arial, sans-serif';
+      ctx.font = '400 25px Inter, Arial, sans-serif';
       ctx.fillStyle = '#0771b6';
       const dLines = wrapText(ctx, campos.texto, DESC_MAX_WIDTH, DESC_MAX_LINES);
       let dy = DESC_Y;
