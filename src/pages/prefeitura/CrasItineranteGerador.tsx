@@ -14,7 +14,7 @@ const H = 1440;
 const LOGO_X = 53;   const LOGO_Y = 46;   const LOGO_W = 490; const LOGO_H = 260;
 const DATE_X = W - 60;
 const DATE_Y = 100;
-const TITLE_X = 80;  const TITLE_Y = 410;          // "O CRAS"
+const TITLE_X = 80;  const TITLE_Y = 440;          // "O CRAS"
 const BAIRRO_X = 80; const BAIRRO_Y = 660;         // "bairro da floresta"
 const VAN_X  = 450;  const VAN_Y  = 530;           // van mais à direita
 const VAN_W  = 700;
@@ -131,6 +131,10 @@ export default function CrasItineranteGerador() {
     ctx.textAlign = 'right';
     ctx.font = '900 52px Inter, Arial, sans-serif';
     ctx.fillStyle = '#022b44';
+    ctx.strokeStyle = '#022b44';
+    ctx.lineWidth = 2;
+    ctx.lineJoin = 'round';
+    ctx.strokeText(`${campos.data} ${campos.hora}`, DATE_X, DATE_Y);
     ctx.fillText(`${campos.data} ${campos.hora}`, DATE_X, DATE_Y);
     ctx.font = '700 34px Inter, Arial, sans-serif';
     ctx.fillStyle = '#0771b6';
@@ -144,6 +148,10 @@ export default function CrasItineranteGerador() {
     // "O CRAS" — navy, extra-bold
     ctx.fillStyle = '#022b44';
     ctx.font = 'bold 110px Inter, Arial, sans-serif';
+    ctx.strokeStyle = '#022b44';
+    ctx.lineWidth = 2;
+    ctx.lineJoin = 'round';
+    ctx.strokeText('O CRAS', TITLE_X, TITLE_Y);
     ctx.fillText('O CRAS', TITLE_X, TITLE_Y);
     // "vai até você!" — azul, menor
     ctx.fillStyle = '#0771b6';
