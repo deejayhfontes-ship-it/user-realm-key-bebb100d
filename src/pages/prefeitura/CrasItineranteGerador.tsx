@@ -5,6 +5,7 @@ import { ArrowLeft, Download, RefreshCw } from 'lucide-react';
 import imgLogoCras from '@/assets/prefeitura/arte/logo-cras-itinerante.png';
 import imgVan      from '@/assets/prefeitura/arte/van-cras.png';
 import imgRodape   from '@/assets/prefeitura/arte/rodape-cras.png';
+import imgAssist   from '@/assets/prefeitura/arte/LOGO ASSITENCIA SOCIAL.png';
 
 // ─── Canvas 1080 × 1440 ────────────────────────────────────────────────────
 const W = 1080;
@@ -81,10 +82,11 @@ export default function CrasItineranteGerador() {
     cv.width = W; cv.height = H;
     ctx.clearRect(0, 0, W, H);
 
-    const [logo, van, rodape] = await Promise.all([
+    const [logo, van, rodape, assist] = await Promise.all([
       loadImg(imgLogoCras),
       loadImg(imgVan),
       loadImg(imgRodape),
+      loadImg(imgAssist),
     ]);
 
     // ── 1. FUNDO — estética refe001 ────────────────────────────────────────
@@ -189,6 +191,16 @@ export default function CrasItineranteGerador() {
       by += LINE_H;
     }
     ctx.restore();
+
+    // ── 7A. LOGO ASSISTÊNCIA SOCIAL — acima da van, alinhada com a data ──────
+    if (assist) {
+      const AS_H = 110;
+      const asW = (assist.width / assist.height) * AS_H;
+      // alinhada à direita com a data (DATE_X) e posicionada acima da van
+      const asX = DATE_X - asW;
+      const asY = 380;
+      ctx.drawImage(assist, asX, asY, asW, AS_H);
+    }
 
     // ── 7. VAN CRAS (lado direito, fundo) ─────────────────────────────────
     if (van) {
