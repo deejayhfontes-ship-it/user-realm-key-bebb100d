@@ -151,12 +151,12 @@ export default function CrasItineranteGerador() {
     ctx.strokeStyle = '#022b44';
     ctx.lineWidth = 2;
     ctx.lineJoin = 'round';
-    ctx.strokeText('O CRAS', TITLE_X, TITLE_Y);
-    ctx.fillText('O CRAS', TITLE_X, TITLE_Y);
+    ctx.strokeText('O CRAS', TITLE_X - 5, TITLE_Y);
+    ctx.fillText('O CRAS', TITLE_X - 5, TITLE_Y);
     // "vai até você!" — azul, menor
     ctx.fillStyle = '#0771b6';
     ctx.font = 'bold 65px Inter, Arial, sans-serif';
-    ctx.fillText('vai até você!', TITLE_X, TITLE_Y + 88);
+    ctx.fillText('vai até você!', TITLE_X, TITLE_Y + 72);
     ctx.restore();
 
     // ── 6. BAIRRO editável — tarja azul alinhada + texto branco ──────────────
