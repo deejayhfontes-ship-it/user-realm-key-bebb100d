@@ -163,12 +163,12 @@ export default function CrasItineranteGerador() {
     ctx.save();
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle'; // centraliza verticalmente na tarja
-    const BFONT = 68;
+    const BFONT = 56;
     ctx.font = `bold ${BFONT}px Inter, Arial, sans-serif`;
-    const bLines = wrapText(ctx, campos.bairro, 400, 3);
+    const bLines = wrapText(ctx, campos.bairro, 380, 3);
     const TARJA_PAD_X = 18;
-    const TARJA_PAD_V = 14;
-    const LINE_H = BFONT + 18;
+    const TARJA_PAD_V = 12;
+    const LINE_H = BFONT + 14;
     // 1º: tarjas — centradas no ponto by (meio do texto)
     let by = BAIRRO_Y;
     for (const line of bLines) {
