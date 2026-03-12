@@ -5,7 +5,7 @@ import { ArrowLeft, Download, RefreshCw } from 'lucide-react';
 import imgLogoCras from '@/assets/prefeitura/arte/logo-cras-itinerante.png';
 import imgVan      from '@/assets/prefeitura/arte/van-cras.png';
 import imgRodape   from '@/assets/prefeitura/arte/rodape-cras.png';
-import imgAssist   from '@/assets/prefeitura/arte/LOGO ASSITENCIA SOCIAL.png';
+import imgAssist   from '@/assets/prefeitura/arte/logo-assistencia-social.png';
 
 // ─── Canvas 1080 × 1440 ────────────────────────────────────────────────────
 const W = 1080;
