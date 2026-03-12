@@ -23,8 +23,7 @@ const DESC_X = 80;  const DESC_Y  = 940;           // texto descritivo
 const DESC_MAX_WIDTH = 410;                         // ½ esquerda → van ocupa direita
 const DESC_LINE_H = 34;
 const DESC_MAX_LINES = 8;                           // caber antes do rodapé
-const RP_H = 0;   // calculado dinamicamente pelo aspect ratio
-const RP_Y = 1250;                                      // rodapé fixo no fundo
+// RP_H e RP_Y calculados dinamicamente no render (ver bloco 10)
 
 interface Campos {
   bairro: string;
@@ -236,11 +235,12 @@ export default function CrasItineranteGerador() {
       ctx.restore();
     }
 
-    // ── 10. RODAPÉ HELIODORA — largura total, altura proporcional ──────────
+    // ── 10. RODAPÉ HELIODORA — largura total, ancorado ao fundo ───────────
     if (rodape) {
-      const rpW = W;                                    // canto a canto
+      const rpW = W;                                    // canto a canto 1080px
       const rpH = (rodape.height / rodape.width) * rpW; // proporcional
-      ctx.drawImage(rodape, 0, RP_Y, rpW, rpH);
+      const rpY = H - rpH;                              // sempre ancorado ao fundo
+      ctx.drawImage(rodape, 0, rpY, rpW, rpH);
     }
 
     // Linha fina base (refe001)
