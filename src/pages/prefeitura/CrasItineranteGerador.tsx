@@ -154,28 +154,32 @@ export default function CrasItineranteGerador() {
     // ── 6. BAIRRO editável — tarja azul alinhada + texto branco ──────────────
     ctx.save();
     ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle'; // centraliza verticalmente na tarja
     const BFONT = 68;
-    ctx.font = `700 ${BFONT}px Inter, Arial, sans-serif`;
+    ctx.font = `bold ${BFONT}px Inter, Arial, sans-serif`;
     const bLines = wrapText(ctx, campos.bairro, 400, 3);
     const TARJA_PAD_X = 18;
-    const TARJA_PAD_V = 10;
+    const TARJA_PAD_V = 14;
+    const LINE_H = BFONT + 18;
+    // 1º: tarjas — centradas no ponto by (meio do texto)
     let by = BAIRRO_Y;
     for (const line of bLines) {
       const tw = ctx.measureText(line).width;
       ctx.fillStyle = '#0771b6';
       ctx.fillRect(
         BAIRRO_X - TARJA_PAD_X,
-        by - BFONT - TARJA_PAD_V,
+        by - BFONT / 2 - TARJA_PAD_V,
         tw + TARJA_PAD_X * 2,
         BFONT + TARJA_PAD_V * 2
       );
-      by += BFONT + 16;
+      by += LINE_H;
     }
+    // 2º: texto branco (baseline = middle → centralizado)
     ctx.fillStyle = '#ffffff';
     by = BAIRRO_Y;
     for (const line of bLines) {
       ctx.fillText(line, BAIRRO_X, by);
-      by += BFONT + 16;
+      by += LINE_H;
     }
     ctx.restore();
 
