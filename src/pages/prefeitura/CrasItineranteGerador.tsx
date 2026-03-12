@@ -147,7 +147,7 @@ export default function CrasItineranteGerador() {
     ctx.fillText('O CRAS', TITLE_X, TITLE_Y);
     // "vai até você!" — azul, menor
     ctx.fillStyle = '#0771b6';
-    ctx.font = 'bold 78px Inter, Arial, sans-serif';
+    ctx.font = 'bold 65px Inter, Arial, sans-serif';
     ctx.fillText('vai até você!', TITLE_X, TITLE_Y + 88);
     ctx.restore();
 
