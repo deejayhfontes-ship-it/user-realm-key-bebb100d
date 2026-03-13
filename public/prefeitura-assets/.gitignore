@@ -1,0 +1,5 @@
+# Ignorar arquivos de design pesados — apenas PNGs/JPGs de preview são versionados
+*.eps
+*.ai
+*.pdf
+desktop.ini
