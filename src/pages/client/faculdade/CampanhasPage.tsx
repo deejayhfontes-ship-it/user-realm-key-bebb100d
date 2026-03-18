@@ -39,7 +39,7 @@ export default function CampanhasPage() {
             <header className="border-b border-white/5 bg-[#0a0a0a]/80 backdrop-blur-xl sticky top-0 z-50">
                 <div className="max-w-6xl mx-auto px-6 py-4 flex items-center gap-4">
                     <button
-                        onClick={() => navigate(`/faculdade/${unit === 'fasb' ? 'ifa' : unit}`)}
+                        onClick={() => navigate(`/faculdade/${unit}`)}
                         className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-white/50 hover:text-white hover:bg-white/5 transition-all"
                     >
                         <ArrowLeft className="w-4 h-4" />

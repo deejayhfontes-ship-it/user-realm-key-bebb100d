@@ -491,7 +491,7 @@ export default function AdminCampanhas() {
                                     Google Drive
                                 </label>
 
-                                {form.drive_folder_id ? (
+                                {form.drive_folder_id && form.drive_folder_id.length >= 10 ? (
                                     <div className="flex items-center gap-3">
                                         <div className="flex-1 px-4 py-3 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 text-sm font-mono flex items-center gap-2">
                                             <FolderOpen className="w-4 h-4 flex-shrink-0" />
