@@ -23,6 +23,7 @@ export default function CampanhasPage() {
                 .select('*')
                 .eq('unit', unit)
                 .eq('status', 'active')
+                .is('client_id', null)
                 .order('sort_order', { ascending: true });
 
             if (!error && data) {
