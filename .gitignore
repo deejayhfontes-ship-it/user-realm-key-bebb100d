@@ -27,6 +27,9 @@ dist-ssr
 fontesgraphics-*.json
 *.service-account.json
 
+# Configs locais com credenciais (NUNCA subir pro GitHub!)
+src/config/trello.local.ts
+
 # Environment variables (NUNCA subir pro GitHub!)
 .env
 .env.*

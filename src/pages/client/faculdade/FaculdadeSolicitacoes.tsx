@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ClipboardList, ArrowLeft, Plus, X, Send, Loader2 } from 'lucide-react';
+import { ClipboardList, ArrowLeft, Plus, X, Send, Loader2, Paperclip, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -32,6 +32,8 @@ export default function FaculdadeSolicitacoes() {
     const { user } = useAuth();
     const [showForm, setShowForm] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [files, setFiles] = useState<File[]>([]);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [form, setForm] = useState({
         titulo: '',
@@ -55,6 +57,10 @@ export default function FaculdadeSolicitacoes() {
             const TRELLO_KEY = import.meta.env.VITE_TRELLO_KEY;
             const TRELLO_TOKEN = import.meta.env.VITE_TRELLO_TOKEN;
             const LIST_ID = import.meta.env.VITE_TRELLO_LIST_ID;
+
+            if (!TRELLO_KEY || !TRELLO_TOKEN || !LIST_ID) {
+                throw new Error('Configuração Trello não encontrada');
+            }
 
             const urgEmoji: Record<string, string> = { Baixa: '🟢', Média: '🟡', Alta: '🟠', Urgente: '🔴' };
             const emoji = urgEmoji[form.urgencia] || '⚪';
@@ -83,8 +89,24 @@ export default function FaculdadeSolicitacoes() {
 
             if (!res.ok) throw new Error(`Erro Trello: ${res.status}`);
 
+            const card = await res.json();
+
+            // Upload de arquivos como attachments
+            if (files.length > 0) {
+                for (const file of files) {
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    formData.append('name', file.name);
+                    await fetch(
+                        `https://api.trello.com/1/cards/${card.id}/attachments?key=${TRELLO_KEY}&token=${TRELLO_TOKEN}`,
+                        { method: 'POST', body: formData }
+                    );
+                }
+            }
+
             toast.success('Solicitação enviada com sucesso! 🎉');
             setForm({ titulo: '', descricao: '', instituicao: 'Geral', tipo: '', urgencia: 'Média' });
+            setFiles([]);
             setShowForm(false);
         } catch (err: any) {
             console.error('Erro ao enviar solicitação:', err);
@@ -246,6 +268,45 @@ export default function FaculdadeSolicitacoes() {
                                         rows={3}
                                         className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20 transition-all resize-none"
                                     />
+                                </div>
+
+                                {/* Upload de Arquivos */}
+                                <div>
+                                    <label className="block text-sm font-medium text-white/70 mb-2">Anexos</label>
+                                    <input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        multiple
+                                        accept="image/*,.pdf,.doc,.docx,.psd,.ai,.eps,.svg"
+                                        className="hidden"
+                                        onChange={(e) => {
+                                            if (e.target.files) setFiles(prev => [...prev, ...Array.from(e.target.files!)]);
+                                        }}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-dashed border-white/20 bg-white/5 text-white/40 hover:text-white/60 hover:border-emerald-500/30 hover:bg-emerald-500/5 transition-all text-sm"
+                                    >
+                                        <Paperclip className="w-4 h-4" />
+                                        Anexar fotos ou arquivos
+                                    </button>
+                                    {files.length > 0 && (
+                                        <div className="mt-2 space-y-1">
+                                            {files.map((f, i) => (
+                                                <div key={i} className="flex items-center justify-between px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-sm">
+                                                    <span className="text-white/60 truncate flex-1">{f.name}</span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setFiles(prev => prev.filter((_, idx) => idx !== i))}
+                                                        className="ml-2 text-red-400/60 hover:text-red-400 transition-colors"
+                                                    >
+                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Submit */}
