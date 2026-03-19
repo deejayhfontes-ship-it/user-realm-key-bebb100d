@@ -223,7 +223,7 @@ export default function FaculdadeSolicitacoes() {
     };
 
     // Entregas = solicitações que têm Drive folder com entrega habilitada
-    const entregas = solicitacoes.filter(s => s.driveFolderUrl && s.driveFolderReady);
+    const entregas = solicitacoes.filter(s => s.driveFolderUrl);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -364,29 +364,7 @@ export default function FaculdadeSolicitacoes() {
         }
     };
 
-    // Checar se entregas foram habilitadas no Supabase
-    useEffect(() => {
-        const checkDeliveries = async () => {
-            const pendentes = solicitacoes.filter(s => s.driveProtocolCode && !s.driveFolderReady);
-            for (const sol of pendentes) {
-                try {
-                    const { data } = await supabase.functions.invoke('drive-manager', {
-                        body: { action: 'GET_PUBLIC', protocol_code: sol.driveProtocolCode },
-                    });
-                    if (data?.protocol?.delivery_link_enabled) {
-                        updateSolicitacao(sol.protocolo, {
-                            driveFolderReady: true,
-                            driveFolderUrl: data.protocol.drive_folder_url,
-                        });
-                    }
-                } catch { /* silently ignore */ }
-            }
-            setSolicitacoes(loadSolicitacoes());
-        };
-        if (solicitacoes.some(s => s.driveProtocolCode && !s.driveFolderReady)) {
-            checkDeliveries();
-        }
-    }, [activeTab]);
+
 
     const urgColors: Record<string, string> = {
         Baixa: 'text-green-400',
