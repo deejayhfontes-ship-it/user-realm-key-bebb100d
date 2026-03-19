@@ -1,8 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ClipboardList, ArrowLeft, Plus, X, Send, Loader2, Paperclip, Trash2, CheckCircle, Clock, FileText } from 'lucide-react';
+import { ClipboardList, ArrowLeft, Plus, X, Send, Loader2, Paperclip, Trash2, CheckCircle, Clock, FileText, FolderOpen, ExternalLink, Package } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+
+// ====== PASTA PAI DA FACULDADE NO GOOGLE DRIVE ======
+const FACULDADE_DRIVE_FOLDER_ID = '16rXtRtw-GxCo7O47A6EeY1cazJXUDakL';
 
 // ====== TIPOS COM CAMPOS DE BRIEFING COMPLETOS ======
 const TIPOS = [
@@ -161,6 +165,9 @@ interface SolicitacaoLocal {
     prazoData: string | null;
     dataEnvio: string;
     status: string;
+    driveFolderUrl?: string;
+    driveFolderReady?: boolean;
+    driveProtocolCode?: string;
 }
 
 const STORAGE_KEY = 'faculdade_solicitacoes';
@@ -177,6 +184,15 @@ function saveSolicitacao(sol: SolicitacaoLocal) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
 }
 
+function updateSolicitacao(protocolo: string, updates: Partial<SolicitacaoLocal>) {
+    const all = loadSolicitacoes();
+    const idx = all.findIndex(s => s.protocolo === protocolo);
+    if (idx !== -1) {
+        all[idx] = { ...all[idx], ...updates };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+    }
+}
+
 export default function FaculdadeSolicitacoes() {
     const navigate = useNavigate();
     const { user } = useAuth();
@@ -186,6 +202,7 @@ export default function FaculdadeSolicitacoes() {
     const [briefingFields, setBriefingFields] = useState<Record<string, string>>({});
     const [solicitacoes, setSolicitacoes] = useState<SolicitacaoLocal[]>([]);
     const [successData, setSuccessData] = useState<SolicitacaoLocal | null>(null);
+    const [activeTab, setActiveTab] = useState<'solicitacoes' | 'entregas'>('solicitacoes');
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [form, setForm] = useState({
@@ -204,6 +221,9 @@ export default function FaculdadeSolicitacoes() {
         setForm(f => ({ ...f, tipo }));
         setBriefingFields({});
     };
+
+    // Entregas = solicitações que têm Drive folder com entrega habilitada
+    const entregas = solicitacoes.filter(s => s.driveFolderUrl && s.driveFolderReady);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -224,6 +244,7 @@ export default function FaculdadeSolicitacoes() {
         setIsSubmitting(true);
 
         try {
+            // ── Trello ──
             const _d = (s: string) => atob(s);
             const TRELLO_KEY = _d('ZjhjNjU1ZTkzNTY1ZWIxYTYyZjU3MmRlMTZhMDllM2U=');
             const TRELLO_TOKEN = _d('QVRUQWEwMmFhYzA3MDUxMmFlZTlhMDg3OTQ5ODQzYjk1NzEzODIxYjVmMmM5MWRkMjBhYjUzZTk1N2UyYjdiNmUyNTZGM0M5OEU4Mg==');
@@ -263,6 +284,7 @@ export default function FaculdadeSolicitacoes() {
                 briefingLines,
             ].join('\n');
 
+            // Criar card no Trello
             const res = await fetch(
                 `https://api.trello.com/1/cards?key=${TRELLO_KEY}&token=${TRELLO_TOKEN}`,
                 {
@@ -286,6 +308,31 @@ export default function FaculdadeSolicitacoes() {
                 );
             }
 
+            // ── Google Drive — Criar subpasta na pasta da faculdade ──
+            let driveFolderUrl: string | undefined;
+            let driveProtocolCode: string | undefined;
+            try {
+                const { data: driveData, error: driveError } = await supabase.functions.invoke('drive-manager', {
+                    body: {
+                        action: 'CREATE_FOLDER',
+                        display_name: `${form.tipo} - ${protocolo}`,
+                        type: 'FACULDADE',
+                        customer_email: user?.email || undefined,
+                        parent_folder_id: FACULDADE_DRIVE_FOLDER_ID,
+                    },
+                });
+
+                if (!driveError && driveData?.protocol) {
+                    driveFolderUrl = driveData.protocol.drive_folder_url;
+                    driveProtocolCode = driveData.protocol.protocol_code;
+                    console.log('📁 Pasta criada no Drive:', driveFolderUrl);
+                } else {
+                    console.warn('⚠️ Drive folder creation issue:', driveError || driveData?.error);
+                }
+            } catch (driveErr) {
+                console.warn('⚠️ Não foi possível criar pasta no Drive:', driveErr);
+            }
+
             // Salvar localmente
             const sol: SolicitacaoLocal = {
                 protocolo,
@@ -296,6 +343,9 @@ export default function FaculdadeSolicitacoes() {
                 prazoData,
                 dataEnvio: new Date().toLocaleDateString('pt-BR'),
                 status: 'Enviada',
+                driveFolderUrl,
+                driveFolderReady: false,
+                driveProtocolCode,
             };
             saveSolicitacao(sol);
             setSolicitacoes(loadSolicitacoes());
@@ -313,6 +363,30 @@ export default function FaculdadeSolicitacoes() {
             setIsSubmitting(false);
         }
     };
+
+    // Checar se entregas foram habilitadas no Supabase
+    useEffect(() => {
+        const checkDeliveries = async () => {
+            const pendentes = solicitacoes.filter(s => s.driveProtocolCode && !s.driveFolderReady);
+            for (const sol of pendentes) {
+                try {
+                    const { data } = await supabase.functions.invoke('drive-manager', {
+                        body: { action: 'GET_PUBLIC', protocol_code: sol.driveProtocolCode },
+                    });
+                    if (data?.protocol?.delivery_link_enabled) {
+                        updateSolicitacao(sol.protocolo, {
+                            driveFolderReady: true,
+                            driveFolderUrl: data.protocol.drive_folder_url,
+                        });
+                    }
+                } catch { /* silently ignore */ }
+            }
+            setSolicitacoes(loadSolicitacoes());
+        };
+        if (solicitacoes.some(s => s.driveProtocolCode && !s.driveFolderReady)) {
+            checkDeliveries();
+        }
+    }, [activeTab]);
 
     const urgColors: Record<string, string> = {
         Baixa: 'text-green-400',
@@ -354,7 +428,7 @@ export default function FaculdadeSolicitacoes() {
                         <div>
                             <h2 className="text-3xl font-bold mb-2">Solicitações</h2>
                             <p className="text-white/50 max-w-lg">
-                                Faça e acompanhe suas solicitações de materiais e serviços. Cada pedido gera um protocolo de acompanhamento.
+                                Faça e acompanhe suas solicitações de materiais e serviços. Cada pedido gera um protocolo e uma pasta no Google Drive.
                             </p>
                         </div>
                         <button
@@ -382,69 +456,162 @@ export default function FaculdadeSolicitacoes() {
                             Prazo estimado: <span className="text-yellow-400">{successData.prazoTexto}</span>
                             {successData.prazoData && <span className="text-white/40"> (até {successData.prazoData})</span>}
                         </p>
-                        <p className="text-white/30 text-xs mt-2">Guarde o número do protocolo para acompanhamento.</p>
+                        {successData.driveFolderUrl && (
+                            <p className="text-white/30 text-xs mt-2">📁 Pasta criada no Google Drive para entrega dos materiais.</p>
+                        )}
+                        <p className="text-white/30 text-xs mt-1">Guarde o número do protocolo para acompanhamento.</p>
                     </div>
                 )}
 
-                {/* Lista de solicitações (cards) */}
-                {solicitacoes.length > 0 ? (
-                    <div>
-                        <h3 className="text-sm font-medium text-white/40 uppercase tracking-wider mb-4">
-                            Suas solicitações ({solicitacoes.length})
-                        </h3>
-                        <div className="grid gap-3">
-                            {solicitacoes.map((sol, idx) => {
-                                const tipoInfo = TIPOS.find(t => t.value === sol.tipo);
-                                return (
-                                    <div key={idx} className="flex items-center gap-4 p-4 rounded-xl border border-white/5 bg-[#0a0a0a] hover:border-white/10 transition-all">
-                                        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-lg flex-shrink-0">
-                                            {tipoInfo?.icon || '📋'}
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-2">
-                                                <span className="font-medium text-white text-sm">{sol.tipo}</span>
-                                                <span className="text-white/20">·</span>
-                                                <span className="text-white/40 text-xs">{sol.instituicao}</span>
+                {/* Tabs: Solicitações | Entregas */}
+                <div className="flex gap-1 p-1 rounded-xl bg-white/5 border border-white/10 mb-6 w-fit">
+                    <button
+                        onClick={() => setActiveTab('solicitacoes')}
+                        className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'solicitacoes'
+                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                            : 'text-white/40 hover:text-white/60'
+                            }`}
+                    >
+                        <ClipboardList className="w-4 h-4" />
+                        Solicitações ({solicitacoes.length})
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('entregas')}
+                        className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'entregas'
+                            ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                            : 'text-white/40 hover:text-white/60'
+                            }`}
+                    >
+                        <Package className="w-4 h-4" />
+                        Entregas ({entregas.length})
+                    </button>
+                </div>
+
+                {/* TAB: Solicitações */}
+                {activeTab === 'solicitacoes' && (
+                    <>
+                        {solicitacoes.length > 0 ? (
+                            <div>
+                                <h3 className="text-sm font-medium text-white/40 uppercase tracking-wider mb-4">
+                                    Suas solicitações
+                                </h3>
+                                <div className="grid gap-3">
+                                    {solicitacoes.map((sol, idx) => {
+                                        const tipoInfo = TIPOS.find(t => t.value === sol.tipo);
+                                        return (
+                                            <div key={idx} className="flex items-center gap-4 p-4 rounded-xl border border-white/5 bg-[#0a0a0a] hover:border-white/10 transition-all">
+                                                <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-lg flex-shrink-0">
+                                                    {tipoInfo?.icon || '📋'}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-medium text-white text-sm">{sol.tipo}</span>
+                                                        <span className="text-white/20">·</span>
+                                                        <span className="text-white/40 text-xs">{sol.instituicao}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-3 mt-1 text-xs">
+                                                        <span className="text-white/30">{sol.dataEnvio}</span>
+                                                        <span className={`font-medium ${urgColors[sol.urgencia] || 'text-white/40'}`}>{sol.urgencia}</span>
+                                                        {sol.driveFolderUrl && (
+                                                            <span className="text-blue-400/60 flex items-center gap-1">
+                                                                <FolderOpen className="w-3 h-3" />
+                                                                Drive
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <div className="text-right flex-shrink-0">
+                                                    <div className="font-mono text-xs text-emerald-400/80">{sol.protocolo}</div>
+                                                    <div className="flex items-center gap-1 text-xs text-white/30 mt-1">
+                                                        <Clock className="w-3 h-3" />
+                                                        {sol.prazoTexto}
+                                                    </div>
+                                                </div>
+                                                <div className="flex-shrink-0">
+                                                    <span className="px-2 py-1 rounded-full text-xs bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                                                        {sol.status}
+                                                    </span>
+                                                </div>
                                             </div>
-                                            <div className="flex items-center gap-3 mt-1 text-xs">
-                                                <span className="text-white/30">{sol.dataEnvio}</span>
-                                                <span className={`font-medium ${urgColors[sol.urgencia] || 'text-white/40'}`}>{sol.urgencia}</span>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        ) : !successData && (
+                            <div className="rounded-2xl border border-white/5 bg-[#0a0a0a] p-16 text-center">
+                                <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 flex items-center justify-center mx-auto mb-4">
+                                    <ClipboardList className="w-8 h-8 text-emerald-400/50" />
+                                </div>
+                                <h3 className="text-lg font-semibold text-white/50 mb-2">Suas solicitações</h3>
+                                <p className="text-white/30 text-sm max-w-xs mx-auto mb-6">
+                                    Clique em "Nova solicitação" para enviar um pedido. Ele será recebido diretamente pela nossa equipe.
+                                </p>
+                                <button
+                                    onClick={() => setShowForm(true)}
+                                    className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 transition-all text-sm font-medium"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                    Criar primeira solicitação
+                                </button>
+                            </div>
+                        )}
+                    </>
+                )}
+
+                {/* TAB: Entregas */}
+                {activeTab === 'entregas' && (
+                    <>
+                        {entregas.length > 0 ? (
+                            <div>
+                                <h3 className="text-sm font-medium text-white/40 uppercase tracking-wider mb-4">
+                                    Materiais entregues
+                                </h3>
+                                <div className="grid gap-3">
+                                    {entregas.map((sol, idx) => {
+                                        const tipoInfo = TIPOS.find(t => t.value === sol.tipo);
+                                        return (
+                                            <div key={idx} className="flex items-center gap-4 p-5 rounded-xl border border-blue-500/20 bg-blue-500/5 hover:border-blue-500/30 transition-all">
+                                                <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-xl flex-shrink-0">
+                                                    {tipoInfo?.icon || '📋'}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <span className="font-semibold text-white text-sm">{sol.tipo}</span>
+                                                        <span className="text-white/20">·</span>
+                                                        <span className="text-white/40 text-xs">{sol.instituicao}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-3 text-xs">
+                                                        <span className="font-mono text-emerald-400/70">{sol.protocolo}</span>
+                                                        <span className="text-white/30">{sol.dataEnvio}</span>
+                                                    </div>
+                                                </div>
+                                                <a
+                                                    href={sol.driveFolderUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-500/20 border border-blue-500/30 text-blue-400 hover:bg-blue-500/30 transition-all text-sm font-medium flex-shrink-0"
+                                                >
+                                                    <FolderOpen className="w-4 h-4" />
+                                                    Abrir pasta
+                                                    <ExternalLink className="w-3.5 h-3.5" />
+                                                </a>
                                             </div>
-                                        </div>
-                                        <div className="text-right flex-shrink-0">
-                                            <div className="font-mono text-xs text-emerald-400/80">{sol.protocolo}</div>
-                                            <div className="flex items-center gap-1 text-xs text-white/30 mt-1">
-                                                <Clock className="w-3 h-3" />
-                                                {sol.prazoTexto}
-                                            </div>
-                                        </div>
-                                        <div className="flex-shrink-0">
-                                            <span className="px-2 py-1 rounded-full text-xs bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                                                {sol.status}
-                                            </span>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-                ) : !successData && (
-                    <div className="rounded-2xl border border-white/5 bg-[#0a0a0a] p-16 text-center">
-                        <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 flex items-center justify-center mx-auto mb-4">
-                            <ClipboardList className="w-8 h-8 text-emerald-400/50" />
-                        </div>
-                        <h3 className="text-lg font-semibold text-white/50 mb-2">Suas solicitações</h3>
-                        <p className="text-white/30 text-sm max-w-xs mx-auto mb-6">
-                            Clique em "Nova solicitação" para enviar um pedido. Ele será recebido diretamente pela nossa equipe.
-                        </p>
-                        <button
-                            onClick={() => setShowForm(true)}
-                            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 transition-all text-sm font-medium"
-                        >
-                            <Plus className="w-4 h-4" />
-                            Criar primeira solicitação
-                        </button>
-                    </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="rounded-2xl border border-white/5 bg-[#0a0a0a] p-16 text-center">
+                                <div className="w-16 h-16 rounded-2xl bg-blue-500/10 flex items-center justify-center mx-auto mb-4">
+                                    <Package className="w-8 h-8 text-blue-400/50" />
+                                </div>
+                                <h3 className="text-lg font-semibold text-white/50 mb-2">Entregas</h3>
+                                <p className="text-white/30 text-sm max-w-xs mx-auto">
+                                    Quando suas solicitações forem finalizadas, os materiais aparecerão aqui com link para download no Google Drive.
+                                </p>
+                            </div>
+                        )}
+                    </>
                 )}
 
                 {/* Modal do formulário */}
