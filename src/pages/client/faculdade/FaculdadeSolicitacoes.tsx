@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ClipboardList, ArrowLeft, Plus, X, Send, Loader2, Paperclip, Trash2, CheckCircle, Clock, FileText, FolderOpen, ExternalLink, Package } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
+import { createDriveFolder } from '@/lib/googleDrive';
 import { toast } from 'sonner';
 
 // ====== PASTA PAI DA FACULDADE NO GOOGLE DRIVE ======
@@ -310,25 +310,14 @@ export default function FaculdadeSolicitacoes() {
 
             // ── Google Drive — Criar subpasta na pasta da faculdade ──
             let driveFolderUrl: string | undefined;
-            let driveProtocolCode: string | undefined;
             try {
-                const { data: driveData, error: driveError } = await supabase.functions.invoke('drive-manager', {
-                    body: {
-                        action: 'CREATE_FOLDER',
-                        display_name: `${form.tipo} - ${protocolo}`,
-                        type: 'FACULDADE',
-                        customer_email: user?.email || undefined,
-                        parent_folder_id: FACULDADE_DRIVE_FOLDER_ID,
-                    },
-                });
-
-                if (!driveError && driveData?.protocol) {
-                    driveFolderUrl = driveData.protocol.drive_folder_url;
-                    driveProtocolCode = driveData.protocol.protocol_code;
-                    console.log('📁 Pasta criada no Drive:', driveFolderUrl);
-                } else {
-                    console.warn('⚠️ Drive folder creation issue:', driveError || driveData?.error);
-                }
+                const today = new Date().toISOString().split('T')[0];
+                const driveFolder = await createDriveFolder(
+                    `[FACULDADE] ${form.tipo} - ${protocolo} - ${today}`,
+                    FACULDADE_DRIVE_FOLDER_ID
+                );
+                driveFolderUrl = driveFolder.url;
+                console.log('📁 Pasta criada no Drive:', driveFolderUrl);
             } catch (driveErr) {
                 console.warn('⚠️ Não foi possível criar pasta no Drive:', driveErr);
             }
@@ -344,8 +333,6 @@ export default function FaculdadeSolicitacoes() {
                 dataEnvio: new Date().toLocaleDateString('pt-BR'),
                 status: 'Enviada',
                 driveFolderUrl,
-                driveFolderReady: false,
-                driveProtocolCode,
             };
             saveSolicitacao(sol);
             setSolicitacoes(loadSolicitacoes());
