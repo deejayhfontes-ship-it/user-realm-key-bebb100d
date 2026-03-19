@@ -98,6 +98,7 @@ import FaculdadeHub from "@/pages/client/faculdade/FaculdadeHub";
 import FASBHome from "@/pages/client/faculdade/FASBHome";
 import UniversitarioHome from "@/pages/client/faculdade/UniversitarioHome";
 import FaculdadeSolicitacoes from "@/pages/client/faculdade/FaculdadeSolicitacoes";
+import FaculdadeGeradores from "@/pages/client/faculdade/FaculdadeGeradores";
 import CampanhasPage from "@/pages/client/faculdade/CampanhasPage";
 import CampanhaDetail from "@/pages/client/faculdade/CampanhaDetail";
 import AdminCampanhas from "@/pages/admin/AdminCampanhas";
@@ -151,6 +152,7 @@ const App = () => (
               <Route path="/faculdade/fasb" element={<FaculdadeRoute><FASBHome /></FaculdadeRoute>} />
               <Route path="/faculdade/universitario" element={<FaculdadeRoute><UniversitarioHome /></FaculdadeRoute>} />
               <Route path="/faculdade/solicitacoes" element={<FaculdadeRoute><FaculdadeSolicitacoes /></FaculdadeRoute>} />
+              <Route path="/faculdade/geradores" element={<FaculdadeRoute><FaculdadeGeradores /></FaculdadeRoute>} />
               <Route path="/faculdade/:unit/campanhas" element={<FaculdadeRoute><CampanhasPage /></FaculdadeRoute>} />
               <Route path="/faculdade/:unit/campanhas/:slug" element={<FaculdadeRoute><CampanhaDetail /></FaculdadeRoute>} />
 

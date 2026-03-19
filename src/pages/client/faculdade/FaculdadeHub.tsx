@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { GraduationCap, Building2, ArrowRight, LogOut, BookOpen, Palette, ClipboardList } from 'lucide-react';
+import { GraduationCap, Building2, ArrowRight, LogOut, BookOpen, Palette, ClipboardList, Wand2 } from 'lucide-react';
 
 const TODAS_AREAS = [
     {
@@ -44,6 +44,20 @@ const TODAS_AREAS = [
         corHover: 'group-hover:shadow-emerald-500/20',
         bgIcone: 'bg-emerald-500/10',
         units: ['ifa-universitario', 'fasb'], // todos veem
+    },
+    {
+        id: 'geradores',
+        nome: 'Geradores',
+        descricao: 'Ferramentas de criação de artes, posts, banners e materiais gráficos com IA',
+        icone: Wand2,
+        rota: '/faculdade/geradores',
+        gradiente: 'from-violet-600 via-purple-500 to-fuchsia-400',
+        gradienteBg: 'from-violet-600/10 to-fuchsia-400/5',
+        corBorda: 'border-violet-500/20',
+        corIcone: 'text-violet-400',
+        corHover: 'group-hover:shadow-violet-500/20',
+        bgIcone: 'bg-violet-500/10',
+        units: ['ifa-universitario', 'fasb'],
     },
 ];
 
