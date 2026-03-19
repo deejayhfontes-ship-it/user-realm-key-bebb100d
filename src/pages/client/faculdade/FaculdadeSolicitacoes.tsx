@@ -52,18 +52,36 @@ export default function FaculdadeSolicitacoes() {
         setIsSubmitting(true);
 
         try {
-            const { data, error } = await supabase.functions.invoke('notion-solicitacao', {
-                body: {
-                    titulo: form.titulo,
-                    descricao: form.descricao,
-                    instituicao: form.instituicao,
-                    tipo: form.tipo,
-                    urgencia: form.urgencia,
-                    email: user?.email || 'ifa-universitario@edicao.com',
-                },
-            });
+            const TRELLO_KEY = import.meta.env.VITE_TRELLO_KEY;
+            const TRELLO_TOKEN = import.meta.env.VITE_TRELLO_TOKEN;
+            const LIST_ID = import.meta.env.VITE_TRELLO_LIST_ID;
 
-            if (error) throw error;
+            const urgEmoji: Record<string, string> = { Baixa: '🟢', Média: '🟡', Alta: '🟠', Urgente: '🔴' };
+            const emoji = urgEmoji[form.urgencia] || '⚪';
+            const cardName = `${emoji} [${form.instituicao}] ${form.titulo}`;
+            const cardDesc = [
+                `**📋 Tipo:** ${form.tipo}`,
+                `**🏛️ Instituição:** ${form.instituicao}`,
+                `**⚡ Urgência:** ${form.urgencia}`,
+                `**📧 Solicitante:** ${user?.email || 'ifa-universitario@edicao.com'}`,
+                `**📅 Data:** ${new Date().toLocaleDateString('pt-BR')}`,
+                '',
+                '---',
+                '',
+                `**📝 Descrição:**`,
+                form.descricao || 'Sem descrição adicional.',
+            ].join('\n');
+
+            const res = await fetch(
+                `https://api.trello.com/1/cards?key=${TRELLO_KEY}&token=${TRELLO_TOKEN}`,
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ idList: LIST_ID, name: cardName, desc: cardDesc, pos: 'top' }),
+                }
+            );
+
+            if (!res.ok) throw new Error(`Erro Trello: ${res.status}`);
 
             toast.success('Solicitação enviada com sucesso! 🎉');
             setForm({ titulo: '', descricao: '', instituicao: 'Geral', tipo: '', urgencia: 'Média' });
@@ -260,7 +278,7 @@ export default function FaculdadeSolicitacoes() {
                     </div>
                     <h3 className="text-lg font-semibold text-white/50 mb-2">Suas solicitações</h3>
                     <p className="text-white/30 text-sm max-w-xs mx-auto mb-6">
-                        Clique em "Nova solicitação" para enviar um pedido. Ele será recebido diretamente pela nossa equipe no Notion.
+                        Clique em "Nova solicitação" para enviar um pedido. Ele será recebido diretamente pela nossa equipe no Trello.
                     </p>
                     <button
                         onClick={() => setShowForm(true)}
