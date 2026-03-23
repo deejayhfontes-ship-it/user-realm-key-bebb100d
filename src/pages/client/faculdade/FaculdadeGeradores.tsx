@@ -1,8 +1,20 @@
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Wand2, ImagePlus, Sparkles, BookImage, Megaphone, Construction } from 'lucide-react';
+import { ArrowLeft, Wand2, ImagePlus, Sparkles, BookImage, Megaphone, Construction, FileText } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
 const GERADORES = [
+    {
+        id: 'avisos-fasb',
+        nome: 'Gerador de Avisos FASB',
+        descricao: 'Gere avisos oficiais no padrão FASB (ex: Recessos, Comunicados)',
+        icon: FileText,
+        gradiente: 'from-blue-600 via-indigo-500 to-violet-400',
+        corBorda: 'border-blue-500/20',
+        corIcone: 'text-blue-400',
+        bgIcone: 'bg-blue-500/10',
+        disponivel: true,
+        rota: '/faculdade/geradores/avisos-fasb',
+    },
     {
         id: 'post-instagram',
         nome: 'Post Instagram',
@@ -50,6 +62,7 @@ const GERADORES = [
 ];
 
 export default function FaculdadeGeradores() {
+    console.log("FaculdadeGeradores remounted with Avisos FASB");
     const navigate = useNavigate();
     const { user } = useAuth();
 
@@ -109,7 +122,8 @@ export default function FaculdadeGeradores() {
                             return (
                                 <div
                                     key={gerador.id}
-                                    className={`relative overflow-hidden rounded-2xl border ${gerador.corBorda} bg-[#0a0a0a] p-6 transition-all duration-300 opacity-60`}
+                                    onClick={() => gerador.disponivel && gerador.rota ? navigate(gerador.rota) : null}
+                                    className={`relative overflow-hidden rounded-2xl border ${gerador.corBorda} bg-[#0a0a0a] p-6 transition-all duration-300 ${gerador.disponivel ? 'opacity-100 hover:-translate-y-1 hover:shadow-xl hover:shadow-violet-500/10 cursor-pointer' : 'opacity-60 grayscale-[0.3]'}`}
                                 >
                                     <div className="flex items-start gap-4">
                                         <div className={`w-12 h-12 rounded-xl ${gerador.bgIcone} flex items-center justify-center flex-shrink-0`}>
@@ -118,15 +132,22 @@ export default function FaculdadeGeradores() {
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2 mb-1">
                                                 <h4 className="font-semibold text-white">{gerador.nome}</h4>
-                                                <span className="px-2 py-0.5 rounded-full text-xs bg-white/5 text-white/30 border border-white/10">
-                                                    Em breve
-                                                </span>
+                                                {!gerador.disponivel && (
+                                                    <span className="px-2 py-0.5 rounded-full text-xs bg-white/5 text-white/30 border border-white/10">
+                                                        Em breve
+                                                    </span>
+                                                )}
+                                                {gerador.disponivel && (
+                                                    <span className="px-2 py-0.5 rounded-full text-xs bg-violet-500/20 text-violet-300 border border-violet-500/30">
+                                                        Novo
+                                                    </span>
+                                                )}
                                             </div>
                                             <p className="text-white/40 text-sm leading-relaxed">{gerador.descricao}</p>
                                         </div>
                                     </div>
                                     {/* Decorative glow */}
-                                    <div className={`absolute -bottom-8 -right-8 w-24 h-24 bg-gradient-to-br ${gerador.gradiente} opacity-[0.04] rounded-full blur-2xl`} />
+                                    <div className={`absolute -bottom-8 -right-8 w-24 h-24 bg-gradient-to-br ${gerador.gradiente} opacity-[0.04] rounded-full blur-2xl transition-opacity duration-300 ${gerador.disponivel ? 'group-hover:opacity-[0.1]' : ''}`} />
                                 </div>
                             );
                         })}
