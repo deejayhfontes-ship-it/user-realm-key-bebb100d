@@ -63,6 +63,7 @@ import ConsultarSolicitacao from "@/pages/prefeitura/ConsultarSolicitacao";
 import PrefeituraArtePage from "@/pages/prefeitura/PrefeituraArtePage";
 import Secretarias from "@/pages/prefeitura/Secretarias";
 import CrasItineranteGerador from "@/pages/prefeitura/CrasItineranteGerador";
+import GeradorBiometria from "@/pages/prefeitura/GeradorBiometria";
 import PublicTracking from "@/pages/PublicTracking";
 import AdminSolicitacoes from "@/pages/admin/AdminSolicitacoes";
 import AdminProtocols from "@/pages/admin/AdminProtocols";
@@ -99,6 +100,7 @@ import FASBHome from "@/pages/client/faculdade/FASBHome";
 import UniversitarioHome from "@/pages/client/faculdade/UniversitarioHome";
 import FaculdadeSolicitacoes from "@/pages/client/faculdade/FaculdadeSolicitacoes";
 import FaculdadeGeradores from "@/pages/client/faculdade/FaculdadeGeradores";
+import FaculdadeGeradorAvisosFASB from "@/pages/client/faculdade/FaculdadeGeradorAvisosFASB";
 import CampanhasPage from "@/pages/client/faculdade/CampanhasPage";
 import CampanhaDetail from "@/pages/client/faculdade/CampanhaDetail";
 import AdminCampanhas from "@/pages/admin/AdminCampanhas";
@@ -141,6 +143,7 @@ const App = () => (
               <Route path="/prefeitura/secretarias" element={<Secretarias />} />
               <Route path="/prefeitura/secretarias/assistencia-social/cras-itinerante" element={<CrasItineranteGerador />} />
               <Route path="/prefeitura/secretarias/diretoria-esporte/corrida-autismo" element={<AdminCorridaAutismo />} />
+              <Route path="/prefeitura/secretarias/adm-planejamento/gerador-biometria" element={<GeradorBiometria />} />
               <Route path="/prefeitura/consultar" element={<ConsultarSolicitacao />} />
               <Route path="/prefeitura/arte" element={<PrefeituraArtePage />} />
               <Route path="/acompanhar/:protocolo" element={<PublicTracking />} />
@@ -153,6 +156,7 @@ const App = () => (
               <Route path="/faculdade/universitario" element={<FaculdadeRoute><UniversitarioHome /></FaculdadeRoute>} />
               <Route path="/faculdade/solicitacoes" element={<FaculdadeRoute><FaculdadeSolicitacoes /></FaculdadeRoute>} />
               <Route path="/faculdade/geradores" element={<FaculdadeRoute><FaculdadeGeradores /></FaculdadeRoute>} />
+              <Route path="/faculdade/geradores/avisos-fasb" element={<FaculdadeRoute><FaculdadeGeradorAvisosFASB /></FaculdadeRoute>} />
               <Route path="/faculdade/:unit/campanhas" element={<FaculdadeRoute><CampanhasPage /></FaculdadeRoute>} />
               <Route path="/faculdade/:unit/campanhas/:slug" element={<FaculdadeRoute><CampanhaDetail /></FaculdadeRoute>} />
 

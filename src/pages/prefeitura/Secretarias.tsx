@@ -87,7 +87,14 @@ const SECRETARIAS = [
         corTexto: 'text-cyan-400',
         corBorder: 'hover:border-cyan-400/30',
         corShadow: 'hover:shadow-[0_0_40px_-15px_rgba(34,211,238,0.2)]',
-        subcards: [],
+        subcards: [
+            {
+                titulo: 'Gerador de Post – Biometria',
+                cor: 'from-cyan-400 to-teal-500',
+                rota: '/prefeitura/secretarias/adm-planejamento/gerador-biometria',
+                descricao: 'Gerador de arte Instagram para campanha de Biometria',
+            },
+        ],
     },
 ];
 
