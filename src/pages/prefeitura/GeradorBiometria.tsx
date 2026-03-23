@@ -119,7 +119,7 @@ export default function GeradorBiometria() {
 
     // ── CAIXA BRANCA — texto informativo + horário destaque laranja ─────────
     const cxBY = faixaY + faixaH;
-    const cxBH = 280;
+    const cxBH = 320;
     const cxBX = 42;
     const cxBW = W - 84;
 
@@ -173,8 +173,8 @@ export default function GeradorBiometria() {
     ctx.restore();
 
     // ── CAIXA VERDE — texto motivacional ───────────────────────────────────
-    const cxVY = cxBY + cxBH + 32;
-    const cxVH = 280;
+    const cxVY = cxBY + cxBH + 16;
+    const cxVH = 250;
     const cxVX = 42;
     const cxVW = W - 84;
 
