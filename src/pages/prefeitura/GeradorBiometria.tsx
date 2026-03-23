@@ -111,7 +111,7 @@ export default function GeradorBiometria() {
 
     ctx.save();
     ctx.fillStyle = AZUL;
-    ctx.font = '900 48px Arial, sans-serif';
+    ctx.font = '900 42px Arial, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(campos.chamadaFaixaVerde, W / 2, faixaY + faixaH / 2);
@@ -134,10 +134,10 @@ export default function GeradorBiometria() {
     ctx.textBaseline = 'top';
 
     const textoComHorario = campos.textoInformativo.replace('{HORARIO}', '___H___');
-    ctx.font = 'bold 48px Arial, sans-serif';
+    ctx.font = 'bold 42px Arial, sans-serif';
     const infoLines = wrapText(ctx, textoComHorario, cxBW - 80, 6);
     let infoY = cxBY + 28;
-    const lineH = 58;
+    const lineH = 52;
 
     for (const line of infoLines) {
       if (line.includes('___H___')) {
@@ -145,12 +145,12 @@ export default function GeradorBiometria() {
         let cx = cxBX + 40;
 
         ctx.fillStyle = AZUL;
-        ctx.font = 'bold 48px Arial, sans-serif';
+        ctx.font = 'bold 42px Arial, sans-serif';
         ctx.fillText(parts[0], cx, infoY);
         cx += ctx.measureText(parts[0]).width;
 
         // Horário em caixa laranja
-        ctx.font = 'bold 46px Arial, sans-serif';
+        ctx.font = 'bold 40px Arial, sans-serif';
         const horW = ctx.measureText(campos.horario).width;
         ctx.fillStyle = '#E8762B';
         ctx.fillRect(cx, infoY - 4, horW + 20, 56);
@@ -160,12 +160,12 @@ export default function GeradorBiometria() {
 
         if (parts[1]) {
           ctx.fillStyle = AZUL;
-          ctx.font = 'bold 48px Arial, sans-serif';
+          ctx.font = 'bold 42px Arial, sans-serif';
           ctx.fillText(parts[1], cx, infoY);
         }
       } else {
         ctx.fillStyle = AZUL;
-        ctx.font = 'bold 48px Arial, sans-serif';
+        ctx.font = 'bold 42px Arial, sans-serif';
         ctx.fillText(line, cxBX + 40, infoY);
       }
       infoY += lineH;
@@ -188,12 +188,12 @@ export default function GeradorBiometria() {
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
     ctx.fillStyle = AZUL;
-    ctx.font = 'bold 48px Arial, sans-serif';
+    ctx.font = 'bold 42px Arial, sans-serif';
     const greenLines = wrapText(ctx, campos.textoCaixaVerde, cxVW - 70, 5);
     let gy = cxVY + 28;
     for (const line of greenLines) {
       ctx.fillText(line, cxVX + 35, gy);
-      gy += 60;
+      gy += 54;
     }
     ctx.restore();
   }, [campos]);
