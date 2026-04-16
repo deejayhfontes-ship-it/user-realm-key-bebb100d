@@ -102,6 +102,7 @@ import UniversitarioHome from "@/pages/client/faculdade/UniversitarioHome";
 import FaculdadeSolicitacoes from "@/pages/client/faculdade/FaculdadeSolicitacoes";
 import FaculdadeGeradores from "@/pages/client/faculdade/FaculdadeGeradores";
 import FaculdadeGeradorAvisosFASB from "@/pages/client/faculdade/FaculdadeGeradorAvisosFASB";
+import FaculdadeGeradorAvisosUniversitario from "@/pages/client/faculdade/FaculdadeGeradorAvisosUniversitario";
 import CampanhasPage from "@/pages/client/faculdade/CampanhasPage";
 import CampanhaDetail from "@/pages/client/faculdade/CampanhaDetail";
 import NuppePage from "@/pages/client/faculdade/NuppePage";
@@ -163,6 +164,7 @@ const App = () => (
               <Route path="/faculdade/solicitacoes" element={<FaculdadeRoute><FaculdadeSolicitacoes /></FaculdadeRoute>} />
               <Route path="/faculdade/geradores" element={<FaculdadeRoute><FaculdadeGeradores /></FaculdadeRoute>} />
               <Route path="/faculdade/geradores/avisos-fasb" element={<FaculdadeRoute><FaculdadeGeradorAvisosFASB /></FaculdadeRoute>} />
+              <Route path="/faculdade/geradores/avisos-universitario" element={<FaculdadeRoute><FaculdadeGeradorAvisosUniversitario /></FaculdadeRoute>} />
               <Route path="/faculdade/:unit/campanhas" element={<FaculdadeRoute><CampanhasPage /></FaculdadeRoute>} />
               <Route path="/faculdade/:unit/campanhas/:slug" element={<FaculdadeRoute><CampanhaDetail /></FaculdadeRoute>} />
               <Route path="/faculdade/nuppe" element={<FaculdadeRoute><NuppePage /></FaculdadeRoute>} />
