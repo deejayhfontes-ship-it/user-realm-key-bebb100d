@@ -30,6 +30,21 @@ export function ClientRoute({ children }: ClientRouteProps) {
     return <Navigate to="/admin/dashboard" replace />;
   }
 
+  // Check special accounts to prevent them from accessing generic client pages
+  if (profile?.email) {
+    const emailLower = profile.email.toLowerCase();
+    const isPrefeitura = emailLower.includes('@prefeitura');
+    const isFaculdade = emailLower.includes('@edicao.com');
+
+    if (isPrefeitura) {
+      return <Navigate to="/prefeitura" replace />;
+    }
+    
+    if (isFaculdade) {
+      return <Navigate to="/faculdade" replace />;
+    }
+  }
+
   // Still loading client data
   if (clientLoading) {
     return (
