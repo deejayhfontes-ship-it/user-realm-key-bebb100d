@@ -3,7 +3,6 @@ import { GraduationCap, ArrowLeft, Wrench, Image, FileText, Megaphone } from 'lu
 
 
 const MODULOS_FUTUROS = [
-    { nome: 'Geradores', descricao: 'Geradores de artes exclusivos', icone: Image, disponivel: false },
     { nome: 'Canvas', descricao: 'Editor de imagens avançado', icone: FileText, disponivel: false },
     { nome: 'Ferramentas', descricao: 'Ferramentas exclusivas', icone: Wrench, disponivel: false },
 ];
@@ -62,6 +61,18 @@ export default function UniversitarioHome() {
                         </div>
                         <h4 className="font-semibold text-white mb-1 group-hover:text-amber-400 transition-colors">Campanhas</h4>
                         <p className="text-white/30 text-sm">Materiais, logos, fotos e vídeos das campanhas ativas</p>
+                    </button>
+
+                    {/* Card Gerador de Avisos — clicável */}
+                    <button
+                        onClick={() => navigate('/faculdade/geradores/avisos-universitario')}
+                        className="group rounded-xl border border-teal-500/20 bg-[#0a0a0a] p-6 text-left transition-all duration-300 hover:border-teal-500/40 hover:bg-teal-500/5 hover:scale-[1.02]"
+                    >
+                        <div className="w-12 h-12 rounded-xl bg-teal-500/20 flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110">
+                            <FileText className="w-6 h-6 text-teal-400" />
+                        </div>
+                        <h4 className="font-semibold text-white mb-1 group-hover:text-teal-400 transition-colors">Gerador de Avisos</h4>
+                        <p className="text-white/30 text-sm">Crie comunicados oficiais e cards para as redes sociais</p>
                     </button>
 
                     {/* Módulos futuros */}
