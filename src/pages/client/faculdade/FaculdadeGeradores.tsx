@@ -16,6 +16,18 @@ const GERADORES = [
         rota: '/faculdade/geradores/avisos-fasb',
     },
     {
+        id: 'avisos-universitario',
+        nome: 'Gerador de Avisos — Colégio Universitário',
+        descricao: 'Gere avisos oficiais no padrão Colégio Universitário (Feed e Stories)',
+        icon: FileText,
+        gradiente: 'from-teal-600 via-cyan-500 to-emerald-400',
+        corBorda: 'border-teal-500/20',
+        corIcone: 'text-teal-400',
+        bgIcone: 'bg-teal-500/10',
+        disponivel: true,
+        rota: '/faculdade/geradores/avisos-universitario',
+    },
+    {
         id: 'post-instagram',
         nome: 'Post Instagram',
         descricao: 'Gere posts prontos para o Instagram com IA — feed, stories e reels',
