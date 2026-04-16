@@ -9,7 +9,8 @@ import {
   ChevronLeft,
   Receipt,
   FileText,
-  ShoppingBag
+  ShoppingBag,
+  GalleryHorizontalEnd
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -29,6 +30,11 @@ const navItems = [
     title: 'Meus Geradores',
     href: '/client/geradores',
     icon: Wand2
+  },
+  {
+    title: 'Carrossel Studio',
+    href: '/client/carrossel',
+    icon: GalleryHorizontalEnd
   },
   {
     title: 'Minhas Artes',

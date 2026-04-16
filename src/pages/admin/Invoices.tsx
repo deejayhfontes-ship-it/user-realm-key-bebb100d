@@ -83,8 +83,7 @@ const Invoices = () => {
     toast.loading("Gerando PDF...", { id: "pdf-loading" });
 
     try {
-      // Aguarda renderização completa (especialmente quando chamado da lista)
-      await new Promise(res => setTimeout(res, 300));
+      await new Promise(res => setTimeout(res, 500));
 
       if (!invoiceRef.current) {
         toast.error("Erro: preview não encontrado", { id: "pdf-loading" });
@@ -93,14 +92,29 @@ const Invoices = () => {
 
       const element = invoiceRef.current;
 
-      // Salva estilos originais do elemento pai scroll para remover clipping
+      // REMOVER fisicamente links de fontes externas do DOM para evitar CORS
+      const externalLinks = Array.from(document.querySelectorAll<HTMLLinkElement>(
+        'link[rel="stylesheet"][href*="fonts.googleapis.com"], link[rel="stylesheet"][href*="fonts.gstatic.com"]'
+      ));
+      const removedLinks: { link: HTMLLinkElement; parent: Node }[] = [];
+      externalLinks.forEach(link => {
+        if (link.parentNode) {
+          removedLinks.push({ link, parent: link.parentNode });
+          link.parentNode.removeChild(link);
+        }
+      });
+
+      // Remover overflow clipping do pai para captura completa
       const scrollParent = element.closest('[class*="overflow"]') as HTMLElement | null;
-      const originalOverflow = scrollParent?.style.overflow || '';
-      const originalMaxHeight = scrollParent?.style.maxHeight || '';
+      const origOverflow = scrollParent?.style.overflow || '';
+      const origMaxHeight = scrollParent?.style.maxHeight || '';
       if (scrollParent) {
         scrollParent.style.overflow = 'visible';
         scrollParent.style.maxHeight = 'none';
       }
+
+      // Aguardar para o DOM se atualizar sem as fontes
+      await new Promise(res => setTimeout(res, 100));
 
       const canvas = await html2canvas(element, {
         scale: 2,
@@ -113,10 +127,13 @@ const Invoices = () => {
         scrollX: 0,
       });
 
-      // Restaura estilos
+      // Re-inserir links de fontes removidos
+      removedLinks.forEach(({ link, parent }) => parent.appendChild(link));
+
+      // Restaurar overflow
       if (scrollParent) {
-        scrollParent.style.overflow = originalOverflow;
-        scrollParent.style.maxHeight = originalMaxHeight;
+        scrollParent.style.overflow = origOverflow;
+        scrollParent.style.maxHeight = origMaxHeight;
       }
 
       const imgData = canvas.toDataURL("image/png");
@@ -134,7 +151,7 @@ const Invoices = () => {
       const clientName = invoice ? invoice.bill_to_name : invoiceData.billTo.name;
       const invNumber = invoice ? invoice.invoice_number : invoiceData.invoiceNumber;
       const fileName = `Invoice_${invNumber}_${clientName.replace(/\s+/g, "_")}.pdf`;
-      
+
       pdf.save(fileName);
       toast.success("PDF gerado com sucesso!", { id: "pdf-loading" });
     } catch (error) {
@@ -144,6 +161,7 @@ const Invoices = () => {
       setIsGeneratingPDF(false);
     }
   };
+
 
 
   const handleViewInvoice = (invoice: InvoiceRow) => {

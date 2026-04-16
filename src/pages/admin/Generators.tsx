@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Plus, Download, Sparkles, Wand2, Upload, Link } from 'lucide-react';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { Button } from '@/components/ui/button';
@@ -33,6 +34,7 @@ import {
 } from '@/components/ui/alert-dialog';
 
 export default function AdminGenerators() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('installed');
   const [isNewModalOpen, setIsNewModalOpen] = useState(false);
   const [editGenerator, setEditGenerator] = useState<Generator | null>(null);
@@ -130,9 +132,55 @@ export default function AdminGenerators() {
               <Sparkles className="h-4 w-4 mr-2" />
               Editor IA
             </TabsTrigger>
+            <TabsTrigger
+              value="carrossel"
+              onClick={() => navigate('/admin/mypostflow')}
+              className="rounded-full px-6 hover:bg-background/50 transition-colors"
+            >
+              🎠 MyPostFlow
+            </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="installed" className="mt-6">
+          <TabsContent value="installed" className="mt-6 space-y-8">
+            {/* NOVO: Card Fixo do Carrossel VIP */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div 
+                className="soft-card p-6 transition-all hover:scale-[1.02] duration-300 group flex flex-col justify-between min-h-[280px] cursor-pointer"
+                onClick={() => navigate('/admin/mypostflow')}
+              >
+                {/* Header */}
+                <div className="flex items-start justify-between mb-4">
+                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-pink-500 text-white shadow-lg shadow-pink-500/20 group-hover:scale-110 transition-transform duration-500">
+                    <Sparkles className="w-7 h-7" />
+                  </div>
+                  <div className="flex gap-2">
+                    <span className="rounded-full px-3 py-1 text-[10px] uppercase font-bold tracking-wider bg-pink-500/15 text-pink-600">
+                      Premium
+                    </span>
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="space-y-2 mb-6">
+                  <h3 className="font-semibold text-lg text-foreground group-hover:text-pink-600 transition-colors">MyPostFlow</h3>
+                  <p className="text-sm text-muted-foreground line-clamp-2">
+                    Criação de Posts Profissionais com IA
+                  </p>
+                  <span className="inline-block rounded-full px-3 py-1 text-xs font-medium bg-pink-500 text-white shadow-sm mt-1">
+                    Carrossel Studio
+                  </span>
+                </div>
+
+                {/* Button */}
+                <div className="mt-auto">
+                  <div className="w-full rounded-full h-10 bg-primary text-primary-foreground flex items-center justify-center hover:brightness-105 shadow-sm shadow-primary/20 gap-2 font-medium">
+                    <Sparkles className="w-4 h-4" />
+                    Abrir Estúdio
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <InstalledGeneratorsTab
               generators={generators}
               isLoading={isLoading}

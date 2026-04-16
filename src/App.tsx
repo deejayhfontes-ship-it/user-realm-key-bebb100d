@@ -92,6 +92,7 @@ import ClientPedidos from "@/pages/client/ClientPedidos";
 import GeneratorPage from "@/pages/client/Generator";
 import ClientMateriais from "@/pages/client/ClientMateriais";
 import ClientMateriaisDetail from "@/pages/client/ClientMateriaisDetail";
+import CarrosselStudio from "@/pages/client/CarrosselStudio";
 
 // Faculdade Pages
 import { FaculdadeRoute } from "@/components/FaculdadeRoute";
@@ -103,7 +104,11 @@ import FaculdadeGeradores from "@/pages/client/faculdade/FaculdadeGeradores";
 import FaculdadeGeradorAvisosFASB from "@/pages/client/faculdade/FaculdadeGeradorAvisosFASB";
 import CampanhasPage from "@/pages/client/faculdade/CampanhasPage";
 import CampanhaDetail from "@/pages/client/faculdade/CampanhaDetail";
+import NuppePage from "@/pages/client/faculdade/NuppePage";
+import NuppeGeradorPecas from "@/pages/client/faculdade/NuppeGeradorPecas";
 import AdminCampanhas from "@/pages/admin/AdminCampanhas";
+import AdminCarrosselStudio from "@/pages/admin/AdminCarrosselStudio";
+import MyPostFlowPage from "@/pages/MyPostFlowPage";
 
 const queryClient = new QueryClient();
 
@@ -146,6 +151,7 @@ const App = () => (
               <Route path="/prefeitura/secretarias/adm-planejamento/gerador-biometria" element={<GeradorBiometria />} />
               <Route path="/prefeitura/consultar" element={<ConsultarSolicitacao />} />
               <Route path="/prefeitura/arte" element={<PrefeituraArtePage />} />
+              <Route path="/mypostflow" element={<MyPostFlowPage />} />
               <Route path="/acompanhar/:protocolo" element={<PublicTracking />} />
               <Route path="/solicitar-servico" element={<SolicitarServico />} />
               <Route path="/corridadoautismo" element={<CorridaAutismo />} />
@@ -159,6 +165,8 @@ const App = () => (
               <Route path="/faculdade/geradores/avisos-fasb" element={<FaculdadeRoute><FaculdadeGeradorAvisosFASB /></FaculdadeRoute>} />
               <Route path="/faculdade/:unit/campanhas" element={<FaculdadeRoute><CampanhasPage /></FaculdadeRoute>} />
               <Route path="/faculdade/:unit/campanhas/:slug" element={<FaculdadeRoute><CampanhaDetail /></FaculdadeRoute>} />
+              <Route path="/faculdade/nuppe" element={<FaculdadeRoute><NuppePage /></FaculdadeRoute>} />
+              <Route path="/faculdade/nuppe/gerador-pecas" element={<FaculdadeRoute><NuppeGeradorPecas /></FaculdadeRoute>} />
 
               {/* Public Landing Page */}
               <Route path="/" element={<Home />} />
@@ -205,6 +213,8 @@ const App = () => (
                 <Route path="arcano/biblioteca-prompts" element={<BibliotecaPrompts />} />
                 <Route path="arcano/ferramentas-ia" element={<FerramentasIA />} />
                 <Route path="campanhas" element={<AdminCampanhas />} />
+                <Route path="carrossel" element={<AdminCarrosselStudio />} />
+                <Route path="mypostflow" element={<MyPostFlowPage />} />
               </Route>
 
               {/* Client routes */}
@@ -226,6 +236,7 @@ const App = () => (
                 <Route path="perfil" element={<ClientPerfil />} />
                 <Route path="materiais" element={<ClientMateriais />} />
                 <Route path="materiais/:slug" element={<ClientMateriaisDetail />} />
+                <Route path="carrossel" element={<CarrosselStudio />} />
               </Route>
 
               {/* Generator page (standalone for full-screen experience) */}

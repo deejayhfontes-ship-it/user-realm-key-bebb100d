@@ -3,18 +3,21 @@ import { ChevronLeft } from 'lucide-react';
 import { StoriesGenerator } from '@/components/generators/StoriesGenerator';
 import { CarrosselGenerator } from '@/components/generators/CarrosselGenerator';
 import { DesignerDoFuturoGenerator } from '@/components/generators/DesignerDoFuturoGenerator';
+import { CarrosselStudioGenerator } from '@/components/generators/CarrosselStudioGenerator';
 
 // Mapeamento de slugs para componentes
 const generatorComponents: Record<string, React.ComponentType> = {
     stories: StoriesGenerator,
     carrossel: CarrosselGenerator,
     'designer-do-futuro': DesignerDoFuturoGenerator,
+    'carrossel-studio': CarrosselStudioGenerator,
 };
 
 const generatorNames: Record<string, string> = {
     stories: 'Gerador de Stories',
     carrossel: 'Carrossel de Interações',
     'designer-do-futuro': 'Designer do Futuro',
+    'carrossel-studio': 'Gerador de Carrossel',
 };
 
 export function AdminGeneratorPreview() {

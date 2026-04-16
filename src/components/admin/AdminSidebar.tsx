@@ -26,7 +26,8 @@ import {
   Film,
   Sparkles,
   Archive,
-  Megaphone
+  Megaphone,
+  GalleryHorizontalEnd
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -53,6 +54,11 @@ const navItems = [
     title: 'Geradores',
     href: '/admin/generators',
     icon: Wand2
+  },
+  {
+    title: 'Carrossel Studio',
+    href: '/admin/carrossel',
+    icon: GalleryHorizontalEnd
   },
   {
     title: 'Provedores IA',

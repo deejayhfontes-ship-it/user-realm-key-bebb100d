@@ -241,6 +241,34 @@ export default function PrefeituraVIP() {
                   <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-emerald-400 to-cyan-500 w-0 group-hover:w-full transition-all duration-700" />
                 </button>
 
+                <button
+                  onClick={() => navigate('/mypostflow')}
+                  className="group relative bg-[#131313] rounded-[2rem] p-8 text-left transition-all duration-500 border border-white/[0.06] hover:border-pink-500/30 hover:shadow-[0_0_60px_-15px_rgba(236,72,153,0.3)] hover:-translate-y-1 overflow-hidden flex flex-col min-h-[280px]"
+                >
+                  <div className="relative z-10 flex flex-col h-full">
+                    <div className="flex items-start justify-between mb-auto">
+                      <div className="w-16 h-16 bg-gradient-to-br from-pink-500 to-rose-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-lg shadow-pink-500/20">
+                        <Sparkles className="w-8 h-8 text-black" />
+                      </div>
+                      <div className="w-10 h-10 rounded-full bg-white/[0.04] group-hover:bg-pink-500 flex items-center justify-center transition-all duration-300">
+                        <ArrowUpRight className="w-5 h-5 text-zinc-600 group-hover:text-black transition-colors" />
+                      </div>
+                    </div>
+
+                    <div className="mt-auto">
+                      <h3 className="text-2xl font-bold text-white mb-2 group-hover:text-pink-400 transition-colors">
+                        MYPOSTFLOW
+                      </h3>
+                      <p className="text-sm text-zinc-500 mb-3">Posts de alto impacto com IA</p>
+                      <span className="inline-flex items-center gap-2 text-sm font-medium text-zinc-500 group-hover:text-pink-400 transition-colors">
+                        <Wand2 className="w-4 h-4" />
+                        Abrir estúdio
+                      </span>
+                    </div>
+                  </div>
+                  <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-pink-400 to-rose-500 w-0 group-hover:w-full transition-all duration-700" />
+                </button>
+
                 {/* Card Stories */}
                 <button
                   onClick={() => navigate('/prefeitura/gerador-conteudo')}

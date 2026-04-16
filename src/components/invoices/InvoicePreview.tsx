@@ -50,7 +50,7 @@ export const InvoicePreview = ({ data, savedPixCode, showInteractivePixPayment =
   };
 
   return (
-    <div className="bg-white text-black p-8 rounded-xl shadow-lg max-w-4xl mx-auto" style={{ fontFamily: 'system-ui, sans-serif' }}>
+    <div className="bg-white text-black p-8 rounded-xl shadow-lg max-w-4xl mx-auto" style={{ fontFamily: 'Arial, Helvetica, sans-serif', fontSize: '14px', lineHeight: '1.5' }}>
       {/* Header */}
       <div className="flex justify-between items-start mb-8">
         <div>

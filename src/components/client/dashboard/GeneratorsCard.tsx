@@ -93,6 +93,25 @@ export function GeneratorsCard({ generators, creditsUsed, creditsTotal }: Genera
           })}
         </div>
 
+        {/* Carrossel Studio — Card fixo */}
+        <Link to="/client/carrossel" className="block">
+          <div className="bg-gradient-to-r from-sky-500/10 to-violet-500/10 border border-sky-500/30 rounded-xl p-4 hover:border-sky-400/60 transition-all group mb-4">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-lg bg-sky-500/20 flex items-center justify-center flex-shrink-0 text-xl">🎠</div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <h4 className="font-medium text-white">Gerador de Carrossel</h4>
+                  <Badge className="bg-sky-500/20 text-sky-300 border-none text-xs">IA</Badge>
+                </div>
+                <p className="text-xs text-white/50">Crie carrosseis profissionais em minutos</p>
+              </div>
+            </div>
+            <Button size="sm" className="w-full mt-3 bg-sky-500/20 hover:bg-sky-500 text-white transition-colors">
+              Criar carrossel
+            </Button>
+          </div>
+        </Link>
+
         {/* Credits usage */}
         {creditsTotal > 0 && creditsTotal !== Infinity && (
           <div className="bg-white/5 rounded-xl p-4">

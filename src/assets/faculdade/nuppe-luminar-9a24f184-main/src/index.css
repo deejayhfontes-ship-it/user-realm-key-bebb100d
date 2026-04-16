@@ -1,0 +1,139 @@
+/* Google Fonts removidas — usando Suisse Int'l local */
+
+/* Suisse Int'l Condensed — display/títulos dos criativos */
+@font-face { font-family: 'Suisse Intl Condensed'; src: url('/fonts/suisse-intl-condensed/SuisseIntlCondensed-Regular.otf') format('opentype'); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Suisse Intl Condensed'; src: url('/fonts/suisse-intl-condensed/SuisseIntlCondensed-Medium.otf') format('opentype'); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Suisse Intl Condensed'; src: url('/fonts/suisse-intl-condensed/SuisseIntlCondensed-Semibold.otf') format('opentype'); font-weight: 600; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Suisse Intl Condensed'; src: url('/fonts/suisse-intl-condensed/SuisseIntlCondensed-Bold.otf') format('opentype'); font-weight: 700; font-style: normal; font-display: swap; }
+
+/* Suisse Int'l — corpo dos criativos */
+@font-face { font-family: 'Suisse Intl'; src: url('/fonts/suisse-intl/SuisseIntl-Light.otf') format('opentype'); font-weight: 300; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Suisse Intl'; src: url('/fonts/suisse-intl/SuisseIntl-Regular.otf') format('opentype'); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Suisse Intl'; src: url('/fonts/suisse-intl/SuisseIntl-Medium.otf') format('opentype'); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Suisse Intl'; src: url('/fonts/suisse-intl/SuisseIntl-SemiBold.otf') format('opentype'); font-weight: 600; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Suisse Intl'; src: url('/fonts/suisse-intl/SuisseIntl-Bold.otf') format('opentype'); font-weight: 700; font-style: normal; font-display: swap; }
+
+/* Suisse BP Int'l — variação alternativa */
+@font-face { font-family: 'Suisse BP Intl'; src: url('/fonts/suisse-bp-intl/SuisseBPIntl-Regular.otf') format('opentype'); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Suisse BP Intl'; src: url('/fonts/suisse-bp-intl/SuisseBPIntl-Medium.otf') format('opentype'); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Suisse BP Intl'; src: url('/fonts/suisse-bp-intl/SuisseBPIntl-Bold.otf') format('opentype'); font-weight: 700; font-style: normal; font-display: swap; }
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 220 20% 6%;
+    --foreground: 0 0% 100%;
+
+    --card: 215 25% 10%;
+    --card-foreground: 0 0% 100%;
+
+    --popover: 215 25% 10%;
+    --popover-foreground: 0 0% 100%;
+
+    --primary: 190 90% 50%;
+    --primary-foreground: 220 20% 6%;
+
+    --secondary: 215 30% 14%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 215 20% 16%;
+    --muted-foreground: 210 15% 60%;
+
+    --accent: 190 90% 50%;
+    --accent-foreground: 220 20% 6%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 210 20% 18%;
+    --input: 210 20% 18%;
+    --ring: 190 90% 50%;
+
+    --radius: 0.5rem;
+
+    /* Custom tokens */
+    --glow-cyan: 190 90% 50%;
+    --surface-glass: 210 30% 12%;
+    --dot-color: 210 15% 20%;
+
+    --font-display: 'Suisse Intl Condensed', sans-serif;
+    --font-body: 'Suisse Intl', sans-serif;
+
+    --shadow-glow: 0 0 40px hsl(190 90% 50% / 0.15);
+    --shadow-glow-strong: 0 0 60px hsl(190 90% 50% / 0.25);
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body);
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-display);
+  }
+
+  .text-glow {
+    text-shadow: 0 0 20px hsl(190 90% 50% / 0.4), 0 0 40px hsl(190 90% 50% / 0.2);
+  }
+
+  .bg-dot-pattern {
+    background-image: radial-gradient(circle, hsl(var(--dot-color)) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  .glass-card {
+    background: hsl(var(--surface-glass) / 0.6);
+    backdrop-filter: blur(12px);
+    border: 1px solid hsl(var(--border) / 0.5);
+  }
+
+  .glow-border {
+    border: 1px solid hsl(var(--glow-cyan) / 0.3);
+    box-shadow: 0 0 15px hsl(var(--glow-cyan) / 0.1), inset 0 0 15px hsl(var(--glow-cyan) / 0.05);
+  }
+
+  .btn-nuppe {
+    @apply font-display font-bold tracking-wider uppercase px-8 py-3;
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.2), hsl(var(--primary) / 0.4));
+    border: 1px solid hsl(var(--primary) / 0.5);
+    color: hsl(var(--foreground));
+    transition: all 0.3s ease;
+  }
+
+  .btn-nuppe:hover {
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.3), hsl(var(--primary) / 0.5));
+    box-shadow: 0 0 25px hsl(var(--primary) / 0.3);
+  }
+
+  .course-row {
+    background: linear-gradient(90deg, hsl(var(--primary) / 0.15), hsl(var(--primary) / 0.25));
+    border-left: 3px solid hsl(var(--primary));
+    transition: all 0.3s ease;
+  }
+
+  .course-row:hover {
+    background: linear-gradient(90deg, hsl(var(--primary) / 0.25), hsl(var(--primary) / 0.35));
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.15);
+    transform: translateX(4px);
+  }
+}

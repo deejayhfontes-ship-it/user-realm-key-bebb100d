@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { GraduationCap, Building2, ArrowRight, LogOut, BookOpen, Palette, ClipboardList, Wand2 } from 'lucide-react';
+import { GraduationCap, Building2, ArrowRight, LogOut, BookOpen, Palette, ClipboardList, Wand2, Users, Sparkles } from 'lucide-react';
 
 const TODAS_AREAS = [
     {
@@ -32,6 +32,20 @@ const TODAS_AREAS = [
         units: ['fasb', 'ifa-universitario'], // ambos veem o card FASB
     },
     {
+        id: 'nuppe',
+        nome: 'NUPPE',
+        descricao: 'Núcleo de Pesquisa, Pós-Graduação e Extensão',
+        icone: Users,
+        rota: '/faculdade/nuppe',
+        gradiente: 'from-sky-500 via-cyan-400 to-teal-300',
+        gradienteBg: 'from-sky-500/10 to-cyan-400/5',
+        corBorda: 'border-sky-400/20',
+        corIcone: 'text-sky-400',
+        corHover: 'group-hover:shadow-sky-400/20',
+        bgIcone: 'bg-sky-500/10',
+        units: ['ifa-universitario', 'fasb'],
+    },
+    {
         id: 'solicitacoes',
         nome: 'Solicitações',
         descricao: 'Acompanhe e faça novas solicitações de materiais e serviços',
@@ -57,6 +71,20 @@ const TODAS_AREAS = [
         corIcone: 'text-violet-400',
         corHover: 'group-hover:shadow-violet-500/20',
         bgIcone: 'bg-violet-500/10',
+        units: ['ifa-universitario', 'fasb'],
+    },
+    {
+        id: 'carrossel',
+        nome: 'MyPostFlow',
+        descricao: 'Criação de posts profissionais de alto impacto com IA',
+        icone: Sparkles,
+        rota: '/mypostflow',
+        gradiente: 'from-pink-600 via-rose-500 to-red-400',
+        gradienteBg: 'from-pink-600/10 to-red-400/5',
+        corBorda: 'border-pink-500/20',
+        corIcone: 'text-pink-400',
+        corHover: 'group-hover:shadow-pink-500/20',
+        bgIcone: 'bg-pink-500/10',
         units: ['ifa-universitario', 'fasb'],
     },
 ];
