@@ -68,52 +68,14 @@ export default function FaculdadeGeradorAvisosUniversitario() {
                 backgroundColor: null,
             });
 
-            const MAX_SIZE_BYTES = 4.5 * 1024 * 1024;
-            let quality = 0.95;
-            let finalDataUrl = canvas.toDataURL("image/webp", quality);
-            let size = Math.round((finalDataUrl.length * 3) / 4);
-            let wasOptimized = false;
-
-            if (size > MAX_SIZE_BYTES) {
-                wasOptimized = true;
-                while (size > MAX_SIZE_BYTES && quality > 0.5) {
-                    quality -= 0.1;
-                    finalDataUrl = canvas.toDataURL("image/webp", quality);
-                    size = Math.round((finalDataUrl.length * 3) / 4);
-                }
-            }
-
-            if (size > MAX_SIZE_BYTES) {
-                let scale = 0.8;
-                const tempCanvas = document.createElement("canvas");
-                const ctx = tempCanvas.getContext("2d");
-
-                if (ctx) {
-                    while (size > MAX_SIZE_BYTES && scale >= 0.3) {
-                        tempCanvas.width = canvas.width * scale;
-                        tempCanvas.height = canvas.height * scale;
-                        ctx.drawImage(canvas, 0, 0, tempCanvas.width, tempCanvas.height);
-                        finalDataUrl = tempCanvas.toDataURL("image/webp", 0.7);
-                        size = Math.round((finalDataUrl.length * 3) / 4);
-                        scale -= 0.15;
-                    }
-                }
-            }
-
-            if (size > 5 * 1024 * 1024) {
-                throw new Error("A imagem excede 5MB mesmo após compressão máxima.");
-            }
+            const finalDataUrl = canvas.toDataURL("image/png");
 
             const link = document.createElement("a");
-            link.download = `aviso-universitario-${formato}-${Date.now()}.webp`;
+            link.download = `aviso-universitario-${formato}-${Date.now()}.png`;
             link.href = finalDataUrl;
             link.click();
 
-            if (wasOptimized) {
-                toast.success("Imagem otimizada e baixada com sucesso!", { id: "export-toast" });
-            } else {
-                toast.success("Imagem baixada com sucesso!", { id: "export-toast" });
-            }
+            toast.success("Imagem PNG baixada com sucesso!", { id: "export-toast" });
         } catch (error) {
             console.error("Erro ao exportar:", error);
             const msg = error instanceof Error ? error.message : "Erro ao gerar a imagem.";
