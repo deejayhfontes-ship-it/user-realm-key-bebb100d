@@ -63,11 +63,14 @@ export default function FaculdadeGeradorAvisosUniversitario() {
             setIsExporting(true);
             toast.loading("Gerando imagem em alta resolução...", { id: "export-toast" });
 
-            // Tornar visível brevemente para o html2canvas renderizar
+            // Bring into viewport (mobile browsers don't render off-screen fixed elements)
             target.style.visibility = 'visible';
+            target.style.opacity = '0';
+            target.style.left = '0';
+            target.style.top = '0';
             target.style.pointerEvents = 'none';
 
-            await new Promise(r => setTimeout(r, 120)); // aguardar render
+            await new Promise(r => setTimeout(r, 200)); // aguardar render completo
 
             const canvas = await html2canvas(target, {
                 scale: 1,
@@ -78,7 +81,11 @@ export default function FaculdadeGeradorAvisosUniversitario() {
                 height: target.offsetHeight,
             });
 
+            // Esconder novamente
+            target.style.opacity = '0';
             target.style.visibility = 'hidden';
+            target.style.left = '-9999px';
+            target.style.top = '0';
 
             const finalDataUrl = canvas.toDataURL("image/png");
 
@@ -89,7 +96,10 @@ export default function FaculdadeGeradorAvisosUniversitario() {
 
             toast.success("Imagem PNG 1080px baixada com sucesso!", { id: "export-toast" });
         } catch (error) {
-            if (exportFullRef.current) exportFullRef.current.style.visibility = 'hidden';
+            if (exportFullRef.current) {
+                exportFullRef.current.style.visibility = 'hidden';
+                exportFullRef.current.style.left = '-9999px';
+            }
             console.error("Erro ao exportar:", error);
             const msg = error instanceof Error ? error.message : "Erro ao gerar a imagem.";
             toast.error(msg, { id: "export-toast" });
@@ -387,17 +397,20 @@ export default function FaculdadeGeradorAvisosUniversitario() {
                     <div
                         ref={exportFullRef}
                         style={{
-                            position: 'fixed',
+                            position: 'absolute',
                             top: 0,
                             left: '-9999px',
                             width: `${W}px`,
                             height: `${H}px`,
                             visibility: 'hidden',
+                            opacity: 0,
                             overflow: 'hidden',
                             backgroundImage: `url(${formato === "feed" ? baseFeed : baseStories}?v=${cacheBuster})`,
                             backgroundSize: 'cover',
                             backgroundPosition: 'center',
                             backgroundRepeat: 'no-repeat',
+                            pointerEvents: 'none',
+                            userSelect: 'none',
                             zIndex: 9999,
                         }}
                     >
