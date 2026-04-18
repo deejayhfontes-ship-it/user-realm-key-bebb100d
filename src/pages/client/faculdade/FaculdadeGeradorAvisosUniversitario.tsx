@@ -19,6 +19,7 @@ export default function FaculdadeGeradorAvisosUniversitario() {
     const navigate = useNavigate();
     const { user } = useAuth();
     const exportRef = useRef<HTMLDivElement>(null);
+    const exportFullRef = useRef<HTMLDivElement>(null);
     const [isExporting, setIsExporting] = useState(false);
     const [formato, setFormato] = useState<Formato>("feed");
 
@@ -55,18 +56,29 @@ export default function FaculdadeGeradorAvisosUniversitario() {
     const [cacheBuster] = useState(Date.now());
 
     const handleExport = async () => {
-        if (!exportRef.current) return;
+        const target = exportFullRef.current;
+        if (!target) return;
 
         try {
             setIsExporting(true);
-            toast.loading("Gerando imagem...", { id: "export-toast" });
+            toast.loading("Gerando imagem em alta resolução...", { id: "export-toast" });
 
-            const canvas = await html2canvas(exportRef.current, {
-                scale: 2,
+            // Tornar visível brevemente para o html2canvas renderizar
+            target.style.visibility = 'visible';
+            target.style.pointerEvents = 'none';
+
+            await new Promise(r => setTimeout(r, 120)); // aguardar render
+
+            const canvas = await html2canvas(target, {
+                scale: 1,
                 useCORS: true,
                 allowTaint: true,
                 backgroundColor: null,
+                width: target.offsetWidth,
+                height: target.offsetHeight,
             });
+
+            target.style.visibility = 'hidden';
 
             const finalDataUrl = canvas.toDataURL("image/png");
 
@@ -75,8 +87,9 @@ export default function FaculdadeGeradorAvisosUniversitario() {
             link.href = finalDataUrl;
             link.click();
 
-            toast.success("Imagem PNG baixada com sucesso!", { id: "export-toast" });
+            toast.success("Imagem PNG 1080px baixada com sucesso!", { id: "export-toast" });
         } catch (error) {
+            if (exportFullRef.current) exportFullRef.current.style.visibility = 'hidden';
             console.error("Erro ao exportar:", error);
             const msg = error instanceof Error ? error.message : "Erro ao gerar a imagem.";
             toast.error(msg, { id: "export-toast" });
@@ -363,6 +376,112 @@ export default function FaculdadeGeradorAvisosUniversitario() {
                     </div>
                 </div>
             </main>
+
+            {/* ── DIV OCULTO PARA EXPORTAÇÃO EM ALTA RESOLUÇÃO (1080px) ── */}
+            {(() => {
+                const W = 1080;
+                const H = formato === "feed" ? 1350 : 1920;
+                const titlePx = Math.round(91.8 * (config.titulo.scale / 100));  // 8.5% de 1080
+                const bodyPx  = Math.round(41.0 * (config.titulo.scale / 100));  // 3.8% de 1080
+                return (
+                    <div
+                        ref={exportFullRef}
+                        style={{
+                            position: 'fixed',
+                            top: 0,
+                            left: '-9999px',
+                            width: `${W}px`,
+                            height: `${H}px`,
+                            visibility: 'hidden',
+                            overflow: 'hidden',
+                            backgroundImage: `url(${formato === "feed" ? baseFeed : baseStories}?v=${cacheBuster})`,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                            backgroundRepeat: 'no-repeat',
+                            zIndex: 9999,
+                        }}
+                    >
+                        {/* Fontes para html2canvas */}
+                        <style>{`
+                            @font-face {
+                                font-family: 'Versus';
+                                src: url('${versusFont}') format('opentype');
+                                font-weight: 800;
+                            }
+                            @font-face {
+                                font-family: 'Archivo';
+                                src: url('${archivoFont}') format('truetype');
+                                font-weight: 600;
+                            }
+                        `}</style>
+
+                        <div
+                            style={{
+                                position: 'absolute',
+                                top: formato === "feed" ? '42%' : '44%',
+                                bottom: formato === "feed" ? '18%' : '26%',
+                                left: formato === "feed" ? '6%' : '8%',
+                                right: formato === "feed" ? '6%' : '8%',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                textAlign: 'center',
+                                overflow: 'hidden',
+                            }}
+                        >
+                            {config.titulo.visible && (
+                                <h1 style={{
+                                    fontFamily: "'Versus', sans-serif",
+                                    fontSize: `${titlePx}px`,
+                                    fontWeight: 800,
+                                    color: '#5ce0d6',
+                                    lineHeight: 0.9,
+                                    letterSpacing: '0.02em',
+                                    marginBottom: '16px',
+                                    WebkitTextStroke: '2px #3bc9bf',
+                                    textShadow: `
+                                        2px 2px 0px #06313b,
+                                        4px 4px 0px #06313b,
+                                        6px 6px 0px #06313b,
+                                        8px 8px 0px #06313b,
+                                        10px 10px 0px #06313b,
+                                        12px 12px 0px #06313b,
+                                        16px 16px 20px rgba(0,0,0,0.6)
+                                    `,
+                                }}>
+                                    {config.titulo.text.split('\n').map((line, i) => (
+                                        <span key={i} style={{ display: 'block' }}>{line}</span>
+                                    ))}
+                                </h1>
+                            )}
+
+                            <div style={{ fontSize: `${bodyPx}px`, display: 'flex', flexDirection: 'column', gap: 0 }}>
+                                {config.corpo.visible && config.corpo.text && (
+                                    <p style={{ fontFamily: "'Archivo', sans-serif", color: '#fff', fontWeight: 600, lineHeight: 1, letterSpacing: '0.04em', margin: 0 }}>
+                                        {config.corpo.text}
+                                    </p>
+                                )}
+                                {config.destaque.visible && config.destaque.text && (
+                                    <p style={{ fontFamily: "'Archivo', sans-serif", color: '#5ce0d6', fontWeight: 700, lineHeight: 1, letterSpacing: '0.04em', margin: 0 }}>
+                                        {config.destaque.text}
+                                    </p>
+                                )}
+                                {(config.complemento.visible || config.data.visible) && (
+                                    <p style={{ fontFamily: "'Archivo', sans-serif", color: '#fff', fontWeight: 600, lineHeight: 1, letterSpacing: '0.04em', margin: 0 }}>
+                                        {config.complemento.visible && config.complemento.text && (
+                                            <span>{config.complemento.text} </span>
+                                        )}
+                                        {config.data.visible && config.data.text && (
+                                            <span style={{ color: '#5ce0d6' }}>{config.data.text}.</span>
+                                        )}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                );
+            })()}
         </div>
     );
 }
