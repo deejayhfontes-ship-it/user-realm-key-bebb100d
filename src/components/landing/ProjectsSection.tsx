@@ -79,10 +79,9 @@ export function ProjectsSection() {
             </div>
           </div>
 
-          {/* Card 2 - Pacotes e Planos (NÃO ALTERADO) */}
+          {/* Card 2 - Pacotes e Planos */}
           <div
-            onClick={() => setPackagesModalOpen(true)}
-            className="group relative aspect-[3/4] rounded-[40px] overflow-hidden cursor-pointer magnetto-card bg-[#1a1a1a] active:scale-[0.98] transition-transform duration-200"
+            className="group relative aspect-[3/4] rounded-[40px] overflow-hidden magnetto-card bg-[#1a1a1a] opacity-60 grayscale-[30%]"
           >
             {/* Dark background with subtle green ambient glow */}
             <div className="absolute inset-0 bg-[#1a1a1a]" />
@@ -125,9 +124,8 @@ export function ProjectsSection() {
                 </h3>
 
                 {/* Button */}
-                <span className="px-6 py-3 rounded-full bg-primary/20 backdrop-blur-md border border-primary/30 text-primary text-sm font-pixel tracking-wider flex items-center gap-2 group-hover:bg-primary/30 transition-all">
-                  <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 absolute">Ver Planos</span>
-                  <span className="group-hover:opacity-0 transition-opacity duration-300">{ctaCards.services.button}</span>
+                <span className="px-6 py-3 rounded-full bg-white/5 border border-white/10 text-white/40 text-sm font-pixel tracking-wider flex items-center gap-2">
+                  Em breve
                 </span>
               </div>
             </div>

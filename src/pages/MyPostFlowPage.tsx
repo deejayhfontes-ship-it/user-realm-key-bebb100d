@@ -1,22 +1,24 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Sparkles, Loader2, X, ChevronLeft, ArrowRight,
   PenLine, Clipboard, Upload, Image, Wand2, Check,
-  ChevronDown, BookOpen, Save
+  ChevronDown, BookOpen
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { gerarCarrossel } from '@/services/carrossel-api';
 import { CarouselStudioV2View } from '@/components/carrossel/CarouselStudioV2View';
 import { MyPostFlowDashboard } from '@/components/carrossel/MyPostFlowDashboard';
+import { TrainingPage } from '@/components/carrossel/TrainingPage';
+import { getTraining, listTemplates, type SavedTemplate } from '@/services/carrossel-service';
 import type { CarouselV2, SlideConfig, SlideFormat } from '@/types/carrossel-v2';
 import { PREMIUM_FONTS } from '@/types/carrossel-constants';
 
 /* ── Tipos ── */
 type PostStyle = 'minimalista' | 'profile';
 type ImageMode = 'none' | 'bg' | 'grid' | 'alternate';
-type ModalStep = 0 | 1 | 2 | 3 | 4; // 0=fechado
+type ModalStep = 0 | 1 | 2 | 3 | 4;
 
 interface IAConfig {
   topic: string;
@@ -33,6 +35,21 @@ interface IAConfig {
   accentColor: string;
 }
 
+const FONT_COMBOS = [
+  { id: 'space-inter',      title: 'space-grotesk', sub: 'inter',        label: 'Space',       subLabel: 'Inter' },
+  { id: 'caveat-space',     title: 'caveat',        sub: 'space-grotesk',label: 'Caveat',      subLabel: 'Space' },
+  { id: 'playfair-dm',      title: 'playfair',      sub: 'dm-sans',      label: 'Playfair',    subLabel: 'DM Sans' },
+  { id: 'syne-dm',          title: 'syne',          sub: 'dm-sans',      label: 'Syne',        subLabel: 'DM Sans' },
+  { id: 'bebas-raleway',    title: 'bebas-neue',    sub: 'raleway',      label: 'Bebas',       subLabel: 'Raleway' },
+  { id: 'outfit-space',     title: 'outfit',        sub: 'space-grotesk',label: 'Outfit',      subLabel: 'Space' },
+  { id: 'montserrat-inter', title: 'montserrat',    sub: 'inter',        label: 'Montserrat',  subLabel: 'Inter' },
+  { id: 'jakarta-inter',    title: 'plus-jakarta',  sub: 'inter',        label: 'Jakarta',     subLabel: 'Inter' },
+  { id: 'manrope-space',    title: 'manrope',       sub: 'space-grotesk',label: 'Manrope',     subLabel: 'Space' },
+  { id: 'urbanist-inter',   title: 'urbanist',      sub: 'inter',        label: 'Urbanist',    subLabel: 'Inter' },
+  { id: 'jakarta-manrope',  title: 'plus-jakarta',  sub: 'manrope',      label: 'Jakarta',     subLabel: 'Manrope' },
+  { id: 'manrope-inter',    title: 'manrope',       sub: 'inter',        label: 'Manrope',     subLabel: 'Inter' },
+];
+
 const DEFAULT_IA: IAConfig = {
   topic: '', exactContent: false, language: 'Português (BR)',
   slideCount: 5, imageMode: 'none', generateAiImages: false,
@@ -41,6 +58,41 @@ const DEFAULT_IA: IAConfig = {
 };
 
 const LANGUAGES = ['Português (BR)', 'Português (PT)', 'English', 'Español', 'Français', 'Italiano', 'Deutsch', '日本語', '中文 (简体)'];
+
+/* ── Extrai cores dominantes de uma imagem via canvas ── */
+async function extractColorsFromImage(src: string): Promise<{ bg: string; title: string; sub: string }> {
+  return new Promise(resolve => {
+    const img = new window.Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        const scale = Math.min(1, 100 / Math.max(img.width, img.height));
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        const ctx = canvas.getContext('2d');
+        if (!ctx) { resolve({ bg: '#0a0a0a', title: '#ffffff', sub: '#aaaaaa' }); return; }
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const d = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+        let r = 0, g = 0, b = 0, count = 0;
+        for (let i = 0; i < d.length; i += 16) {
+          r += d[i]; g += d[i + 1]; b += d[i + 2]; count++;
+        }
+        r = Math.round(r / count);
+        g = Math.round(g / count);
+        b = Math.round(b / count);
+        const toHex = (v: number) => v.toString(16).padStart(2, '0');
+        const bg = `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+        const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        resolve({ bg, title: lum > 0.5 ? '#000000' : '#ffffff', sub: lum > 0.5 ? '#333333' : '#aaaaaa' });
+      } catch {
+        resolve({ bg: '#0a0a0a', title: '#ffffff', sub: '#aaaaaa' });
+      }
+    };
+    img.onerror = () => resolve({ bg: '#0a0a0a', title: '#ffffff', sub: '#aaaaaa' });
+    img.src = src;
+  });
+}
 
 /* ── Step dots ── */
 function StepDots({ total, current }: { total: number; current: number }) {
@@ -124,6 +176,7 @@ export default function MyPostFlowPage() {
   const { toast } = useToast();
 
   const [showStudio, setShowStudio] = useState(false);
+  const [showTraining, setShowTraining] = useState(false);
   const [studioData, setStudioData] = useState<CarouselV2 | null>(null);
 
   // Modal state
@@ -135,17 +188,126 @@ export default function MyPostFlowPage() {
   const [refImages, setRefImages] = useState<string[]>([]);
   const [showFonts, setShowFonts] = useState(false);
   const [brandMode, setBrandMode] = useState<'manual' | 'image'>('manual');
+  const [extractingColors, setExtractingColors] = useState(false);
+
+  // Templates state
+  const [templates, setTemplates] = useState<SavedTemplate[]>([]);
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [loadingTemplates, setLoadingTemplates] = useState(false);
+
+  const brandImageInputRef = useRef<HTMLInputElement>(null);
 
   const updateIA = (patch: Partial<IAConfig>) => setIaConfig(p => ({ ...p, ...patch }));
 
-  const openAiModal = () => {
+  /* Paste handler para imagens de referência */
+  useEffect(() => {
+    if (step !== 3) return;
+    const handlePaste = (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (const item of Array.from(items)) {
+        if (item.type.startsWith('image/')) {
+          const file = item.getAsFile();
+          if (!file) continue;
+          if (refImages.length >= 5) {
+            toast({ title: 'Limite atingido', description: 'Máximo de 5 imagens de referência.', variant: 'destructive' });
+            return;
+          }
+          const r = new FileReader();
+          r.onload = ev => setRefImages(p => p.length < 5 ? [...p, ev.target?.result as string] : p);
+          r.readAsDataURL(file);
+          e.preventDefault();
+          toast({ title: 'Imagem colada!', description: 'Imagem adicionada como referência.' });
+          return;
+        }
+      }
+    };
+    window.addEventListener('paste', handlePaste);
+    return () => window.removeEventListener('paste', handlePaste);
+  }, [step, refImages.length, toast]);
+
+  const openAiModal = async () => {
     setStep(1);
     setSlideFormat('carousel');
     setPostStyle('minimalista');
-    setIaConfig(DEFAULT_IA);
     setRefImages([]);
+    setShowFonts(false);
+    setBrandMode('manual');
+    setShowTemplates(false);
+    // Pré-preencher com treinamento salvo
+    try {
+      const t = await getTraining();
+      const combo = FONT_COMBOS.find(c => c.title === t.font_title);
+      setIaConfig({
+        ...DEFAULT_IA,
+        instagramHandle: t.instagram_handle,
+        fontCombo: combo?.id ?? DEFAULT_IA.fontCombo,
+        brandBg: t.brand_bg !== '#0a0a0a' ? t.brand_bg : '',
+        brandTitle: t.brand_title_color,
+        brandSub: t.brand_sub_color,
+        accentColor: t.accent_color,
+        slideCount: t.slide_count,
+      });
+    } catch {
+      setIaConfig(DEFAULT_IA);
+    }
   };
-  const closeModal = () => setStep(0);
+
+  const closeModal = () => { setStep(0); setShowTemplates(false); };
+
+  /* Carregar templates do Supabase */
+  const handleToggleTemplates = async () => {
+    const next = !showTemplates;
+    setShowTemplates(next);
+    if (next && templates.length === 0) {
+      setLoadingTemplates(true);
+      try {
+        const list = await listTemplates();
+        setTemplates(list);
+      } catch {
+        toast({ title: 'Erro ao carregar templates', variant: 'destructive' });
+      } finally {
+        setLoadingTemplates(false);
+      }
+    }
+  };
+
+  /* Aplicar template salvo */
+  const applyTemplate = (tmpl: SavedTemplate) => {
+    const firstSlide = tmpl.slides[0];
+    const comboById = FONT_COMBOS.find(c => c.title === firstSlide?.titleFont);
+    updateIA({
+      slideCount: tmpl.slides.length,
+      fontCombo: comboById?.id ?? iaConfig.fontCombo,
+      brandBg: firstSlide?.bgColor ?? iaConfig.brandBg,
+      brandTitle: firstSlide?.titleColor ?? iaConfig.brandTitle,
+      brandSub: firstSlide?.subtitleColor ?? iaConfig.brandSub,
+    });
+    setPostStyle(tmpl.style as PostStyle);
+    setSlideFormat(tmpl.format as SlideFormat);
+    setShowTemplates(false);
+    toast({ title: 'Template aplicado!', description: `"${tmpl.name}" carregado com sucesso.` });
+  };
+
+  /* Extrair cores de imagem (Via Imagem) */
+  const handleBrandImageUpload = async (file: File) => {
+    setExtractingColors(true);
+    const reader = new FileReader();
+    reader.onload = async ev => {
+      const src = ev.target?.result as string;
+      try {
+        const colors = await extractColorsFromImage(src);
+        updateIA({ brandBg: colors.bg, brandTitle: colors.title, brandSub: colors.sub });
+        setBrandMode('manual');
+        toast({ title: 'Cores extraídas!', description: 'Identidade visual aplicada automaticamente.' });
+      } catch {
+        toast({ title: 'Erro ao extrair cores', variant: 'destructive' });
+      } finally {
+        setExtractingColors(false);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   /* Gerar carrossel final */
   const handleGenerate = useCallback(async () => {
@@ -156,18 +318,23 @@ export default function MyPostFlowPage() {
         pauta: { id: 0, titulo: iaConfig.topic, contexto: iaConfig.topic, potencial: 'alto' },
         formato: slideFormat === 'story' ? '1080x1920' : '1080x1440'
       });
-      const slides: SlideConfig[] = result.copy.slides.map((s: any, idx: number) => ({
+      const selectedCombo = FONT_COMBOS.find(c => c.id === iaConfig.fontCombo) ?? FONT_COMBOS[0];
+      const slides: SlideConfig[] = result.copy.slides.map((s: { titulo: string; corpo: string }, idx: number) => ({
         id: `slide-${idx}-${Date.now()}`,
         title: s.titulo, subtitle: s.corpo,
         textAlign: 'center', textScale: 100,
         titleFontSize: idx === 0 ? 90 : 64,
         subtitleFontSize: idx === 0 ? 28 : 30,
-        titleFont: PREMIUM_FONTS[0].id, subtitleFont: PREMIUM_FONTS[0].id,
+        titleFont: selectedCombo.title,
+        subtitleFont: selectedCombo.sub,
         overlayStyle: 'bottom-strong', overlayOpacity: 90,
         bgPattern: 'none', slideDark: true, bgColor: iaConfig.brandBg || '#0a0a0a',
         titleColor: iaConfig.brandTitle || undefined,
         subtitleColor: iaConfig.brandSub || undefined,
-        ...(iaConfig.instagramHandle ? { profileBadgeHandle: iaConfig.instagramHandle.startsWith('@') ? iaConfig.instagramHandle : `@${iaConfig.instagramHandle}`, showProfileBadge: true } : {})
+        ...(iaConfig.instagramHandle ? {
+          profileBadgeHandle: iaConfig.instagramHandle.startsWith('@') ? iaConfig.instagramHandle : `@${iaConfig.instagramHandle}`,
+          showProfileBadge: true
+        } : {})
       }));
       setStudioData({ title: iaConfig.topic.slice(0, 80), postStyle, slideFormat, slides });
       closeModal();
@@ -179,25 +346,34 @@ export default function MyPostFlowPage() {
     }
   }, [iaConfig, slideFormat, postStyle, toast]);
 
-  /* Abrir editor do zero */
+  /* Abrir editor */
   const handleOpenStudio = (mode: 'ai' | 'scratch' | 'train') => {
     if (mode === 'ai') { openAiModal(); return; }
-    if (mode === 'scratch') {
-      const blankSlides: SlideConfig[] = Array.from({ length: 4 }).map((_, idx) => ({
-        id: `slide-${idx}-${Date.now()}`,
-        title: idx === 0 ? 'TÍTULO\nAQUI' : 'CONTEÚDO VAI AQUI',
-        subtitle: idx === 0 ? 'Seu subtítulo explicativo' : 'Adicione os detalhes deste slide',
-        textAlign: 'center', textScale: 100, titleFontSize: 80, subtitleFontSize: 30,
-        titleFont: PREMIUM_FONTS[0].id, subtitleFont: PREMIUM_FONTS[0].id,
-        overlayStyle: 'bottom-strong', overlayOpacity: 80, bgPattern: 'none',
-        slideDark: true, bgColor: '#0a0a0a'
-      }));
-      setStudioData({ title: 'Novo Projeto', postStyle: 'minimalista', slideFormat: 'carousel', slides: blankSlides });
-      setShowStudio(true);
-    } else {
-      toast({ title: "Em breve", description: "Treinamento de IA disponível na próxima atualização." });
-    }
+    if (mode === 'train') { setShowTraining(true); return; }
+    // scratch
+    const blankSlides: SlideConfig[] = Array.from({ length: 4 }).map((_, idx) => ({
+      id: `slide-${idx}-${Date.now()}`,
+      title: idx === 0 ? 'TÍTULO\nAQUI' : 'CONTEÚDO VAI AQUI',
+      subtitle: idx === 0 ? 'Seu subtítulo explicativo' : 'Adicione os detalhes deste slide',
+      textAlign: 'center', textScale: 100, titleFontSize: 80, subtitleFontSize: 30,
+      titleFont: PREMIUM_FONTS[0].id, subtitleFont: PREMIUM_FONTS[0].id,
+      overlayStyle: 'bottom-strong', overlayOpacity: 80, bgPattern: 'none',
+      slideDark: true, bgColor: '#0a0a0a'
+    }));
+    setStudioData({ title: 'Novo Projeto', postStyle: 'minimalista', slideFormat: 'carousel', slides: blankSlides });
+    setShowStudio(true);
   };
+
+  /* Abrir carrossel salvo */
+  const handleOpenCarousel = (carousel: CarouselV2) => {
+    setStudioData(carousel);
+    setShowStudio(true);
+  };
+
+  /* ── Treinar ── */
+  if (showTraining) {
+    return <TrainingPage onBack={() => setShowTraining(false)} />;
+  }
 
   /* ── Studio ativo ── */
   if (showStudio && studioData) {
@@ -205,12 +381,18 @@ export default function MyPostFlowPage() {
   }
 
   const isModalOpen = step > 0;
+  const selectedCombo = FONT_COMBOS.find(c => c.id === iaConfig.fontCombo) ?? FONT_COMBOS[0];
+  const selectedComboLabel = `${selectedCombo.label} + ${selectedCombo.subLabel}`;
 
   return (
     <>
-      <MyPostFlowDashboard onBack={() => navigate(-1)} onOpenStudio={handleOpenStudio} />
+      <MyPostFlowDashboard
+        onBack={() => navigate(-1)}
+        onOpenStudio={handleOpenStudio}
+        onOpenCarousel={handleOpenCarousel}
+      />
 
-      {/* ══════════ MODAL IDÊNTICO AO ORIGINAL ══════════ */}
+      {/* ══════════ MODAL ══════════ */}
       <AnimatePresence>
         {isModalOpen && (
           <motion.div
@@ -225,9 +407,8 @@ export default function MyPostFlowPage() {
               className="w-full max-w-[500px] rounded-[20px] border border-white/[0.08] relative my-auto"
               style={{ background: '#111', padding: '28px 22px', boxShadow: '0 24px 80px rgba(0,0,0,0.5)' }}
             >
-              {/* X fechar */}
               {step > 0 && (
-                <button type="button" onClick={closeModal} className="absolute top-4 right-4 text-white/30 hover:text-white/60 transition-colors cursor-pointer bg-transparent border-none p-1">
+                <button type="button" onClick={closeModal} aria-label="Fechar modal" className="absolute top-4 right-4 text-white/30 hover:text-white/60 transition-colors cursor-pointer bg-transparent border-none p-1">
                   <X className="w-[18px] h-[18px]" />
                 </button>
               )}
@@ -239,7 +420,6 @@ export default function MyPostFlowPage() {
                   <h2 className="text-[22px] font-[800] text-center tracking-[-0.03em] mt-0 mb-1.5">Formato e Estilo</h2>
                   <p className="text-[13px] text-white/40 text-center mb-5">Escolha o formato do post e depois o estilo visual</p>
 
-                  {/* Formato do post */}
                   <p className="text-[11px] font-bold tracking-[0.06em] uppercase text-white/40 mb-2.5">Formato do post</p>
                   <div className="flex gap-2 mb-6">
                     {([
@@ -261,7 +441,6 @@ export default function MyPostFlowPage() {
                     })}
                   </div>
 
-                  {/* Estilo visual */}
                   <p className="text-[11px] font-bold tracking-[0.06em] uppercase text-white/40 mb-2.5">Estilo visual</p>
                   <div className="flex gap-3 mb-7">
                     <StyleCard
@@ -319,7 +498,6 @@ export default function MyPostFlowPage() {
                   <h2 className="text-[22px] font-[800] text-center tracking-[-0.03em] mt-0 mb-1.5">Configurar IA</h2>
                   <p className="text-[13px] text-white/40 text-center mb-5">Diga sobre o que é o conteúdo e como quer o carrossel</p>
 
-                  {/* Textarea tópico */}
                   <div className="mb-3.5">
                     <label className="block text-[11px] font-bold uppercase tracking-[0.06em] text-white/40 mb-1.5">Sobre o que é o conteúdo?</label>
                     <textarea
@@ -330,7 +508,6 @@ export default function MyPostFlowPage() {
                     />
                   </div>
 
-                  {/* Manter conteúdo exato */}
                   <div className="flex flex-col gap-2.5 mb-4">
                     <label className="flex items-start gap-2.5 cursor-pointer">
                       <input type="checkbox" checked={iaConfig.exactContent} onChange={e => updateIA({ exactContent: e.target.checked })}
@@ -341,10 +518,10 @@ export default function MyPostFlowPage() {
                       </span>
                     </label>
 
-                    {/* Idioma */}
                     <div className="flex items-center gap-2">
                       <span className="text-[12px] font-semibold text-white whitespace-nowrap">Idioma do carrossel:</span>
                       <select value={iaConfig.language} onChange={e => updateIA({ language: e.target.value })}
+                        title="Idioma do carrossel"
                         className="flex-1 py-[7px] px-2.5 rounded-[9px] text-[12px] bg-white/[0.04] border border-white/[0.08] text-white cursor-pointer outline-none"
                       >
                         {LANGUAGES.map(l => <option key={l}>{l}</option>)}
@@ -360,7 +537,29 @@ export default function MyPostFlowPage() {
                     <p className="text-[11px] text-white/30 mb-2 leading-[1.5]">Anexe capturas de carrosséis — a IA analisa e cria conteúdo inspirado.</p>
                     {refImages.length < 5 && (
                       <div className="flex gap-2 mb-2.5">
-                        <button type="button" className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-[10px] border border-white/[0.08] bg-white/[0.03] text-white text-[12px] font-semibold cursor-pointer hover:bg-white/[0.06] transition-colors">
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            try {
+                              const items = await navigator.clipboard.read();
+                              for (const item of items) {
+                                const imgType = item.types.find(t => t.startsWith('image/'));
+                                if (imgType) {
+                                  const blob = await item.getType(imgType);
+                                  const r = new FileReader();
+                                  r.onload = ev => setRefImages(p => p.length < 5 ? [...p, ev.target?.result as string] : p);
+                                  r.readAsDataURL(blob);
+                                  toast({ title: 'Imagem colada!' });
+                                  return;
+                                }
+                              }
+                              toast({ title: 'Nenhuma imagem na área de transferência', variant: 'destructive' });
+                            } catch {
+                              toast({ title: 'Cole com Ctrl+V', description: 'Use Ctrl+V para colar uma imagem copiada.' });
+                            }
+                          }}
+                          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-[10px] border border-white/[0.08] bg-white/[0.03] text-white text-[12px] font-semibold cursor-pointer hover:bg-white/[0.06] transition-colors"
+                        >
                           <Clipboard className="w-[13px] h-[13px]" /> Colar Imagem
                         </button>
                         <label className="flex-1 cursor-pointer">
@@ -421,7 +620,6 @@ export default function MyPostFlowPage() {
                     </div>
                   </div>
 
-                  {/* Footer */}
                   <div className="flex gap-2">
                     <BackBtn onClick={() => setStep(2)} />
                     <PrimaryBtn onClick={() => setStep(4)} disabled={!iaConfig.topic.trim() && refImages.length === 0}>
@@ -439,12 +637,38 @@ export default function MyPostFlowPage() {
                   <p className="text-[13px] text-white/40 text-center mb-5">Identidade visual do seu carrossel</p>
 
                   {/* Usar template salvo */}
-                  <button type="button" className="w-full flex items-center justify-between py-2.5 px-3 rounded-[10px] border border-white/[0.08] bg-white/[0.03] cursor-pointer mb-5 text-left">
-                    <span className="flex items-center gap-[7px] text-[13px] font-semibold text-white">
-                      <Wand2 className="w-[13px] h-[13px] opacity-70" /> Usar template salvo
-                    </span>
-                    <ChevronDown className="w-[14px] h-[14px] text-white/30" />
-                  </button>
+                  <div className="mb-5">
+                    <button type="button" onClick={handleToggleTemplates}
+                      className="w-full flex items-center justify-between py-2.5 px-3 rounded-[10px] border border-white/[0.08] bg-white/[0.03] cursor-pointer text-left hover:bg-white/[0.05] transition-colors"
+                    >
+                      <span className="flex items-center gap-[7px] text-[13px] font-semibold text-white">
+                        <Wand2 className="w-[13px] h-[13px] opacity-70" /> Usar template salvo
+                      </span>
+                      {loadingTemplates
+                        ? <Loader2 className="w-[14px] h-[14px] text-white/30 animate-spin" />
+                        : <ChevronDown className={`w-[14px] h-[14px] text-white/30 transition-transform ${showTemplates ? 'rotate-180' : ''}`} />
+                      }
+                    </button>
+                    {showTemplates && !loadingTemplates && (
+                      <div className="mt-1.5 border border-white/[0.08] rounded-[10px] bg-white/[0.02] overflow-hidden">
+                        {templates.length === 0 ? (
+                          <div className="flex flex-col items-center py-6 text-white/30 text-[12px] gap-2">
+                            <BookOpen className="w-5 h-5 opacity-40" />
+                            <span>Nenhum template salvo ainda</span>
+                          </div>
+                        ) : (
+                          templates.map(tmpl => (
+                            <button key={tmpl.id} type="button" onClick={() => applyTemplate(tmpl)}
+                              className="w-full flex items-center justify-between px-3 py-2.5 text-left hover:bg-white/[0.04] transition-colors border-b border-white/[0.05] last:border-b-0"
+                            >
+                              <span className="text-[13px] text-white font-medium">{tmpl.name}</span>
+                              <span className="text-[11px] text-white/30">{tmpl.slides.length} slides</span>
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
 
                   {/* @ do Instagram */}
                   <div className="mb-5">
@@ -457,21 +681,49 @@ export default function MyPostFlowPage() {
                         value={iaConfig.instagramHandle.replace(/^@/, '')}
                         onChange={e => updateIA({ instagramHandle: e.target.value })}
                         placeholder="seuperfil"
-                        className="w-full rounded-[10px] py-2.5 pl-[26px] pr-3 bg-white/[0.04] border border-white/[0.08] text-white text-[13px] outline-none"
+                        className="w-full rounded-[10px] py-2.5 pl-[26px] pr-3 bg-white/[0.04] border border-white/[0.08] text-white text-[13px] outline-none focus:border-white/20 transition-colors"
                       />
                     </div>
                     <p className="mt-1.5 text-[11px] text-white/30">Aparece no canto superior esquerdo de cada slide.</p>
                   </div>
 
                   {/* Combinação de fontes */}
-                  <button type="button" onClick={() => setShowFonts(p => !p)}
-                    className="w-full flex items-center justify-between py-2.5 px-3 rounded-[10px] border border-white/[0.08] bg-white/[0.03] cursor-pointer mb-5 text-left"
-                  >
-                    <span className="text-[13px] font-semibold text-white">
-                      Combinação de fontes <span className="text-[11px] font-normal text-white/30 ml-2">Space + Inter</span>
-                    </span>
-                    <ChevronDown className={`w-[14px] h-[14px] text-white/30 transition-transform ${showFonts ? 'rotate-180' : ''}`} />
-                  </button>
+                  <div className="mb-5">
+                    <button type="button" onClick={() => setShowFonts(p => !p)}
+                      className="w-full flex items-center justify-between py-2.5 px-3 rounded-[10px] border border-white/[0.08] bg-white/[0.03] cursor-pointer text-left hover:bg-white/[0.05] transition-colors"
+                    >
+                      <span className="text-[13px] font-semibold text-white">
+                        Combinação de fontes <span className="text-[11px] font-normal text-white/30 ml-2">{selectedComboLabel}</span>
+                      </span>
+                      <ChevronDown className={`w-[14px] h-[14px] text-white/30 transition-transform ${showFonts ? 'rotate-180' : ''}`} />
+                    </button>
+                    {showFonts && (
+                      <div className="mt-2 grid grid-cols-4 gap-1.5">
+                        {FONT_COMBOS.map(combo => {
+                          const titleFont = PREMIUM_FONTS.find(f => f.id === combo.title);
+                          const subFont   = PREMIUM_FONTS.find(f => f.id === combo.sub);
+                          const selected  = iaConfig.fontCombo === combo.id;
+                          return (
+                            <button
+                              key={combo.id}
+                              type="button"
+                              onClick={() => updateIA({ fontCombo: combo.id })}
+                              className={`p-2.5 rounded-[10px] border-[1.5px] text-left transition-all ${
+                                selected ? 'border-white/50 bg-white/[0.07]' : 'border-white/[0.07] hover:border-white/20'
+                              }`}
+                            >
+                              <div className="text-[15px] font-bold leading-tight" style={{ fontFamily: titleFont?.family }}>
+                                {combo.label}
+                              </div>
+                              <div className="text-[10px] text-white/40 mt-0.5" style={{ fontFamily: subFont?.family }}>
+                                {combo.subLabel}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
 
                   {/* Identidade Visual */}
                   <div className="mb-6">
@@ -503,11 +755,13 @@ export default function MyPostFlowPage() {
                               <span className="text-[11px] text-white/40 w-[58px] shrink-0">{label}</span>
                               <input type="color" value={iaConfig[key] || '#1a1a1a'}
                                 onChange={e => updateIA({ [key]: e.target.value })}
+                                title={label}
+                                aria-label={label}
                                 className="w-[26px] h-[26px] rounded-[6px] border border-white/[0.08] p-0.5 cursor-pointer bg-transparent shrink-0" />
                               <input type="text" value={iaConfig[key]}
                                 onChange={e => updateIA({ [key]: e.target.value })}
                                 placeholder="#1A1A1A" maxLength={7}
-                                className="w-[76px] py-1.5 px-[7px] rounded-[7px] text-[11px] font-mono border border-white/[0.08] bg-white/[0.04] text-white outline-none" />
+                                className="w-[76px] py-1.5 px-[7px] rounded-[7px] text-[11px] font-mono border border-white/[0.08] bg-white/[0.04] text-white outline-none focus:border-white/20 transition-colors" />
                             </div>
                           ))}
                         </div>
@@ -517,10 +771,12 @@ export default function MyPostFlowPage() {
                             style={{ background: iaConfig.brandBg && /^#[0-9a-f]{6}$/i.test(iaConfig.brandBg) ? iaConfig.brandBg : '#1a1a1a' }}
                           >
                             <div className="text-[13px] font-bold leading-[1.2]"
-                              style={{ color: iaConfig.brandTitle && /^#[0-9a-f]{6}$/i.test(iaConfig.brandTitle) ? iaConfig.brandTitle : '#fff' }}
+                              style={{ color: iaConfig.brandTitle && /^#[0-9a-f]{6}$/i.test(iaConfig.brandTitle) ? iaConfig.brandTitle : '#fff',
+                                       fontFamily: PREMIUM_FONTS.find(f => f.id === (FONT_COMBOS.find(c => c.id === iaConfig.fontCombo)?.title))?.family }}
                             >Título</div>
                             <div className="text-[10px]"
-                              style={{ color: iaConfig.brandSub && /^#[0-9a-f]{6}$/i.test(iaConfig.brandSub) ? iaConfig.brandSub : '#666' }}
+                              style={{ color: iaConfig.brandSub && /^#[0-9a-f]{6}$/i.test(iaConfig.brandSub) ? iaConfig.brandSub : '#666',
+                                       fontFamily: PREMIUM_FONTS.find(f => f.id === (FONT_COMBOS.find(c => c.id === iaConfig.fontCombo)?.sub))?.family }}
                             >Subtítulo</div>
                           </div>
                         </div>
@@ -528,8 +784,32 @@ export default function MyPostFlowPage() {
                     )}
 
                     {brandMode === 'image' && (
-                      <div className="flex items-center justify-center py-8 border-2 border-dashed border-white/10 rounded-xl text-white/30 text-[12px]">
-                        <Image className="w-5 h-5 mr-2 opacity-30" /> Faça upload de logo ou banner
+                      <div>
+                        <input
+                          ref={brandImageInputRef}
+                          type="file"
+                          accept="image/*"
+                          title="Upload de imagem para extrair cores"
+                          aria-label="Upload de imagem para extrair cores"
+                          className="hidden"
+                          onChange={e => {
+                            const file = e.target.files?.[0];
+                            if (file) handleBrandImageUpload(file);
+                            e.target.value = '';
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => brandImageInputRef.current?.click()}
+                          disabled={extractingColors}
+                          className="w-full flex flex-col items-center justify-center py-8 border-2 border-dashed border-white/10 rounded-xl text-white/30 text-[12px] hover:border-white/20 hover:bg-white/[0.02] transition-all cursor-pointer gap-2"
+                        >
+                          {extractingColors ? (
+                            <><Loader2 className="w-5 h-5 animate-spin opacity-50" /><span>Extraindo cores...</span></>
+                          ) : (
+                            <><Image className="w-5 h-5 opacity-40" /><span>Faça upload de logo ou banner</span><span className="text-[10px] opacity-60">As cores serão extraídas automaticamente</span></>
+                          )}
+                        </button>
                       </div>
                     )}
                   </div>

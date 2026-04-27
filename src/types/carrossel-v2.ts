@@ -1,44 +1,31 @@
 
-export type OverlayStyle = 
-  | 'none' 
-  | 'gradient' | 'gradient-strong' 
-  | 'vignette' | 'vignette-strong' 
-  | 'dark' | 'dark-strong' 
+export type OverlayStyle =
+  | 'none'
+  | 'gradient' | 'gradient-strong'
+  | 'vignette' | 'vignette-strong'
+  | 'dark' | 'dark-strong'
   | 'bottom' | 'bottom-strong' | 'bottom-intense'
   | 'top' | 'top-strong' | 'top-intense'
   | 'frame' | 'frame-strong'
   | 'left' | 'right'
   | 'diag-bl' | 'diag-br' | 'diag-tl' | 'diag-tr';
 
-export type BackgroundPattern = 
-  | 'none' 
-  | 'grid' 
-  | 'dots' 
-  | 'lines' 
-  | 'diagonal' 
+export type BackgroundPattern =
+  | 'none'
+  | 'grid'
+  | 'dots'
+  | 'lines'
+  | 'diagonal'
   | 'crosshatch';
 
 export type SlideFormat = 'carousel' | 'square' | 'story';
 export type PostStyle = 'minimalista' | 'profile';
 
-export interface BadgeConfig {
-  show: boolean;
-  style: 'glass' | 'solid' | 'minimal';
-  handle?: string;
-  photoUrl?: string;
-  logoUrl?: string;
-  position: 'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right' | 'free';
-  x?: number;
-  y?: number;
-  radius?: number;
-  size?: number;
-}
-
 export interface SlideConfig {
   id: string;
   title: string;
   subtitle: string;
-  
+
   // Design
   bgColor?: string;
   slideDark?: boolean;
@@ -56,13 +43,13 @@ export interface SlideConfig {
   titleLetterSpacing?: number;
   titleBlockY?: number;
   titleBlockGap?: number;
-  
+
   subtitleFont?: string;
   subtitleFontSize?: number;
   subtitleFontWeight?: number;
   subtitleColor?: string;
   subtitleLetterSpacing?: number;
-  
+
   textAlign: 'left' | 'center' | 'right';
   textScale: number;
   highlightWord?: string;
@@ -75,7 +62,7 @@ export interface SlideConfig {
   imageZoom?: number;
   imageFlipH?: boolean;
   imageOpacity?: number;
-  
+
   // Infinite Carousel
   infiniteCarousel?: boolean;
   infiniteCarouselRight?: boolean;
@@ -87,8 +74,24 @@ export interface SlideConfig {
   imageGridY?: number;
   imageGridAdapt?: boolean;
   imageGrid1Url?: string;
+  imageGrid1PositionX?: number;
+  imageGrid1PositionY?: number;
+  imageGrid1Zoom?: number;
+  imageGrid1FlipH?: boolean;
+  imageGrid1Opacity?: number;
   imageGrid2Url?: string;
+  imageGrid2PositionX?: number;
+  imageGrid2PositionY?: number;
+  imageGrid2Zoom?: number;
+  imageGrid2FlipH?: boolean;
+  imageGrid2Opacity?: number;
   imageGrid3Url?: string;
+  imageGrid3PositionX?: number;
+  imageGrid3PositionY?: number;
+  imageGrid3Zoom?: number;
+  imageGrid3FlipH?: boolean;
+  imageGrid3Opacity?: number;
+  imageGrid4Url?: string;
 
   // Content Box
   contentGlass?: boolean;
@@ -101,11 +104,19 @@ export interface SlideConfig {
   profileBadgePhotoUrl?: string;
   profileBadgeStyle?: 'glass' | 'solid' | 'minimal';
   profileBadgeSize?: number;
+  profileBadgeSizeLocal?: number;
+  profileBadgeRadius?: number;
 
   showLogoBadge?: boolean;
   logoBadgeUrl?: string;
+  logoBadgeFile?: string;
+  logoBadgeStyle?: 'glass' | 'solid' | 'minimal';
   logoBadgePosition?: string;
   logoBadgeSize?: number;
+  logoBadgeSizeLocal?: number;
+  logoBadgeRadius?: number;
+  logoBadgeX?: number;
+  logoBadgeY?: number;
 
   // Buttons/CTAs
   showButtons?: boolean;
@@ -136,6 +147,31 @@ export interface SlideConfig {
   subtitleStrikethrough?: boolean;
   subtitleTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
   showTextShadows?: boolean;
+  lineHeight?: number;
+
+  // Content layout
+  contentMarginH?: number;
+  contentMarginV?: number;
+  contentLayout?: string;
+
+  // Corners (exact names from competitor source)
+  showCorners?: boolean;
+  showCarouselDots?: boolean;
+  showCornerTL?: boolean;
+  showCornerTR?: boolean;
+  showCornerBL?: boolean;
+  showCornerBR?: boolean;
+  cornerTopLeft?: string;
+  cornerTopRight?: string;
+  cornerBottomLeft?: string;
+  cornerBottomRight?: string;
+  cornerFontSize?: number;
+  cornerInset?: number;
+  cornerOpacity?: number;
+  cornerGlass?: boolean;
+  cornerBorders?: boolean;
+  cornerBorderRadius?: number;
+  cornerBottomRightIcon?: string;
 }
 
 export interface CarouselV2 {

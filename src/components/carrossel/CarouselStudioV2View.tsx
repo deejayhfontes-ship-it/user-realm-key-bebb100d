@@ -8,7 +8,8 @@ import { EditorSidebarV2 } from './EditorSidebarV2';
 import type { SlideConfig, CarouselV2, SlideFormat } from '@/types/carrossel-v2';
 import { toPng } from 'html-to-image';
 import { useToast } from '@/hooks/use-toast';
-import { refineSlideIA } from '@/services/carrossel-api';
+import { refineSlideIA, gerarCarrossel } from '@/services/carrossel-api';
+import { saveCarousel } from '@/services/carrossel-service';
 import { cn } from '@/lib/utils';
 import { PREMIUM_FONTS } from '@/types/carrossel-constants';
 
@@ -55,6 +56,8 @@ export const CarouselStudioV2View: React.FC<CarouselStudioV2ViewProps> = ({
   const [carousel, setCarousel] = useState<CarouselV2>(initialData);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isExporting, setIsExporting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [savedId, setSavedId] = useState<string | undefined>(initialData.id);
   const [postStyle, setPostStyle] = useState<'minimalista' | 'profile'>('minimalista');
 
   // Undo/Redo
@@ -82,18 +85,19 @@ export const CarouselStudioV2View: React.FC<CarouselStudioV2ViewProps> = ({
     setCarousel(next);
   }, [histIdx]);
 
-  const undo = () => {
+  const undo = useCallback(() => {
     if (histIdx > 0) {
       setHistIdx(i => i - 1);
       setCarousel(history[histIdx - 1]);
     }
-  };
-  const redo = () => {
+  }, [histIdx, history]);
+
+  const redo = useCallback(() => {
     if (histIdx < history.length - 1) {
       setHistIdx(i => i + 1);
       setCarousel(history[histIdx + 1]);
     }
-  };
+  }, [histIdx, history]);
 
   const updateSlide = (updates: Partial<SlideConfig>) => {
     const next = {
@@ -177,6 +181,22 @@ export const CarouselStudioV2View: React.FC<CarouselStudioV2ViewProps> = ({
     toast({ title: "✅ Todos os slides exportados!" });
   };
 
+  // Salvar no Supabase (Ctrl+S)
+  const handleSave = useCallback(async () => {
+    setIsSaving(true);
+    try {
+      const toSave = { ...carousel, id: savedId };
+      const id = await saveCarousel(toSave);
+      setSavedId(id);
+      setCarousel(c => ({ ...c, id }));
+      toast({ title: '✅ Salvo!', description: 'Carrossel salvo na sua conta.' });
+    } catch {
+      toast({ title: 'Erro ao salvar', description: 'Faça login para salvar carrosséis.', variant: 'destructive' });
+    } finally {
+      setIsSaving(false);
+    }
+  }, [carousel, savedId, toast]);
+
   const handleRefineIA = async (prompt: string) => {
     toast({ title: "IA Refinando..." });
     try {
@@ -188,6 +208,34 @@ export const CarouselStudioV2View: React.FC<CarouselStudioV2ViewProps> = ({
     }
   };
 
+  const handleGenerateCarousel = async (topic: string, slideCount: number, _refImages: string[]) => {
+    try {
+      const result = await gerarCarrossel({
+        angulo: { id: 0, tipo: 'IA', emoji: '✨', hook: topic, descricao: topic },
+        pauta: { id: 0, titulo: topic, contexto: topic, potencial: 'alto' },
+        formato: carousel.slideFormat === 'story' ? '1080x1920' : '1080x1440',
+      });
+      const newSlides: SlideConfig[] = result.copy.slides.slice(0, slideCount).map((s: { titulo: string; corpo: string }, idx: number) => ({
+        id: `slide-${idx}-${Date.now()}`,
+        title: s.titulo, subtitle: s.corpo,
+        textAlign: 'center' as const, textScale: 100,
+        titleFontSize: idx === 0 ? 90 : 64, subtitleFontSize: idx === 0 ? 28 : 30,
+        titleFont: currentSlide.titleFont || PREMIUM_FONTS[0].id,
+        subtitleFont: currentSlide.subtitleFont || PREMIUM_FONTS[0].id,
+        overlayStyle: 'bottom-strong', overlayOpacity: 90,
+        bgPattern: 'none', slideDark: true,
+        bgColor: currentSlide.bgColor || '#0a0a0a',
+        titleColor: currentSlide.titleColor,
+        subtitleColor: currentSlide.subtitleColor,
+      }));
+      setCarousel(c => ({ ...c, slides: newSlides, title: topic.slice(0, 80) }));
+      setCurrentIndex(0);
+      toast({ title: `✅ ${newSlides.length} slides gerados!` });
+    } catch (e) {
+      toast({ title: 'Erro ao gerar', description: (e as Error).message, variant: 'destructive' });
+    }
+  };
+
   // Keyboard: setas para navegar slides, undo/redo
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -196,10 +244,11 @@ export const CarouselStudioV2View: React.FC<CarouselStudioV2ViewProps> = ({
       if (e.key === 'ArrowLeft') setCurrentIndex(i => Math.max(0, i - 1));
       if ((e.metaKey || e.ctrlKey) && e.key === 'z') { e.preventDefault(); undo(); }
       if ((e.metaKey || e.ctrlKey) && e.key === 'y') { e.preventDefault(); redo(); }
+      if ((e.metaKey || e.ctrlKey) && e.key === 's') { e.preventDefault(); handleSave(); }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [histIdx, history, totalSlides]);
+  }, [histIdx, history, totalSlides, handleSave, undo, redo]);
 
   return (
     <div className="fixed inset-0 z-50 bg-[#141414] text-white flex flex-col overflow-hidden">
@@ -232,8 +281,17 @@ export const CarouselStudioV2View: React.FC<CarouselStudioV2ViewProps> = ({
           </nav>
         </div>
 
-        {/* Formato + undo/redo + slide counter */}
-        <div className="flex items-center gap-3">
+        {/* Centro: título editável */}
+        <input
+          type="text"
+          value={carousel.title}
+          onChange={e => setCarousel(p => ({ ...p, title: e.target.value }))}
+          className="absolute left-1/2 -translate-x-1/2 text-sm font-semibold text-white/70 bg-transparent border-none outline-none text-center hover:text-white focus:text-white w-48 truncate"
+          title="Nome do projeto"
+        />
+
+        {/* Direita: formato + undo/redo + save + download */}
+        <div className="flex items-center gap-2">
           {/* Seletor de formato */}
           <div className="flex items-center gap-0.5 bg-white/5 rounded-lg p-0.5">
             {([
@@ -242,13 +300,12 @@ export const CarouselStudioV2View: React.FC<CarouselStudioV2ViewProps> = ({
               { fmt: 'story'    as SlideFormat, label: 'Stories' },
             ] as const).map(({ fmt, label }) => (
               <button
+                type="button"
                 key={fmt}
                 onClick={() => setCarousel(p => ({ ...p, slideFormat: fmt }))}
                 className={cn(
                   'text-xs px-3 py-1.5 rounded-md transition-all font-medium',
-                  carousel.slideFormat === fmt
-                    ? 'bg-white text-black'
-                    : 'text-white/50 hover:text-white/80'
+                  carousel.slideFormat === fmt ? 'bg-white text-black' : 'text-white/50 hover:text-white/80'
                 )}
               >
                 {label}
@@ -259,6 +316,7 @@ export const CarouselStudioV2View: React.FC<CarouselStudioV2ViewProps> = ({
           {/* Undo / Redo */}
           <div className="flex items-center gap-0.5">
             <button
+              type="button"
               onClick={undo}
               disabled={histIdx === 0}
               className="w-8 h-8 rounded-md flex items-center justify-center text-white/40 hover:bg-white/5 hover:text-white disabled:opacity-20 transition-all"
@@ -267,6 +325,7 @@ export const CarouselStudioV2View: React.FC<CarouselStudioV2ViewProps> = ({
               <Undo className="w-3.5 h-3.5" />
             </button>
             <button
+              type="button"
               onClick={redo}
               disabled={histIdx >= history.length - 1}
               className="w-8 h-8 rounded-md flex items-center justify-center text-white/40 hover:bg-white/5 hover:text-white disabled:opacity-20 transition-all"
@@ -276,10 +335,43 @@ export const CarouselStudioV2View: React.FC<CarouselStudioV2ViewProps> = ({
             </button>
           </div>
 
+          <div className="w-px h-5 bg-white/10" />
+
           {/* Slide counter */}
           <span className="text-xs text-white/30 font-mono">
-            Slide {currentIndex + 1} de {totalSlides}
+            {currentIndex + 1}/{totalSlides}
           </span>
+
+          <div className="w-px h-5 bg-white/10" />
+
+          {/* Download */}
+          <button
+            type="button"
+            onClick={exportAll}
+            disabled={isExporting}
+            title="Exportar todos os slides (PNG)"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-white/50 hover:text-white hover:bg-white/5 transition-all disabled:opacity-40"
+          >
+            <Download className="w-3.5 h-3.5" />
+            Exportar
+          </button>
+
+          {/* Save */}
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={isSaving}
+            title="Salvar (Ctrl+S)"
+            className={cn(
+              'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all',
+              isSaving
+                ? 'bg-white/20 text-black/50 cursor-not-allowed'
+                : 'bg-white text-black hover:bg-white/90'
+            )}
+          >
+            <Save className="w-3.5 h-3.5" />
+            {isSaving ? 'Salvando…' : savedId ? 'Salvo ✓' : 'Salvar'}
+          </button>
         </div>
       </header>
 
@@ -291,7 +383,9 @@ export const CarouselStudioV2View: React.FC<CarouselStudioV2ViewProps> = ({
           config={currentSlide}
           onChange={updateSlide}
           onRefineIA={handleRefineIA}
+          onGenerateCarousel={handleGenerateCarousel}
           onApplyToAll={applyToAll}
+          onApplyToAllSlides={(updates) => setCarousel(c => ({ ...c, slides: c.slides.map(s => ({ ...s, ...updates })) }))}
           onDownloadSlide={exportSlide}
           onDownloadAll={exportAll}
           onGenerateCaption={() => toast({ title: "Gerar Legenda — em breve!" })}
@@ -309,7 +403,6 @@ export const CarouselStudioV2View: React.FC<CarouselStudioV2ViewProps> = ({
             {carousel.slides.map((slide, idx) => (
               <div
                 key={slide.id}
-                role="button"
                 tabIndex={0}
                 onClick={() => setCurrentIndex(idx)}
                 onKeyDown={(e) => e.key === 'Enter' && setCurrentIndex(idx)}
@@ -344,6 +437,7 @@ export const CarouselStudioV2View: React.FC<CarouselStudioV2ViewProps> = ({
 
                 {idx === currentIndex && carousel.slides.length > 1 && (
                   <button
+                    type="button"
                     onClick={(e) => { e.stopPropagation(); removeSlide(idx); }}
                     className="absolute top-2 right-2 z-30 opacity-0 group-hover:opacity-100 transition-opacity"
                     title="Remover slide"
@@ -372,7 +466,6 @@ export const CarouselStudioV2View: React.FC<CarouselStudioV2ViewProps> = ({
 
             {/* Botão adicionar slide */}
             <div
-              role="button"
               tabIndex={0}
               onClick={addSlide}
               onKeyDown={(e) => e.key === 'Enter' && addSlide()}
