@@ -37,8 +37,8 @@ export default function Home() {
         {/* Cards Principais */}
         {isSectionActive('projects') && <ProjectsSection />}
         
-        {/* CAMPANHA: Agência + Sistema */}
-        <AgencySistemaCampaign />
+        {/* CAMPANHA: Agência + Sistema — desativado temporariamente */}
+        {/* <AgencySistemaCampaign /> */}
         
         {/* Geradores IA */}
         {isSectionActive('generators') && <GeneratorsSection />}
