@@ -206,6 +206,20 @@ export function DesignerDoFuturoGenerator() {
     const { generate, inpaintImage, reframeImage, extractPromptFromImage, brainstormScenes, isGenerating, progress, lastForensicLog } = useGeminiImageGeneration();
     const [refinementText, setRefinementText] = useState('');
     const [forensicOpen, setForensicOpen] = useState(false);
+
+    // Aviso automático quando modelo principal está sobrecarregado e usa fallback
+    useEffect(() => {
+        if (progress && progress.includes('indisponível')) {
+            const match = progress.match(/tentando (.+)\.\.\./);
+            const fallbackModel = match ? match[1] : 'modelo alternativo';
+            toast({
+                title: '⚠️ Gemini 3.1 sobrecarregado',
+                description: `Servidor cheio no momento. Usando ${fallbackModel} como alternativa. A geração vai continuar normalmente.`,
+                variant: 'default',
+                duration: 7000,
+            });
+        }
+    }, [progress]);
     const [isExtracting, setIsExtracting] = useState(false);
 
     const [sidebarTab, setSidebarTab] = useState<'create' | 'explore' | 'gallery'>('create');
