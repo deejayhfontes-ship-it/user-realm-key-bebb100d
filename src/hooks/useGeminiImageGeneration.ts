@@ -186,21 +186,24 @@ const SHOT_TYPES: Record<string, string> = {
 };
 
 // ============================================================
-// Modelos padrão — Gemini (modelos estáveis verificados)
+// Modelos padrão — Gemini 3 (principal) + fallbacks
 // ============================================================
-const DEFAULT_TEXT_MODEL = 'gemini-2.5-flash-preview-05-20';
-const DEFAULT_IMAGE_MODEL = 'gemini-2.0-flash-exp-image-generation';
+const DEFAULT_TEXT_MODEL = 'gemini-3.1-pro-preview';
+const DEFAULT_IMAGE_MODEL = 'gemini-3-pro-image-preview';
 
 // Lista de modelos de imagem em ordem de prioridade (fallback automático)
+// Se o modelo principal estiver com 503/500, tenta o próximo da lista
 const IMAGE_MODEL_FALLBACKS: string[] = [
-    'gemini-2.0-flash-exp-image-generation', // 🥇 Principal — geração de imagem estável
-    'gemini-2.0-flash-preview-image-generation', // 🥈 Preview alternativo
+    'gemini-3-pro-image-preview',       // 🥇 Principal — melhor qualidade
+    'gemini-3.1-flash-image-preview',   // 🥈 Rápido & barato
+    'gemini-2.5-flash-image',           // 🥉 Versão anterior estável
+    'gemini-2.0-flash-exp-image-generation', // 🏅 Legacy fallback
 ];
 
 // Lista de modelos de TEXTO em ordem de prioridade (fallback automático)
 const TEXT_MODEL_FALLBACKS: string[] = [
-    'gemini-2.5-flash-preview-05-20',   // 🥇 Principal — flash rápido e estável
-    'gemini-2.5-pro-preview-05-06',     // 🥈 Pro mais capaz
+    'gemini-3.1-pro-preview',           // 🥇 Principal — melhor qualidade
+    'gemini-2.5-flash-preview-05-20',   // 🥈 Flash rápido
     'gemini-2.0-flash',                 // 🥉 Modelo estável legacy
 ];
 
