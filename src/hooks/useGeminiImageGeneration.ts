@@ -403,13 +403,20 @@ async function callWithKeyPool<T>(
     const shuffled = [...keys].sort(() => 0.5 - Math.random());
 
     let globalAttempt = 0;
+    let roundHad429 = false; // rastreia se houve 429 no round anterior (merece espera)
     for (let round = 0; round < rounds; round++) {
         if (round > 0) {
-            // Entre rounds, espera mais tempo para dar chance ao rate limit resetar
-            const roundDelay = baseDelay * (round + 1);
-            console.log(`[KeyPool] Round ${round + 1}/${rounds} — aguardando ${roundDelay / 1000}s para rate limit resetar...`);
-            await new Promise(r => setTimeout(r, roundDelay));
+            if (roundHad429) {
+                // Só espera entre rounds se houve 429 — dá tempo pro rate limit resetar
+                const roundDelay = baseDelay * (round + 1);
+                console.log(`[KeyPool] Round ${round + 1}/${rounds} — aguardando ${roundDelay / 1000}s para rate limit resetar...`);
+                await new Promise(r => setTimeout(r, roundDelay));
+            } else {
+                // Todos erros foram 5xx (sobrecarga) — não adianta esperar, tenta direto
+                console.log(`[KeyPool] Round ${round + 1}/${rounds} — erros 5xx, sem espera.`);
+            }
         }
+        roundHad429 = false;
         for (let ki = 0; ki < shuffled.length; ki++) {
             const key = shuffled[ki];
             for (let retry = 0; retry < maxRetries; retry++) {
@@ -427,6 +434,7 @@ async function callWithKeyPool<T>(
                         break;
                     }
                     // Erro 429 (rate limit) → delay com backoff exponencial antes de retry
+                    if (is429) roundHad429 = true;
                     if (retry < maxRetries - 1) {
                         const delay = baseDelay * Math.pow(2, retry);
                         console.log(`[KeyPool] Aguardando ${delay / 1000}s antes de retry...`);
