@@ -42,8 +42,8 @@ const DEFAULT_CONFIG = {
     name: 'Designer do Futuro — Gemini',
     slug: DESIGNER_SLUG,
     api_type: 'google' as const,
-    endpoint_url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent',
-    model_name: 'gemini-3.1-flash-image-preview',
+    endpoint_url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent',
+    model_name: 'gemini-2.0-flash-exp-image-generation',
     category: 'vision' as const,
     supports_images: true,
     is_active: true,
@@ -83,7 +83,7 @@ export function DesignerDoFuturoProviderPanel() {
     const [keyEntries, setKeyEntries] = useState<KeyEntry[]>([]);
     const [newExtraKey, setNewExtraKey] = useState('');
     const [modelImage, setModelImage] = useState(DEFAULT_CONFIG.model_name);
-    const [modelText, setModelText] = useState('gemini-3.1-pro-preview');
+    const [modelText, setModelText] = useState('gemini-2.5-flash-preview-05-20');
     const [hasChanges, setHasChanges] = useState(false);
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [showPool, setShowPool] = useState(true); // Pool aberto por padrão
@@ -199,7 +199,7 @@ export function DesignerDoFuturoProviderPanel() {
         const start = Date.now();
         try {
             const response = await fetch(
-                `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview?key=${entry.key}`
+                `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation?key=${entry.key}`
             );
             const latencyMs = Date.now() - start;
 
@@ -707,7 +707,7 @@ export function DesignerDoFuturoProviderPanel() {
                                         className="rounded-xl font-mono text-xs h-9"
                                     />
                                     <p className="text-xs text-muted-foreground">
-                                        Gera as imagens. Padrão: <code className="bg-muted px-1 rounded">gemini-3.1-flash-image-preview</code>
+                                        Gera as imagens. Padrão: <code className="bg-muted px-1 rounded">gemini-2.0-flash-exp-image-generation</code>
                                     </p>
                                 </div>
                                 <div className="space-y-2">
@@ -721,7 +721,7 @@ export function DesignerDoFuturoProviderPanel() {
                                         className="rounded-xl font-mono text-xs h-9"
                                     />
                                     <p className="text-xs text-muted-foreground">
-                                        Refina os prompts. Padrão: <code className="bg-muted px-1 rounded">gemini-3.1-pro-preview</code>
+                                        Refina os prompts. Padrão: <code className="bg-muted px-1 rounded">gemini-2.5-flash-preview-05-20</code>
                                     </p>
                                 </div>
                             </div>
@@ -760,7 +760,7 @@ export function DesignerDoFuturoProviderPanel() {
                         <div className="space-y-1 text-xs text-muted-foreground">
                             <p className="font-medium text-foreground text-sm">Sobre o Designer do Futuro</p>
                             <ul className="space-y-1">
-                                <li>• Usa o Google Gemini 3 Pro para gerar imagens fotorrealistas e cinematográficas</li>
+                                <li>• Usa o Google Gemini 2.0 Flash para gerar imagens fotorrealistas e cinematográficas</li>
                                 <li>• Suporta upload de imagem de referência para manter consistência visual</li>
                                 <li>• Pool de API Keys distribui carga e evita rate limits (429)</li>
                                 <li>• A API do Gemini tem um plano gratuito generoso para começar</li>
