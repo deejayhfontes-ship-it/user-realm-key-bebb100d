@@ -13,7 +13,7 @@ import { Download, Upload, ArrowLeft, X, Image, ZoomIn, MoveHorizontal, MoveVert
 import maskImage from "@/assets/prefeitura/mask-storie.png";
 import CarrosselInteracoes from "@/components/prefeitura/CarrosselInteracoes";
 
-type GeneratorType = "stories" | "carrossel";
+type GeneratorType = "stories" | "carrossel" | "custom";
 type PhotoCount = 1 | 2 | 3;
 
 interface ImageSettings {
@@ -30,7 +30,7 @@ const defaultImageSettings: ImageSettings = {
 
 const PrefeituraMaisFacil = () => {
   const [searchParams] = useSearchParams();
-  const initialTab = searchParams.get('tab') === 'carrossel' ? 'carrossel' : 'stories';
+  const initialTab = searchParams.get('tab') === 'carrossel' ? 'carrossel' : searchParams.get('tab') === 'custom' ? 'custom' : 'stories';
   const [generatorType, setGeneratorType] = useState<GeneratorType>(initialTab);
   const [photoCount, setPhotoCount] = useState<PhotoCount>(1);
   const [backgroundImages, setBackgroundImages] = useState<(string | null)[]>([null, null, null]);
@@ -43,8 +43,10 @@ const PrefeituraMaisFacil = () => {
   const [descricao, setDescricao] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
+  const [customMaskImage, setCustomMaskImage] = useState<string | null>(null);
   const captureRef = useRef<HTMLDivElement>(null);
   const fileInputRefs = useRef<(HTMLInputElement | null)[]>([null, null, null]);
+  const maskInputRef = useRef<HTMLInputElement>(null);
 
   // Data automática formatada
   const today = new Date();
@@ -65,6 +67,17 @@ const PrefeituraMaisFacil = () => {
     if (length <= 200) return 50;
     if (length <= 300) return 48;
     return minSize;
+  };
+
+  const handleMaskUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setCustomMaskImage(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleImageUpload = (index: number) => (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -293,7 +306,7 @@ const PrefeituraMaisFacil = () => {
 
       {/* Máscara/Template overlay */}
       <img
-        src={maskImage}
+        src={generatorType === "custom" && customMaskImage ? customMaskImage : maskImage}
         alt="Mask"
         crossOrigin="anonymous"
         style={{
@@ -411,13 +424,20 @@ const PrefeituraMaisFacil = () => {
         </div>
 
         {/* Seletor de tipo de gerador */}
-        <div className="flex gap-4 mb-8">
+        <div className="flex flex-wrap gap-4 mb-8">
           <Button
             variant={generatorType === "stories" ? "default" : "outline"}
             onClick={() => setGeneratorType("stories")}
             className="flex-1 md:flex-none"
           >
             Gerador de Stories
+          </Button>
+          <Button
+            variant={generatorType === "custom" ? "default" : "outline"}
+            onClick={() => setGeneratorType("custom")}
+            className="flex-1 md:flex-none"
+          >
+            Stories Personalizado
           </Button>
           <Button
             variant={generatorType === "carrossel" ? "default" : "outline"}
@@ -556,6 +576,58 @@ const PrefeituraMaisFacil = () => {
                   </div>
                 ))}
               </div>
+
+              {/* Upload de Máscara (apenas no modo custom) */}
+              {generatorType === "custom" && (
+                <div className="space-y-4">
+                  <Label className="text-foreground block">
+                    Máscara Personalizada (PNG com transparência)
+                  </Label>
+                  <input
+                    type="file"
+                    ref={maskInputRef}
+                    onChange={handleMaskUpload}
+                    accept="image/png,image/webp"
+                    className="hidden"
+                  />
+                  {customMaskImage ? (
+                    <div className="space-y-2">
+                       <div className="relative h-20 rounded-lg overflow-hidden border border-border bg-card/50">
+                         <img
+                           src={customMaskImage}
+                           alt="Máscara Customizada"
+                           className="w-full h-full object-contain"
+                         />
+                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center gap-2 opacity-0 hover:opacity-100 transition-opacity">
+                           <Button
+                             variant="secondary"
+                             size="sm"
+                             onClick={() => maskInputRef.current?.click()}
+                           >
+                             Trocar
+                           </Button>
+                           <Button
+                             variant="destructive"
+                             size="sm"
+                             onClick={() => setCustomMaskImage(null)}
+                           >
+                             <X className="h-4 w-4" />
+                           </Button>
+                         </div>
+                       </div>
+                    </div>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      onClick={() => maskInputRef.current?.click()}
+                      className="w-full h-16 border-dashed"
+                    >
+                      <Upload className="mr-2 h-5 w-5" />
+                      Carregar Máscara
+                    </Button>
+                  )}
+                </div>
+              )}
 
               <div>
                 <Label htmlFor="secretaria" className="text-foreground">
@@ -704,7 +776,7 @@ const PrefeituraMaisFacil = () => {
 
                     {/* Máscara/Template overlay */}
                     <img
-                      src={maskImage}
+                      src={generatorType === "custom" && customMaskImage ? customMaskImage : maskImage}
                       alt="Mask"
                       style={{
                         position: "absolute",
