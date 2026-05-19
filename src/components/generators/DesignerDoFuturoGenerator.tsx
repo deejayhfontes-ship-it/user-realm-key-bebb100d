@@ -41,6 +41,7 @@ import { Switch } from '@/components/ui/switch';
 import { toast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useGeminiImageGeneration } from '@/hooks/useGeminiImageGeneration';
+import { useGalleryDB } from '@/hooks/useGalleryDB';
 import { ForensicPanel } from './ForensicPanel';
 import { ImageLightbox } from './ImageLightbox';
 import { AIChatPanel } from './AIChatPanel';
@@ -195,12 +196,8 @@ const createProject = (name: string): Project => ({
 
 export function DesignerDoFuturoGenerator() {
     const [config, setConfig] = useState<DesignerConfig>(DEFAULT_CONFIG);
-    const [gallery, setGallery] = useState<GeneratedImage[]>(() => {
-        try {
-            const saved = localStorage.getItem(GALLERY_STORAGE_KEY);
-            return saved ? JSON.parse(saved) : [];
-        } catch { return []; }
-    });
+    // ── Galeria persistida no IndexedDB (sem limite de 5MB do localStorage) ──
+    const { gallery, setGallery, addImage: addImageToGallery } = useGalleryDB();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const refInputRef = useRef<HTMLInputElement>(null);
     const { generate, inpaintImage, reframeImage, extractPromptFromImage, brainstormScenes, isGenerating, progress, lastForensicLog } = useGeminiImageGeneration();
@@ -338,7 +335,7 @@ export function DesignerDoFuturoGenerator() {
                 prompt: `[Refinado] ${refinementText}`,
                 timestamp: Date.now(),
             };
-            setGallery(prev => [refined, ...prev]);
+            await addImageToGallery(refined);
             setRefinementText('');
             toast({ title: '✨ Refinamento aplicado!', className: 'bg-lime-500 text-white border-none' });
         } catch (err: any) {
@@ -358,7 +355,7 @@ export function DesignerDoFuturoGenerator() {
                 prompt: `[Refinado] ${refinePrompt}`,
                 timestamp: Date.now(),
             };
-            setGallery(prev => [refined, ...prev]);
+            await addImageToGallery(refined);
             setLightboxIndex(0); // Move para a imagem refinada
             toast({ title: '✨ Refinamento concluído!', className: 'bg-emerald-600 text-white border-none' });
         } catch (err: any) {
@@ -376,7 +373,7 @@ export function DesignerDoFuturoGenerator() {
                 prompt: `[Inpaint] ${editPrompt}`,
                 timestamp: Date.now(),
             };
-            setGallery(prev => [edited, ...prev]);
+            await addImageToGallery(edited);
             setLightboxOpen(false);
             toast({ title: '🎨 Inpainting concluído!', className: 'bg-emerald-600 text-white border-none' });
         } catch (err: any) {
@@ -394,7 +391,7 @@ export function DesignerDoFuturoGenerator() {
                 prompt: `[Reframe ${targetRatio}]`,
                 timestamp: Date.now(),
             };
-            setGallery(prev => [reframed, ...prev]);
+            await addImageToGallery(reframed);
             setLightboxOpen(false);
             toast({ title: `✅ Reframe ${targetRatio} concluído!`, className: 'bg-emerald-600 text-white border-none' });
         } catch (err: any) {
@@ -409,7 +406,7 @@ export function DesignerDoFuturoGenerator() {
             prompt: '[Texto Overlay]',
             timestamp: Date.now(),
         };
-        setGallery(prev => [overlayed, ...prev]);
+        addImageToGallery(overlayed);
         setLightboxOpen(false);
         toast({ title: '✅ Imagem salva com textos!', className: 'bg-emerald-600 text-white border-none' });
     }, []);
@@ -439,19 +436,7 @@ export function DesignerDoFuturoGenerator() {
         }
     }, [gallery]);
 
-    // Persiste galeria no localStorage
-    useEffect(() => {
-        try {
-            const trimmed = gallery.slice(0, MAX_GALLERY_ITEMS);
-            localStorage.setItem(GALLERY_STORAGE_KEY, JSON.stringify(trimmed));
-        } catch (e) {
-            console.warn('[GALLERY] localStorage cheio, limpando imagens antigas...');
-            try {
-                const minimal = gallery.slice(0, 10);
-                localStorage.setItem(GALLERY_STORAGE_KEY, JSON.stringify(minimal));
-            } catch { /* noop */ }
-        }
-    }, [gallery]);
+    // Galeria agora persiste via IndexedDB (useGalleryDB) — sem limite de 5MB
 
     // Helpers
     const updateConfig = (key: keyof DesignerConfig, value: any) => {
@@ -646,7 +631,7 @@ export function DesignerDoFuturoGenerator() {
                 prompt: result.finalPrompt,
                 timestamp: Date.now(),
             };
-            setGallery(prev => [newImg, ...prev]);
+            await addImageToGallery(newImg);
             toast({ title: '✨ Imagem gerada!', className: 'bg-green-600 text-white border-none' });
 
         } catch (err: any) {
