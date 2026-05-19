@@ -1,0 +1,89 @@
+{
+  "app": {
+    "titulo": "Gerador de Posts — Prefeitura de Heliodora",
+    "descricao": "Gerador de publicações para redes sociais da Prefeitura Municipal de Heliodora (MG)",
+    "versao": "2.0.0",
+    "rodape": "Prefeitura Municipal de Heliodora · Gerador de Posts · Powered by Claude & Gemini"
+  },
+
+  "marca": {
+    "pill": "PREF",
+    "nome": "Post Generator",
+    "municipio": "Heliodora",
+    "estado": "MG",
+    "hashtags_fixas": ["#PrefHeliodora", "#TrabalhoDiálogoUnião"]
+  },
+
+  "providers": {
+    "default": "claude",
+    "storage_key_provider": "heli_provider",
+
+    "claude": {
+      "nome": "Claude",
+      "empresa": "Anthropic",
+      "storage_key": "heli_claude_key",
+      "storage_key_model": "heli_claude_model",
+      "api_endpoint": "https://api.anthropic.com/v1/messages",
+      "api_version_header": "2023-06-01",
+      "header_browser": "anthropic-dangerous-direct-browser-access",
+      "cor": "#0066FF",
+      "placeholder_key": "sk-ant-...",
+      "link_console": "https://console.anthropic.com",
+      "dica": "Crie sua chave em console.anthropic.com → API Keys → Create Key. Começa com sk-ant-",
+      "modelos": [
+        { "id": "claude-sonnet-4-20250514",  "label": "claude-sonnet-4 (recomendado)" },
+        { "id": "claude-opus-4-20250514",    "label": "claude-opus-4 (mais capaz)"    },
+        { "id": "claude-haiku-4-5-20251001", "label": "claude-haiku-4.5 (mais rápido)"}
+      ],
+      "modelo_default": "claude-sonnet-4-20250514",
+      "max_tokens": 1000,
+      "formato_resposta": "data.content[0].text"
+    },
+
+    "gemini": {
+      "nome": "Gemini",
+      "empresa": "Google",
+      "storage_key": "heli_gemini_key",
+      "storage_key_model": "heli_gemini_model",
+      "api_endpoint": "https://generativelanguage.googleapis.com/v1beta/models/{modelo}:generateContent?key={key}",
+      "cor": "#8B5CF6",
+      "placeholder_key": "AIza...",
+      "link_console": "https://aistudio.google.com/app/apikey",
+      "dica": "Crie sua chave em aistudio.google.com → Get API Key. Começa com AIza",
+      "modelos": [
+        { "id": "gemini-2.5-pro",   "label": "gemini-2.5-pro (recomendado)"  },
+        { "id": "gemini-2.5-flash", "label": "gemini-2.5-flash (mais rápido)"},
+        { "id": "gemini-2.0-flash", "label": "gemini-2.0-flash"              }
+      ],
+      "modelo_default": "gemini-2.5-pro",
+      "max_tokens": 1000,
+      "temperatura": 0.7,
+      "formato_resposta": "data.candidates[0].content.parts[0].text"
+    }
+  },
+
+  "ia": {
+    "system_prompt": "Você é um redator criativo da Prefeitura de Heliodora (MG).\nCria textos para publicações nas redes sociais da prefeitura.\nResponda APENAS com JSON válido, sem markdown, sem texto extra.\nChaves obrigatórias: titulo_parte1, titulo_parte2, titulo_parte3, frase_destaque, legenda.",
+
+    "prompt_template": "Tema da publicação: \"{tema}\"\n\nGere textos para publicação da Prefeitura de Heliodora (MG). Tom institucional, positivo e próximo da comunidade.\n\nRetorne JSON com:\n- titulo_parte1: 1-2 palavras MAIÚSCULAS, palavra-chave impactante (ex: SAÚDE, OBRAS, EDUCAÇÃO, DESCARTE)\n- titulo_parte2: 1-2 palavras MAIÚSCULAS, complemento direto (ex: EM AÇÃO, AVANÇANDO, PARA TODOS, CORRETO)\n- titulo_parte3: frase MAIÚSCULAS, máx 8 palavras, explica a ação\n- frase_destaque: 1-2 frases curtas, marcantes e empáticas para aparecer sobre a foto\n- legenda: TÍTULO MAIÚSCULAS na 1ª linha + texto 3-5 frases com emojis + linha em branco + #PrefHeliodora #TrabalhoDiálogoUnião + 3-5 hashtags do tema\n\nResponda APENAS com o JSON, sem markdown.",
+
+    "schema_resposta": {
+      "titulo_parte1":  { "descricao": "1-2 palavras MAIÚSCULAS — palavra-chave impactante", "exemplos": ["SAÚDE","OBRAS","VACINA","EDUCAÇÃO"] },
+      "titulo_parte2":  { "descricao": "1-2 palavras MAIÚSCULAS — complemento direto",       "exemplos": ["EM AÇÃO","AVANÇANDO","PARA TODOS"] },
+      "titulo_parte3":  { "descricao": "Frase MAIÚSCULAS, máx 8 palavras — explica a ação",  "exemplos": ["EMBALAGENS DE AGROTÓXICO NO LUGAR CERTO"] },
+      "frase_destaque": { "descricao": "1-2 frases marcantes e empáticas para sobrepor à foto" },
+      "legenda":        { "descricao": "Legenda completa Instagram/Facebook com emojis e hashtags" }
+    }
+  },
+
+  "design": {
+    "fontes": { "display": "Bebas Neue", "condensed": "Barlow Condensed", "corpo": "Barlow" },
+    "cores": {
+      "azul": "#0066FF", "azul_escuro": "#0050CC",
+      "verde": "#7DC41E", "laranja": "#F5820D",
+      "gemini": "#8B5CF6", "gemini_escuro": "#7C3AED",
+      "fundo": "#0E0E0E", "card": "#181818", "borda": "#2a2a2a",
+      "muted": "#555", "texto": "#EFEFEF", "texto_dim": "#999"
+    }
+  }
+}

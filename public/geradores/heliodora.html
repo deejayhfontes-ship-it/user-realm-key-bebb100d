@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gerador de Posts — Prefeitura de Heliodora</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Bebas+Neue&display=swap');
+
+:root {
+  /* Site palette */
+  --lime:        #C8FF57;
+  --lime-dark:   #a8e040;
+  --lime-faint:  #edffc0;
+  --lime-border: #b8f040;
+
+  /* Heliodora brand (usada só nos chips/labels) */
+  --heli-blue:   #0066FF;
+  --heli-green:  #7DC41E;
+  --heli-orange: #F5820D;
+
+  /* Gemini */
+  --gemini:      #8B5CF6;
+  --gemini-dark: #7C3AED;
+  --gemini-faint:#ede9fe;
+
+  /* Light theme */
+  --bg:          #EEEAE0;
+  --surface:     #FAF9F5;
+  --surface2:    #F0EDE5;
+  --card:        #FFFFFF;
+  --border:      #E0DBD0;
+  --border2:     #D4CFC5;
+  --muted:       #9A9488;
+  --text:        #1A1A18;
+  --text-dim:    #6B6660;
+  --radius:      16px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
+  min-height: 100vh;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── HEADER ── */
+.site-header {
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 1px 0 var(--border);
+}
+.header-brand { display: flex; align-items: center; gap: 12px; }
+.brand-pill {
+  background: var(--text);
+  color: var(--card);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 11px;
+  letter-spacing: 3px;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+.brand-name {
+  font-weight: 800;
+  font-size: 16px;
+  letter-spacing: -0.5px;
+  color: var(--text);
+}
+.brand-name em { color: var(--lime-dark); font-style: normal; }
+
+.header-actions { display: flex; align-items: center; gap: 10px; }
+
+.provider-badge {
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border2);
+  color: var(--text-dim);
+  background: var(--surface2);
+  transition: all 0.2s;
+}
+.provider-badge.claude {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+.provider-badge.gemini {
+  background: var(--gemini-faint);
+  border-color: #c4b5fd;
+  color: var(--gemini-dark);
+}
+
+.btn-settings {
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  color: var(--text-dim);
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+.btn-settings:hover {
+  border-color: var(--lime-border);
+  background: var(--lime-faint);
+  color: var(--text);
+}
+
+.api-status {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--border2);
+  display: inline-block;
+}
+.api-status.ok  { background: #22c55e; }
+.api-status.bad { background: #ef4444; }
+
+/* ── HERO ── */
+.hero {
+  text-align: center;
+  padding: 52px 20px 36px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.hero-tag {
+  display: inline-block;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--heli-orange);
+  border: 1.5px solid var(--heli-orange);
+  padding: 4px 14px;
+  border-radius: 999px;
+  margin-bottom: 18px;
+  opacity: 0.8;
+}
+.hero h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(40px, 7vw, 72px);
+  letter-spacing: 2px;
+  line-height: 1;
+  margin-bottom: 12px;
+  color: var(--text);
+}
+.hero h1 span { color: var(--lime-dark); }
+.hero p { color: var(--text-dim); font-size: 15px; max-width: 460px; margin: 0 auto; }
+
+/* ── MODAL ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(4px);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px;
+  max-width: 500px;
+  width: 100%;
+  transform: translateY(12px);
+  transition: transform 0.2s;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+}
+.modal-overlay.open .modal { transform: translateY(0); }
+.modal h2 {
+  font-weight: 800;
+  font-size: 20px;
+  letter-spacing: -0.5px;
+  margin-bottom: 6px;
+  color: var(--text);
+}
+.modal > p {
+  color: var(--text-dim);
+  font-size: 14px;
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+/* ── PROVIDER SELECTOR ── */
+.provider-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+.provider-btn {
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.provider-btn:hover { border-color: var(--border2); background: var(--surface); }
+.provider-btn.active-claude {
+  border-color: #93c5fd;
+  background: #eff6ff;
+}
+.provider-btn.active-gemini {
+  border-color: #c4b5fd;
+  background: var(--gemini-faint);
+}
+.provider-btn .pb-icon { font-size: 20px; }
+.provider-btn .pb-name {
+  font-weight: 800;
+  font-size: 14px;
+  color: var(--text);
+}
+.provider-btn .pb-sub {
+  font-size: 11px;
+  color: var(--text-dim);
+  line-height: 1.3;
+}
+.provider-btn.active-claude .pb-name { color: #1d4ed8; }
+.provider-btn.active-gemini .pb-name { color: var(--gemini-dark); }
+
+/* ── PROVIDER PANELS ── */
+.provider-panel { display: none; }
+.provider-panel.active { display: block; }
+
+.field-group { margin-bottom: 16px; }
+.field-group label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+.field-wrap { position: relative; display: flex; align-items: center; }
+.field-wrap input, .field-wrap select {
+  width: 100%;
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+  padding: 11px 44px 11px 14px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.field-wrap select { padding-right: 14px; cursor: pointer; }
+.field-wrap input:focus {
+  border-color: var(--lime-border);
+  box-shadow: 0 0 0 3px var(--lime-faint);
+}
+.field-wrap select:focus {
+  border-color: var(--lime-border);
+  box-shadow: 0 0 0 3px var(--lime-faint);
+}
+
+.toggle-vis {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px;
+}
+
+.model-hint {
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+.btn-save {
+  flex: 1;
+  background: var(--lime);
+  color: #111;
+  border: none;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  padding: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-save:hover { background: var(--lime-dark); }
+.btn-save.gemini-save { background: var(--gemini); color: #fff; }
+.btn-save.gemini-save:hover { background: var(--gemini-dark); }
+
+.btn-cancel {
+  background: transparent;
+  border: 1.5px solid var(--border);
+  color: var(--text-dim);
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 12px 18px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-cancel:hover { border-color: var(--border2); color: var(--text); background: var(--surface2); }
+
+.api-hint {
+  margin-top: 14px;
+  font-size: 12px;
+  color: var(--text-dim);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  line-height: 1.5;
+}
+.api-hint a { color: var(--lime-dark); text-decoration: none; }
+.api-hint a:hover { text-decoration: underline; }
+.api-hint.gemini-hint a { color: var(--gemini-dark); }
+
+/* ── MAIN ── */
+.main {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+@media (max-width: 680px) {
+  .main { grid-template-columns: 1fr; }
+  .site-header { padding: 0 16px; }
+  .hero { padding: 36px 16px 28px; }
+}
+
+/* ── PANEL ── */
+.panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+}
+.panel-header {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface);
+}
+.panel-header .dot { width: 8px; height: 8px; border-radius: 50%; }
+.panel-header h3 {
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.panel-body { padding: 20px; }
+
+.upload-zone {
+  border: 2px dashed var(--border2);
+  border-radius: 12px;
+  padding: 28px 16px;
+  text-align: center;
+  cursor: pointer;
+  position: relative;
+  transition: border-color 0.2s, background 0.2s;
+  margin-bottom: 18px;
+  min-height: 130px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  overflow: hidden;
+  background: var(--surface2);
+}
+.upload-zone:hover {
+  border-color: var(--lime-border);
+  background: var(--lime-faint);
+}
+.upload-zone.has-image {
+  border: 2px solid var(--lime-border);
+  padding: 0;
+  background: var(--surface2);
+}
+.upload-zone input[type="file"] {
+  position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+}
+.upload-zone .upload-icon { font-size: 26px; }
+.upload-zone .upload-label { font-size: 13px; font-weight: 500; color: var(--text-dim); }
+.upload-zone .upload-sub { font-size: 11px; color: var(--muted); }
+.upload-zone img { width: 100%; max-height: 180px; object-fit: cover; display: none; border-radius: 10px; }
+.upload-zone.has-image img { display: block; }
+.upload-zone.has-image .upload-icon,
+.upload-zone.has-image .upload-label,
+.upload-zone.has-image .upload-sub { display: none; }
+
+.field-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+
+textarea.theme-input {
+  width: 100%;
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+  padding: 12px 14px;
+  resize: vertical;
+  min-height: 100px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  line-height: 1.5;
+}
+textarea.theme-input:focus {
+  border-color: var(--lime-border);
+  box-shadow: 0 0 0 3px var(--lime-faint);
+}
+textarea.theme-input::placeholder { color: var(--muted); }
+
+.btn-gen {
+  margin-top: 16px;
+  width: 100%;
+  background: var(--lime);
+  color: #111;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px;
+  letter-spacing: 2.5px;
+  padding: 14px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 16px rgba(200,255,87,0.3);
+}
+.btn-gen:hover {
+  background: var(--lime-dark);
+  box-shadow: 0 6px 20px rgba(200,255,87,0.4);
+}
+.btn-gen:active { transform: scale(0.98); }
+.btn-gen:disabled {
+  background: var(--surface2);
+  color: var(--muted);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.btn-gen.gemini-btn { background: var(--gemini); color: #fff; box-shadow: 0 4px 16px rgba(139,92,246,0.25); }
+.btn-gen.gemini-btn:hover { background: var(--gemini-dark); }
+
+.spinner {
+  width: 20px; height: 20px;
+  border: 2.5px solid rgba(0,0,0,0.15);
+  border-top-color: #111;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: none;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.no-api-warn {
+  margin-top: 12px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #c2410c;
+  display: none;
+}
+.no-api-warn a { color: #c2410c; font-weight:700; text-decoration: underline; cursor: pointer; }
+
+/* ── RESULTS ── */
+.results-panel { display: flex; flex-direction: column; gap: 16px; }
+.result-block {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+}
+.result-block.visible { opacity: 1; transform: translateY(0); }
+.rb-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+.rb-header.blue   { background: var(--lime-faint); color: #3a6600; border-bottom-color: var(--lime-border); }
+.rb-header.green  { background: #f0fdf4; color: #15803d; border-bottom-color: #bbf7d0; }
+.rb-header.orange { background: #fff7ed; color: #c2410c; border-bottom-color: #fed7aa; }
+
+.copy-btn {
+  background: rgba(0,0,0,0.05);
+  border: 1px solid rgba(0,0,0,0.10);
+  color: var(--text-dim);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.copy-btn:hover { background: rgba(0,0,0,0.08); color: var(--text); }
+.copy-btn.copied {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #15803d;
+}
+
+.rb-body { padding: 16px; }
+
+.titulo-blocks { display: flex; flex-direction: column; gap: 8px; }
+.t-row { display: flex; align-items: center; gap: 10px; }
+.t-num { width: 20px; font-size: 10px; font-weight: 700; color: var(--muted); text-align: right; flex-shrink: 0; }
+.t-chip { font-family: 'Bebas Neue', sans-serif; border-radius: 6px; padding: 5px 12px; letter-spacing: 1.5px; }
+.t-chip.c1 { background: var(--heli-blue); color: #fff; font-size: 24px; }
+.t-chip.c2 { background: var(--heli-green); color: #fff; font-size: 24px; }
+.t-chip.c3 {
+  background: var(--heli-orange);
+  color: #fff;
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 6px 12px;
+}
+
+.frase-box {
+  background: var(--lime-faint);
+  border-left: 3px solid var(--lime-dark);
+  padding: 14px 16px;
+  border-radius: 0 8px 8px 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.legenda-box {
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.8;
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: var(--surface2);
+  border-radius: 10px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+}
+
+.empty-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 60px 20px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  gap: 10px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+}
+.empty-results .big-icon { font-size: 36px; }
+.empty-results p { color: var(--text-dim); font-size: 14px; }
+
+.err-box {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  border-radius: 10px;
+  padding: 12px 15px;
+  font-size: 13px;
+  margin-top: 12px;
+  display: none;
+}
+
+footer {
+  text-align: center;
+  padding: 24px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12px;
+  background: var(--surface);
+}
+footer a { color: var(--heli-blue); text-decoration: none; }
+
+/* ── BACK BUTTON ── */
+.btn-back {
+  background: var(--surface2);
+  border: 1.5px solid var(--border2);
+  color: var(--text);
+  padding: 7px 14px 7px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+  margin-right: 4px;
+}
+.btn-back:hover {
+  background: var(--lime-faint);
+  border-color: var(--lime-border);
+}
+.btn-back svg { flex-shrink: 0; }
+
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="header-brand">
+    <button class="btn-back" onclick="goBack()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 5l-7 7 7 7"/></svg>
+      Voltar
+    </button>
+    <div class="brand-pill">PREF</div>
+    <span class="brand-name">Post <em>Generator</em></span>
+  </div>
+  <div class="header-actions">
+    <span class="provider-badge" id="providerBadge">—</span>
+    <button class="btn-settings" onclick="openModal()">
+      <span class="api-status" id="apiDot"></span>
+      Configurar IA
+    </button>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-tag">Prefeitura de Heliodora · MG</div>
+  <h1>Gerador de <span>Posts</span></h1>
+  <p>Envie a foto, descreva o tema e gere título, frase de destaque e legenda prontos para publicar.</p>
+</section>
+
+<!-- MODAL MULTI-PROVIDER -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <h2>🤖 Configurar IA</h2>
+    <p>Escolha o provedor e insira sua chave de API. As chaves ficam salvas localmente no seu navegador e nunca saem do dispositivo.</p>
+
+    <!-- SELETOR DE PROVEDOR -->
+    <div class="provider-selector">
+      <button class="provider-btn" id="btnClaude" onclick="selectProvider('claude')">
+        <span class="pb-icon">🟦</span>
+        <span class="pb-name">Claude</span>
+        <span class="pb-sub">Anthropic · claude-sonnet-4</span>
+      </button>
+      <button class="provider-btn" id="btnGemini" onclick="selectProvider('gemini')">
+        <span class="pb-icon">🟣</span>
+        <span class="pb-name">Gemini</span>
+        <span class="pb-sub">Google · gemini-2.5-pro</span>
+      </button>
+    </div>
+
+    <!-- PAINEL CLAUDE -->
+    <div class="provider-panel" id="panelClaude" data-panel="claude">
+      <div class="field-group">
+        <label>Anthropic API Key</label>
+        <div class="field-wrap">
+          <input type="password" id="claudeKeyInput" placeholder="sk-ant-..." autocomplete="off" spellcheck="false">
+          <button class="toggle-vis" onclick="toggleVis('claudeKeyInput')" title="Mostrar/ocultar">👁</button>
+        </div>
+      </div>
+      <div class="field-group">
+        <label>Modelo</label>
+        <div class="field-wrap">
+          <select id="claudeModel">
+            <option value="claude-sonnet-4-20250514">claude-sonnet-4 (recomendado)</option>
+            <option value="claude-opus-4-20250514">claude-opus-4 (mais capaz)</option>
+            <option value="claude-haiku-4-5-20251001">claude-haiku-4.5 (mais rápido)</option>
+          </select>
+        </div>
+        <div class="model-hint">Sonnet equilibra velocidade e qualidade. Opus é mais elaborado mas mais lento.</div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-save" onclick="saveProvider('claude')">SALVAR</button>
+        <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+      </div>
+      <div class="api-hint">
+        💡 Crie sua chave em <a href="https://console.anthropic.com/" target="_blank">console.anthropic.com</a> → API Keys → Create Key.<br>
+        Começa com <code style="color:#aaa">sk-ant-</code>
+      </div>
+    </div>
+
+    <!-- PAINEL GEMINI -->
+    <div class="provider-panel" id="panelGemini" data-panel="gemini">
+      <div class="field-group">
+        <label>Google AI API Key</label>
+        <div class="field-wrap">
+          <input type="password" id="geminiKeyInput" placeholder="AIza..." autocomplete="off" spellcheck="false">
+          <button class="toggle-vis" onclick="toggleVis('geminiKeyInput')" title="Mostrar/ocultar">👁</button>
+        </div>
+      </div>
+      <div class="field-group">
+        <label>Modelo</label>
+        <div class="field-wrap">
+          <select id="geminiModel">
+            <option value="gemini-2.5-pro">gemini-2.5-pro (recomendado)</option>
+            <option value="gemini-2.5-flash">gemini-2.5-flash (mais rápido · gratuito)</option>
+            <option value="gemini-2.0-flash">gemini-2.0-flash (estável)</option>
+          </select>
+        </div>
+        <div class="model-hint">2.5 Pro é o mais capaz. 2.5 Flash tem tier gratuito e baixa latência.</div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-save gemini-save" onclick="saveProvider('gemini')">SALVAR</button>
+        <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+      </div>
+      <div class="api-hint gemini-hint">
+        💡 Crie sua chave em <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com</a> → Get API Key.<br>
+        Começa com <code style="color:#aaa">AIza</code>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- INPUT -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="dot" style="background:var(--blue)"></div>
+      <h3>Nova Publicação</h3>
+    </div>
+    <div class="panel-body">
+
+      <div class="upload-zone" id="uploadZone">
+        <input type="file" accept="image/*" id="imageInput" onchange="handleImage(this)">
+        <div class="upload-icon">📷</div>
+        <span class="upload-label">Clique ou arraste a foto</span>
+        <span class="upload-sub">JPG · PNG · WEBP</span>
+        <img id="previewImg" alt="">
+      </div>
+
+      <label class="field-label" for="themeInput">Tema / Assunto</label>
+      <textarea class="theme-input" id="themeInput" placeholder="Ex: Campanha de vacinação antirrábica realizada no centro da cidade — 300 animais vacinados, equipe da saúde presente..."></textarea>
+
+      <div class="err-box" id="errBox"></div>
+      <div class="no-api-warn" id="noApiWarn">
+        ⚠️ Configure sua <a onclick="openModal()">chave de API</a> para usar o gerador.
+      </div>
+
+      <button class="btn-gen" id="genBtn" onclick="generate()">
+        <div class="spinner" id="spinner"></div>
+        <span id="genTxt">⚡ GERAR TEXTOS</span>
+      </button>
+
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="results-panel" id="resultsPanel">
+    <div class="empty-results" id="emptyState">
+      <span class="big-icon">✨</span>
+      <p>Os textos gerados vão aparecer aqui.</p>
+    </div>
+
+    <div class="result-block" id="blockTitulo">
+      <div class="rb-header blue">
+        📌 Título — 3 Partes
+        <button class="copy-btn" onclick="copyTitulo(this)">Copiar</button>
+      </div>
+      <div class="rb-body">
+        <div class="titulo-blocks">
+          <div class="t-row"><span class="t-num">1</span><span class="t-chip c1" id="t1">—</span></div>
+          <div class="t-row"><span class="t-num">2</span><span class="t-chip c2" id="t2">—</span></div>
+          <div class="t-row"><span class="t-num">3</span><span class="t-chip c3" id="t3">—</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="result-block" id="blockFrase">
+      <div class="rb-header green">
+        💬 Frase de Destaque
+        <button class="copy-btn" onclick="copyEl('fraseBox', this)">Copiar</button>
+      </div>
+      <div class="rb-body">
+        <div class="frase-box" id="fraseBox">—</div>
+      </div>
+    </div>
+
+    <div class="result-block" id="blockLegenda">
+      <div class="rb-header orange">
+        📲 Legenda + Hashtags
+        <button class="copy-btn" onclick="copyEl('legendaBox', this)">Copiar</button>
+      </div>
+      <div class="rb-body">
+        <div class="legenda-box" id="legendaBox">—</div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  Prefeitura Municipal de Heliodora &nbsp;·&nbsp; Gerador de Posts &nbsp;·&nbsp;
+  Powered by <a href="https://anthropic.com" target="_blank">Claude</a> &amp; <a href="https://deepmind.google/gemini" target="_blank">Gemini</a>
+</footer>
+
+<script>
+/* ══════════════════════════════════════
+   STATE
+══════════════════════════════════════ */
+let imageBase64 = null;
+let imageType   = 'image/jpeg';
+
+/* ══════════════════════════════════════
+   STORAGE HELPERS
+══════════════════════════════════════ */
+const KEYS = {
+  provider:    'heli_provider',
+  claudeKey:   'heli_claude_key',
+  claudeModel: 'heli_claude_model',
+  geminiKey:   'heli_gemini_key',
+  geminiModel: 'heli_gemini_model',
+};
+
+const get = k  => localStorage.getItem(KEYS[k]) || '';
+const set = (k,v) => localStorage.setItem(KEYS[k], v);
+
+function getProvider()    { return get('provider') || 'claude'; }
+function getActiveKey()   { return getProvider() === 'gemini' ? get('geminiKey') : get('claudeKey'); }
+
+/* ══════════════════════════════════════
+   PROVIDER SELECTOR (MODAL)
+══════════════════════════════════════ */
+let currentPanel = 'claude';
+
+function selectProvider(p) {
+  currentPanel = p;
+  document.getElementById('btnClaude').className = 'provider-btn' + (p === 'claude' ? ' active-claude' : '');
+  document.getElementById('btnGemini').className = 'provider-btn' + (p === 'gemini' ? ' active-gemini' : '');
+  document.getElementById('panelClaude').className = 'provider-panel' + (p === 'claude' ? ' active' : '');
+  document.getElementById('panelGemini').className = 'provider-panel' + (p === 'gemini' ? ' active' : '');
+}
+
+function openModal() {
+  const p = getProvider();
+  // preenche campos salvos
+  document.getElementById('claudeKeyInput').value  = get('claudeKey');
+  document.getElementById('claudeModel').value     = get('claudeModel') || 'claude-sonnet-4-20250514';
+  document.getElementById('geminiKeyInput').value  = get('geminiKey');
+  document.getElementById('geminiModel').value     = get('geminiModel') || 'gemini-2.5-pro';
+  selectProvider(p);
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal()            { document.getElementById('modalOverlay').classList.remove('open'); }
+function closeModalOutside(e)    { if (e.target === document.getElementById('modalOverlay')) closeModal(); }
+function toggleVis(id) {
+  const inp = document.getElementById(id);
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+function saveProvider(p) {
+  if (p === 'claude') {
+    const key = document.getElementById('claudeKeyInput').value.trim();
+    const mdl = document.getElementById('claudeModel').value;
+    if (!key) { alert('Insira a chave da Anthropic.'); return; }
+    set('claudeKey', key);
+    set('claudeModel', mdl);
+  } else {
+    const key = document.getElementById('geminiKeyInput').value.trim();
+    const mdl = document.getElementById('geminiModel').value;
+    if (!key) { alert('Insira a chave do Google AI.'); return; }
+    set('geminiKey', key);
+    set('geminiModel', mdl);
+  }
+  set('provider', p);
+  updateUI();
+  closeModal();
+}
+
+/* ══════════════════════════════════════
+   UI SYNC
+══════════════════════════════════════ */
+function updateUI() {
+  const p      = getProvider();
+  const hasKey = !!getActiveKey();
+  const dot    = document.getElementById('apiDot');
+  const badge  = document.getElementById('providerBadge');
+  const btn    = document.getElementById('genBtn');
+
+  dot.className = 'api-status ' + (hasKey ? 'ok' : 'bad');
+  document.getElementById('noApiWarn').style.display = hasKey ? 'none' : 'block';
+
+  if (p === 'gemini') {
+    badge.textContent = 'Gemini';
+    badge.className = 'provider-badge gemini';
+    btn.className = 'btn-gen gemini-btn';
+  } else {
+    badge.textContent = 'Claude';
+    badge.className = 'provider-badge claude';
+    btn.className = 'btn-gen';
+  }
+}
+
+/* ══════════════════════════════════════
+   IMAGE
+══════════════════════════════════════ */
+function handleImage(input) {
+  const file = input.files[0];
+  if (!file) return;
+  imageType = file.type || 'image/jpeg';
+  const reader = new FileReader();
+  reader.onload = e => {
+    imageBase64 = e.target.result.split(',')[1];
+    document.getElementById('previewImg').src = e.target.result;
+    document.getElementById('uploadZone').classList.add('has-image');
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ══════════════════════════════════════
+   PROMPT
+══════════════════════════════════════ */
+function buildPrompt(theme) {
+  return `Tema da publicação: "${theme}"
+
+Gere textos para publicação da Prefeitura de Heliodora (MG). Tom institucional, positivo e próximo da comunidade.
+
+Retorne JSON com:
+- titulo_parte1: 1-2 palavras MAIÚSCULAS, palavra-chave impactante (ex: SAÚDE, OBRAS, EDUCAÇÃO, DESCARTE)
+- titulo_parte2: 1-2 palavras MAIÚSCULAS, complemento direto (ex: EM AÇÃO, AVANÇANDO, PARA TODOS, CORRETO)
+- titulo_parte3: frase MAIÚSCULAS, máx 8 palavras, explica a ação
+- frase_destaque: 1-2 frases curtas, marcantes e empáticas para aparecer sobre a foto
+- legenda: TÍTULO MAIÚSCULAS na 1ª linha + texto 3-5 frases com emojis + linha em branco + #PrefHeliodora #TrabalhoDiálogoUnião + 3-5 hashtags do tema
+
+Responda APENAS com o JSON, sem markdown.`;
+}
+
+const SYSTEM_PROMPT = `Você é um redator criativo da Prefeitura de Heliodora (MG).
+Cria textos para publicações nas redes sociais da prefeitura.
+Responda APENAS com JSON válido, sem markdown, sem texto extra.
+Chaves obrigatórias: titulo_parte1, titulo_parte2, titulo_parte3, frase_destaque, legenda.`;
+
+/* ══════════════════════════════════════
+   GENERATE — CLAUDE
+══════════════════════════════════════ */
+async function generateClaude(theme) {
+  const key   = get('claudeKey');
+  const model = get('claudeModel') || 'claude-sonnet-4-20250514';
+
+  const userContent = imageBase64
+    ? [
+        { type: 'image', source: { type: 'base64', media_type: imageType, data: imageBase64 } },
+        { type: 'text', text: buildPrompt(theme) }
+      ]
+    : buildPrompt(theme);
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': key,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: 1000,
+      system: SYSTEM_PROMPT,
+      messages: [{ role: 'user', content: userContent }]
+    })
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    const msg = err?.error?.message || `HTTP ${res.status}`;
+    if (res.status === 401) throw new Error('Chave Claude inválida. Verifique nas configurações.');
+    throw new Error(msg);
+  }
+
+  const data = await res.json();
+  return data.content?.[0]?.text || '';
+}
+
+/* ══════════════════════════════════════
+   GENERATE — GEMINI
+══════════════════════════════════════ */
+async function generateGemini(theme) {
+  const key   = get('geminiKey');
+  const model = get('geminiModel') || 'gemini-2.5-pro';
+
+  const parts = [];
+  if (imageBase64) {
+    parts.push({ inline_data: { mime_type: imageType, data: imageBase64 } });
+  }
+  parts.push({ text: buildPrompt(theme) });
+
+  const body = {
+    system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+    contents: [{ role: 'user', parts }],
+    generationConfig: { maxOutputTokens: 1000, temperature: 0.7 }
+  };
+
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    }
+  );
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    const msg = err?.error?.message || `HTTP ${res.status}`;
+    if (res.status === 400 || res.status === 403) throw new Error('Chave Gemini inválida. Verifique nas configurações.');
+    throw new Error(msg);
+  }
+
+  const data = await res.json();
+  return data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+}
+
+/* ══════════════════════════════════════
+   GENERATE — ROTEADOR
+══════════════════════════════════════ */
+async function generate() {
+  const key = getActiveKey();
+  if (!key) { openModal(); return; }
+
+  const theme = document.getElementById('themeInput').value.trim();
+  if (!theme) { showErr('Descreva o tema da publicação.'); return; }
+
+  setLoading(true);
+  hideErr();
+
+  try {
+    const raw = getProvider() === 'gemini'
+      ? await generateGemini(theme)
+      : await generateClaude(theme);
+
+    const clean  = raw.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(clean);
+    fill(parsed);
+
+  } catch(e) {
+    showErr('Erro: ' + e.message);
+  } finally {
+    setLoading(false);
+  }
+}
+
+/* ══════════════════════════════════════
+   FILL RESULTS
+══════════════════════════════════════ */
+function fill(p) {
+  document.getElementById('t1').textContent       = p.titulo_parte1 || '—';
+  document.getElementById('t2').textContent       = p.titulo_parte2 || '—';
+  document.getElementById('t3').textContent       = p.titulo_parte3 || '—';
+  document.getElementById('fraseBox').textContent = p.frase_destaque || '—';
+  document.getElementById('legendaBox').textContent = p.legenda || '—';
+  document.getElementById('emptyState').style.display = 'none';
+  ['blockTitulo','blockFrase','blockLegenda'].forEach((id, i) => {
+    setTimeout(() => document.getElementById(id).classList.add('visible'), i * 80);
+  });
+}
+
+/* ══════════════════════════════════════
+   UI HELPERS
+══════════════════════════════════════ */
+function setLoading(on) {
+  document.getElementById('genBtn').disabled = on;
+  document.getElementById('spinner').style.display = on ? 'block' : 'none';
+  document.getElementById('genTxt').textContent = on ? 'GERANDO...' : '⚡ GERAR TEXTOS';
+}
+function showErr(msg) {
+  const el = document.getElementById('errBox');
+  el.textContent = msg; el.style.display = 'block';
+}
+function hideErr() { document.getElementById('errBox').style.display = 'none'; }
+
+function copyEl(id, btn) {
+  const text = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text).then(() => flashCopy(btn));
+}
+function copyTitulo(btn) {
+  const t = [
+    document.getElementById('t1').textContent,
+    document.getElementById('t2').textContent,
+    document.getElementById('t3').textContent
+  ].join('\n');
+  navigator.clipboard.writeText(t).then(() => flashCopy(btn));
+}
+function flashCopy(btn) {
+  if (!btn) return;
+  btn.textContent = '✓ Copiado!';
+  btn.classList.add('copied');
+  setTimeout(() => { btn.textContent = 'Copiar'; btn.classList.remove('copied'); }, 2000);
+}
+
+
+/* ══════════════════════════════════════
+   POSTMESSAGE — recebe key do site pai
+══════════════════════════════════════ */
+window.addEventListener('message', function(e) {
+  if (!e.data || typeof e.data !== 'object') return;
+
+  // Recebe chave de API injetada pelo site
+  if (e.data.action === 'setApiKey') {
+    const { provider, key, model } = e.data;
+    if (provider === 'gemini' && key) {
+      set('geminiKey', key);
+      set('provider', 'gemini');
+      if (model) set('geminiModel', model);
+      updateUI();
+      console.log('[HeliodoraGerador] ✅ Chave Gemini injetada automaticamente.');
+    } else if (provider === 'claude' && key) {
+      set('claudeKey', key);
+      set('provider', 'claude');
+      if (model) set('claudeModel', model);
+      updateUI();
+    }
+  }
+});
+
+function goBack() {
+  window.parent.postMessage({ action: 'goBack' }, '*');
+}
+
+/* ══════════════════════════════════════
+   INIT
+══════════════════════════════════════ */
+updateUI();
+if (!getActiveKey()) document.getElementById('noApiWarn').style.display = 'block';
+</script>
+</body>
+</html>

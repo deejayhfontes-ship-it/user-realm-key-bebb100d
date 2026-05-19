@@ -179,6 +179,43 @@ export default function AdminGenerators() {
                   </div>
                 </div>
               </div>
+
+              {/* Card do Heliodora Gerador */}
+              <div 
+                className="soft-card p-6 transition-all hover:scale-[1.02] duration-300 group flex flex-col justify-between min-h-[280px] cursor-pointer border-[#0066FF]/20"
+                onClick={() => navigate('/admin/generators/heliodora')}
+              >
+                {/* Header */}
+                <div className="flex items-start justify-between mb-4">
+                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-[#0066FF] text-white shadow-lg shadow-[#0066FF]/20 group-hover:scale-110 transition-transform duration-500">
+                    <Wand2 className="w-7 h-7" />
+                  </div>
+                  <div className="flex gap-2">
+                    <span className="rounded-full px-3 py-1 text-[10px] uppercase font-bold tracking-wider bg-[#0066FF]/15 text-[#0066FF]">
+                      Prefeitura
+                    </span>
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="space-y-2 mb-6">
+                  <h3 className="font-semibold text-lg text-foreground group-hover:text-[#0066FF] transition-colors">Gerador Heliodora</h3>
+                  <p className="text-sm text-muted-foreground line-clamp-2">
+                    Criação de posts e textos institucionais para a Prefeitura
+                  </p>
+                  <span className="inline-block rounded-full px-3 py-1 text-xs font-medium bg-[#0066FF] text-white shadow-sm mt-1">
+                    HTML Personalizado
+                  </span>
+                </div>
+
+                {/* Button */}
+                <div className="mt-auto">
+                  <div className="w-full rounded-full h-10 bg-[#0066FF] text-white flex items-center justify-center hover:brightness-105 shadow-sm shadow-[#0066FF]/20 gap-2 font-medium">
+                    <Wand2 className="w-4 h-4" />
+                    Abrir Gerador
+                  </div>
+                </div>
+              </div>
             </div>
 
             <InstalledGeneratorsTab

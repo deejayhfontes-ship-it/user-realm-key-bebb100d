@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gerador de Posts — Pref. Heliodora</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@400;500;600&display=swap');
+
+  :root {
+    --blue: #0066FF;
+    --green: #7DC41E;
+    --orange: #F5820D;
+    --dark: #111111;
+    --mid: #222222;
+    --light: #F5F5F5;
+    --text-muted: #888;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--dark);
+    color: var(--light);
+    font-family: 'Barlow', sans-serif;
+    min-height: 100vh;
+  }
+
+  header {
+    background: var(--mid);
+    border-bottom: 3px solid var(--blue);
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .logo-badge {
+    background: var(--blue);
+    color: #fff;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 13px;
+    letter-spacing: 2px;
+    padding: 6px 10px;
+    border-radius: 4px;
+  }
+
+  header h1 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 22px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  header span {
+    color: var(--blue);
+  }
+
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 36px 24px;
+  }
+
+  /* INPUT SECTION */
+  .input-card {
+    background: var(--mid);
+    border-radius: 12px;
+    padding: 28px;
+    border: 1px solid #333;
+    margin-bottom: 32px;
+  }
+
+  .input-card h2 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--orange);
+    margin-bottom: 20px;
+  }
+
+  .upload-area {
+    border: 2px dashed #444;
+    border-radius: 10px;
+    padding: 32px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    margin-bottom: 20px;
+    position: relative;
+  }
+
+  .upload-area:hover {
+    border-color: var(--blue);
+    background: rgba(0,102,255,0.05);
+  }
+
+  .upload-area.has-image {
+    border-color: var(--green);
+    border-style: solid;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .upload-area img {
+    width: 100%;
+    max-height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+    display: block;
+  }
+
+  .upload-icon {
+    font-size: 36px;
+    margin-bottom: 8px;
+  }
+
+  .upload-area p {
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+
+  .upload-area input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  textarea {
+    width: 100%;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 8px;
+    color: var(--light);
+    font-family: 'Barlow', sans-serif;
+    font-size: 15px;
+    padding: 14px 16px;
+    resize: vertical;
+    min-height: 80px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  textarea:focus {
+    border-color: var(--blue);
+  }
+
+  .btn-generate {
+    margin-top: 20px;
+    width: 100%;
+    background: var(--blue);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 3px;
+    padding: 16px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .btn-generate:hover { background: #0055dd; }
+  .btn-generate:active { transform: scale(0.99); }
+  .btn-generate:disabled { background: #333; color: #666; cursor: not-allowed; }
+
+  /* SPINNER */
+  .spinner {
+    width: 22px;
+    height: 22px;
+    border: 3px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* RESULTS */
+  .results {
+    display: none;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .results.visible { display: flex; }
+
+  .result-block {
+    background: var(--mid);
+    border-radius: 12px;
+    border: 1px solid #333;
+    overflow: hidden;
+  }
+
+  .result-block-header {
+    padding: 14px 20px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #333;
+  }
+
+  .tag-titulo { background: var(--blue); color: #fff; }
+  .tag-resumo { background: var(--green); color: #111; }
+  .tag-legenda { background: var(--orange); color: #111; }
+
+  .copy-btn {
+    background: rgba(255,255,255,0.1);
+    border: none;
+    color: #fff;
+    padding: 5px 12px;
+    border-radius: 5px;
+    font-size: 12px;
+    font-family: 'Barlow', sans-serif;
+    cursor: pointer;
+    transition: background 0.2s;
+    letter-spacing: 0;
+    text-transform: none;
+    font-weight: 500;
+  }
+
+  .copy-btn:hover { background: rgba(255,255,255,0.2); }
+  .copy-btn.copied { background: var(--green); color: #111; }
+
+  .result-body {
+    padding: 20px;
+  }
+
+  /* TÍTULO PREVIEW */
+  .titulo-preview {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .titulo-part {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .part-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    min-width: 60px;
+  }
+
+  .part-value {
+    font-family: 'Bebas Neue', sans-serif;
+    letter-spacing: 1px;
+    border-radius: 4px;
+    padding: 4px 10px;
+  }
+
+  .p1 { background: var(--blue); color: #fff; font-size: 28px; }
+  .p2 { background: var(--green); color: #111; font-size: 28px; }
+  .p3 { background: var(--orange); color: #111; font-size: 16px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; padding: 6px 12px; }
+
+  .resumo-text {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--light);
+    line-height: 1.5;
+    background: rgba(0,102,255,0.15);
+    border-left: 4px solid var(--blue);
+    padding: 14px 16px;
+    border-radius: 0 8px 8px 0;
+  }
+
+  .legenda-text {
+    font-size: 15px;
+    color: var(--light);
+    line-height: 1.7;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .error-msg {
+    background: #3a1111;
+    border: 1px solid #882222;
+    color: #ff8888;
+    padding: 14px 18px;
+    border-radius: 8px;
+    margin-top: 16px;
+    font-size: 14px;
+    display: none;
+  }
+
+  .divider {
+    height: 1px;
+    background: #333;
+    margin: 4px 0;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-badge">PREF</div>
+  <h1>Gerador de Posts — <span>Heliodora</span></h1>
+</header>
+
+<div class="container">
+
+  <div class="input-card">
+    <h2>📸 Nova Publicação</h2>
+
+    <div class="upload-area" id="uploadArea">
+      <input type="file" accept="image/*" id="imageInput" onchange="handleImage(this)">
+      <div id="uploadPlaceholder">
+        <div class="upload-icon">🖼️</div>
+        <p>Clique ou arraste a foto aqui</p>
+        <p style="font-size:12px; margin-top:4px;">JPG, PNG, WEBP</p>
+      </div>
+      <img id="previewImg" style="display:none" alt="preview">
+    </div>
+
+    <label for="themeInput">Tema / Assunto da publicação</label>
+    <textarea id="themeInput" placeholder="Ex: Descarte correto de embalagens de agrotóxico — evento realizado no galpão com agricultores da região..."></textarea>
+
+    <div class="error-msg" id="errorMsg"></div>
+
+    <button class="btn-generate" id="generateBtn" onclick="generate()">
+      <div class="spinner" id="spinner"></div>
+      <span id="btnText">⚡ GERAR TEXTOS</span>
+    </button>
+  </div>
+
+  <div class="results" id="results">
+
+    <!-- TÍTULO -->
+    <div class="result-block">
+      <div class="result-block-header tag-titulo">
+        📌 Título (3 Partes)
+        <button class="copy-btn" onclick="copyTitulo()">Copiar</button>
+      </div>
+      <div class="result-body">
+        <div class="titulo-preview">
+          <div class="titulo-part">
+            <span class="part-label">Parte 1</span>
+            <span class="part-value p1" id="t1">—</span>
+          </div>
+          <div class="titulo-part">
+            <span class="part-label">Parte 2</span>
+            <span class="part-value p2" id="t2">—</span>
+          </div>
+          <div class="titulo-part">
+            <span class="part-label">Parte 3</span>
+            <span class="part-value p3" id="t3">—</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESUMO -->
+    <div class="result-block">
+      <div class="result-block-header tag-resumo">
+        💬 Frase de Destaque (Imagem 2)
+        <button class="copy-btn" onclick="copyText('resumoText', this)">Copiar</button>
+      </div>
+      <div class="result-body">
+        <div class="resumo-text" id="resumoText">—</div>
+      </div>
+    </div>
+
+    <!-- LEGENDA -->
+    <div class="result-block">
+      <div class="result-block-header tag-legenda">
+        📲 Legenda com Hashtags
+        <button class="copy-btn" onclick="copyText('legendaText', this)">Copiar</button>
+      </div>
+      <div class="result-body">
+        <div class="legenda-text" id="legendaText">—</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+let imageBase64 = null;
+let imageType = 'image/jpeg';
+
+function handleImage(input) {
+  const file = input.files[0];
+  if (!file) return;
+  imageType = file.type || 'image/jpeg';
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    imageBase64 = e.target.result.split(',')[1];
+    const area = document.getElementById('uploadArea');
+    const placeholder = document.getElementById('uploadPlaceholder');
+    const preview = document.getElementById('previewImg');
+    placeholder.style.display = 'none';
+    preview.src = e.target.result;
+    preview.style.display = 'block';
+    area.classList.add('has-image');
+  };
+  reader.readAsDataURL(file);
+}
+
+async function generate() {
+  const theme = document.getElementById('themeInput').value.trim();
+  if (!theme) { showError('Por favor, descreva o tema da publicação.'); return; }
+
+  setLoading(true);
+  hideError();
+
+  const messages = [];
+
+  if (imageBase64) {
+    messages.push({
+      role: 'user',
+      content: [
+        {
+          type: 'image',
+          source: { type: 'base64', media_type: imageType, data: imageBase64 }
+        },
+        {
+          type: 'text',
+          text: buildPrompt(theme)
+        }
+      ]
+    });
+  } else {
+    messages.push({
+      role: 'user',
+      content: buildPrompt(theme)
+    });
+  }
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: `Você é um redator criativo da Prefeitura de Heliodora (MG). 
+Você cria textos para publicações nas redes sociais da prefeitura.
+Sempre responda APENAS com um JSON válido, sem markdown, sem explicações, sem texto extra.
+O JSON deve ter exatamente as chaves: titulo_parte1, titulo_parte2, titulo_parte3, frase_destaque, legenda.`,
+        messages
+      })
+    });
+
+    const data = await res.json();
+    const raw = data.content?.[0]?.text || '';
+    const clean = raw.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(clean);
+
+    document.getElementById('t1').textContent = parsed.titulo_parte1 || '—';
+    document.getElementById('t2').textContent = parsed.titulo_parte2 || '—';
+    document.getElementById('t3').textContent = parsed.titulo_parte3 || '—';
+    document.getElementById('resumoText').textContent = parsed.frase_destaque || '—';
+    document.getElementById('legendaText').textContent = parsed.legenda || '—';
+
+    document.getElementById('results').classList.add('visible');
+
+  } catch(e) {
+    showError('Erro ao gerar textos: ' + e.message);
+  } finally {
+    setLoading(false);
+  }
+}
+
+function buildPrompt(theme) {
+  return `Tema/assunto da publicação: "${theme}"
+
+Gere os textos para uma publicação da Prefeitura de Heliodora (MG) nas redes sociais. O tom é institucional mas próximo, positivo e celebrativo de ações do município.
+
+Retorne um JSON com exatamente estas chaves:
+
+- titulo_parte1: palavra ou expressão curta (1-2 palavras) em maiúsculas — estilo impactante, palavra-chave principal (ex: DESCARTE, SAÚDE, OBRAS, EDUCAÇÃO)
+- titulo_parte2: complemento da palavra (1-2 palavras) em maiúsculas — ex: CORRETO, EM DIA, AVANÇANDO, PARA TODOS
+- titulo_parte3: frase complementar curta que explica a ação (máx. 8 palavras) em maiúsculas — ex: EMBALAGENS DE AGROTÓXICO NO LUGAR CERTO
+- frase_destaque: frase motivacional/resumo de 1-2 linhas para aparecer sobre a foto (ex: "A segurança do nosso solo e da nossa gente é prioridade!") — deve ser marcante, direta e empática
+- legenda: legenda completa para Instagram/Facebook com: título em MAIÚSCULAS na primeira linha, depois texto explicando a ação (3-5 frases), emojis relevantes ao longo do texto, linha em branco, depois as hashtags: #PrefHeliodora #TrabalhoDiálogoUnião mais 3-5 hashtags específicas do tema
+
+Responda APENAS com o JSON, sem markdown.`;
+}
+
+function setLoading(on) {
+  const btn = document.getElementById('generateBtn');
+  const spinner = document.getElementById('spinner');
+  const txt = document.getElementById('btnText');
+  btn.disabled = on;
+  spinner.style.display = on ? 'block' : 'none';
+  txt.textContent = on ? 'GERANDO...' : '⚡ GERAR TEXTOS';
+}
+
+function showError(msg) {
+  const el = document.getElementById('errorMsg');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function hideError() {
+  document.getElementById('errorMsg').style.display = 'none';
+}
+
+function copyText(id, btn) {
+  const text = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    if (btn) {
+      btn.textContent = '✓ Copiado!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'Copiar'; btn.classList.remove('copied'); }, 2000);
+    }
+  });
+}
+
+function copyTitulo() {
+  const t1 = document.getElementById('t1').textContent;
+  const t2 = document.getElementById('t2').textContent;
+  const t3 = document.getElementById('t3').textContent;
+  const text = `${t1}\n${t2}\n${t3}`;
+  navigator.clipboard.writeText(text).then(() => {
+    const btns = document.querySelectorAll('.tag-titulo .copy-btn');
+    btns.forEach(b => {
+      b.textContent = '✓ Copiado!';
+      b.classList.add('copied');
+      setTimeout(() => { b.textContent = 'Copiar'; b.classList.remove('copied'); }, 2000);
+    });
+  });
+}
+</script>
+</body>
+</html>
