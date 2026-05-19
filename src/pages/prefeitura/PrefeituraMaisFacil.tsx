@@ -9,9 +9,17 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
 import { toast } from "sonner";
-import { Download, Upload, ArrowLeft, X, Image, ZoomIn, MoveHorizontal, MoveVertical } from "lucide-react";
-import maskImage from "@/assets/prefeitura/mask-storie.png";
+import { Download, Upload, ArrowLeft, X, Image, ZoomIn, MoveHorizontal, MoveVertical, Check } from "lucide-react";
 import CarrosselInteracoes from "@/components/prefeitura/CarrosselInteracoes";
+
+const defaultMask = "/prefeitura-assets/mascaras/02 CAPA PARA INSTA - MASK LOGO color.png";
+
+const CUSTOM_MASKS = [
+  "/prefeitura-assets/mascaras/CAPA PARA INSTA - MASK LOGO color.png",
+  "/prefeitura-assets/mascaras/02 CAPA PARA INSTA - MASK LOGO color.png",
+  "/prefeitura-assets/mascaras/03 CAPA PARA INSTA - MASK LOGO color.png",
+];
+
 
 type GeneratorType = "stories" | "carrossel" | "custom";
 type PhotoCount = 1 | 2 | 3;
@@ -44,6 +52,7 @@ const PrefeituraMaisFacil = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
   const [customMaskImage, setCustomMaskImage] = useState<string | null>(null);
+  const [gradientIntensity, setGradientIntensity] = useState<number>(100);
   const captureRef = useRef<HTMLDivElement>(null);
   const fileInputRefs = useRef<(HTMLInputElement | null)[]>([null, null, null]);
   const maskInputRef = useRef<HTMLInputElement>(null);
@@ -70,14 +79,7 @@ const PrefeituraMaisFacil = () => {
   };
 
   const handleMaskUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setCustomMaskImage(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
+    // Não é mais usado
   };
 
   const handleImageUpload = (index: number) => (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -300,13 +302,14 @@ const PrefeituraMaisFacil = () => {
           right: 0,
           height: "960px",
           background: "linear-gradient(to top, #004691 0%, transparent 100%)",
+          opacity: gradientIntensity / 100,
           pointerEvents: "none",
         }}
       />
 
       {/* Máscara/Template overlay */}
       <img
-        src={generatorType === "custom" && customMaskImage ? customMaskImage : maskImage}
+        src={generatorType === "custom" && customMaskImage ? customMaskImage : defaultMask}
         alt="Mask"
         crossOrigin="anonymous"
         style={{
@@ -577,57 +580,70 @@ const PrefeituraMaisFacil = () => {
                 ))}
               </div>
 
-              {/* Upload de Máscara (apenas no modo custom) */}
+              {/* Seleção de Máscara (apenas no modo custom) */}
               {generatorType === "custom" && (
                 <div className="space-y-4">
                   <Label className="text-foreground block">
-                    Máscara Personalizada (PNG com transparência)
+                    Escolha uma Máscara
                   </Label>
-                  <input
-                    type="file"
-                    ref={maskInputRef}
-                    onChange={handleMaskUpload}
-                    accept="image/png,image/webp"
-                    className="hidden"
-                  />
-                  {customMaskImage ? (
-                    <div className="space-y-2">
-                       <div className="relative h-20 rounded-lg overflow-hidden border border-border bg-card/50">
-                         <img
-                           src={customMaskImage}
-                           alt="Máscara Customizada"
-                           className="w-full h-full object-contain"
-                         />
-                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center gap-2 opacity-0 hover:opacity-100 transition-opacity">
-                           <Button
-                             variant="secondary"
-                             size="sm"
-                             onClick={() => maskInputRef.current?.click()}
-                           >
-                             Trocar
-                           </Button>
-                           <Button
-                             variant="destructive"
-                             size="sm"
-                             onClick={() => setCustomMaskImage(null)}
-                           >
-                             <X className="h-4 w-4" />
-                           </Button>
-                         </div>
-                       </div>
-                    </div>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      onClick={() => maskInputRef.current?.click()}
-                      className="w-full h-16 border-dashed"
-                    >
-                      <Upload className="mr-2 h-5 w-5" />
-                      Carregar Máscara
-                    </Button>
-                  )}
+                  <div className="grid grid-cols-3 gap-4">
+                    {CUSTOM_MASKS.map((mask, index) => (
+                      <div
+                        key={index}
+                        onClick={() => setCustomMaskImage(mask)}
+                        className={`relative cursor-pointer rounded-xl overflow-hidden transition-all duration-300 aspect-[9/16] border-2 group ${
+                          customMaskImage === mask
+                            ? "border-primary ring-4 ring-primary/20 scale-[1.02] shadow-[0_0_20px_rgba(var(--primary),0.3)]"
+                            : "border-border/50 hover:border-primary/50 hover:scale-[1.02]"
+                        }`}
+                        style={{
+                          backgroundColor: "#1a1a2e",
+                          backgroundImage: 'radial-gradient(#2a2a3e 1px, transparent 1px)',
+                          backgroundSize: '10px 10px'
+                        }}
+                      >
+                        <img
+                          src={mask}
+                          alt={`Máscara ${index + 1}`}
+                          className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
+                        />
+                        
+                        {customMaskImage === mask && (
+                          <div className="absolute inset-0 border-2 border-primary rounded-xl pointer-events-none" />
+                        )}
+                        
+                        <div className={`absolute bottom-2 right-2 p-1.5 rounded-full transition-all duration-300 shadow-lg ${
+                          customMaskImage === mask 
+                            ? "bg-primary text-primary-foreground opacity-100 scale-100" 
+                            : "bg-background/50 text-muted-foreground opacity-0 scale-75 group-hover:opacity-100"
+                        }`}>
+                          <Check className="w-4 h-4" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
+
+              {/* Controle do Gradiente Azul */}
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <Label className="text-foreground">Intensidade do Fundo Azul</Label>
+                  <span className="text-sm text-muted-foreground">{gradientIntensity}%</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-muted-foreground">Claro</span>
+                  <Slider
+                    value={[gradientIntensity]}
+                    onValueChange={(value) => setGradientIntensity(value[0])}
+                    min={0}
+                    max={100}
+                    step={5}
+                    className="flex-1"
+                  />
+                  <span className="text-xs text-muted-foreground">Forte</span>
+                </div>
+              </div>
 
               <div>
                 <Label htmlFor="secretaria" className="text-foreground">
@@ -770,13 +786,14 @@ const PrefeituraMaisFacil = () => {
                         right: 0,
                         height: "960px",
                         background: "linear-gradient(to top, #004691 0%, transparent 100%)",
+                        opacity: gradientIntensity / 100,
                         pointerEvents: "none",
                       }}
                     />
 
                     {/* Máscara/Template overlay */}
                     <img
-                      src={generatorType === "custom" && customMaskImage ? customMaskImage : maskImage}
+                      src={generatorType === "custom" && customMaskImage ? customMaskImage : defaultMask}
                       alt="Mask"
                       style={{
                         position: "absolute",
