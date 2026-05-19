@@ -1049,7 +1049,8 @@ async function generateClaude(theme) {
 ══════════════════════════════════════ */
 async function generateGemini(theme) {
   const key   = get('geminiKey');
-  const model = get('geminiModel') || 'gemini-2.5-pro';
+  // gemini-2.0-flash: mais estável para text generation via REST
+  const model = get('geminiModel') || 'gemini-2.0-flash';
 
   const parts = [];
   if (imageBase64) {
@@ -1060,7 +1061,11 @@ async function generateGemini(theme) {
   const body = {
     system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
     contents: [{ role: 'user', parts }],
-    generationConfig: { maxOutputTokens: 1000, temperature: 0.7 }
+    generationConfig: {
+      maxOutputTokens: 1200,
+      temperature: 0.7,
+      response_mime_type: 'application/json'
+    }
   };
 
   const res = await fetch(
@@ -1073,14 +1078,21 @@ async function generateGemini(theme) {
   );
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    const msg = err?.error?.message || `HTTP ${res.status}`;
-    if (res.status === 400 || res.status === 403) throw new Error('Chave Gemini inválida. Verifique nas configurações.');
+    const errData = await res.json().catch(() => ({}));
+    const msg = errData?.error?.message || `HTTP ${res.status}`;
+    if (res.status === 400) throw new Error('Erro na requisição Gemini: ' + msg);
+    if (res.status === 403) throw new Error('Chave Gemini inválida ou sem permissão. Verifique nas configurações.');
+    if (res.status === 429) throw new Error('Limite de requisições atingido. Aguarde um momento.');
     throw new Error(msg);
   }
 
   const data = await res.json();
-  return data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  // Varre todas as parts para achar o texto (thinking models retornam thought primeiro)
+  const allParts = data?.candidates?.[0]?.content?.parts || [];
+  const textPart = allParts.find(p => p.text && !p.thought);
+  const raw = textPart?.text || allParts.find(p => p.text)?.text || '';
+  if (!raw) throw new Error('Gemini retornou resposta vazia. Tente novamente.');
+  return raw;
 }
 
 /* ══════════════════════════════════════
