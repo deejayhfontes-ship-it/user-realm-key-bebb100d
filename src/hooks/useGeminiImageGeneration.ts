@@ -196,15 +196,11 @@ const DEFAULT_IMAGE_MODEL = 'gemini-3-pro-image-preview';
 const IMAGE_MODEL_FALLBACKS: string[] = [
     'gemini-3-pro-image-preview',       // 🥇 Principal — melhor qualidade
     'gemini-3.1-flash-image-preview',   // 🥈 Rápido & barato
-    'gemini-2.5-flash-image',           // 🥉 Versão anterior estável
-    'gemini-2.0-flash-exp-image-generation', // 🏅 Legacy fallback
 ];
 
 // Lista de modelos de TEXTO em ordem de prioridade (fallback automático)
 const TEXT_MODEL_FALLBACKS: string[] = [
     'gemini-3.1-pro-preview',           // 🥇 Principal — melhor qualidade
-    'gemini-2.0-flash',                 // 🥈 Estável, funciona no v1beta
-    'gemini-1.5-flash',                 // 🥉 Legacy fallback
 ];
 
 const SDK_VERSION = '@google/genai@^1.30.0';
