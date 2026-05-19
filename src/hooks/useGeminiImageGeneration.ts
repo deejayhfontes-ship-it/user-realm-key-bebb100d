@@ -201,6 +201,8 @@ const IMAGE_MODEL_FALLBACKS: string[] = [
 // Lista de modelos de TEXTO em ordem de prioridade (fallback automático)
 const TEXT_MODEL_FALLBACKS: string[] = [
     'gemini-3.1-pro-preview',           // 🥇 Principal — melhor qualidade
+    'gemini-2.0-flash',                 // 🥈 Estável, funciona no v1beta
+    'gemini-1.5-flash',                 // 🥉 Legacy fallback
 ];
 
 const SDK_VERSION = '@google/genai@^1.30.0';
