@@ -216,6 +216,43 @@ export default function AdminGenerators() {
                   </div>
                 </div>
               </div>
+
+              {/* Card do Gerador Teste 2026 */}
+              <div 
+                className="soft-card p-6 transition-all hover:scale-[1.02] duration-300 group flex flex-col justify-between min-h-[280px] cursor-pointer border-purple-500/20"
+                onClick={() => navigate('/admin/generators/teste-2026')}
+              >
+                {/* Header */}
+                <div className="flex items-start justify-between mb-4">
+                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-purple-600 text-white shadow-lg shadow-purple-600/20 group-hover:scale-110 transition-transform duration-500">
+                    <Sparkles className="w-7 h-7" />
+                  </div>
+                  <div className="flex gap-2">
+                    <span className="rounded-full px-3 py-1 text-[10px] uppercase font-bold tracking-wider bg-purple-600/15 text-purple-600">
+                      Novo
+                    </span>
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="space-y-2 mb-6">
+                  <h3 className="font-semibold text-lg text-foreground group-hover:text-purple-600 transition-colors">Gerador Teste 2026</h3>
+                  <p className="text-sm text-muted-foreground line-clamp-2">
+                    Gerador avançado com motor DesignBuilder
+                  </p>
+                  <span className="inline-block rounded-full px-3 py-1 text-xs font-medium bg-purple-600 text-white shadow-sm mt-1">
+                    React UI
+                  </span>
+                </div>
+
+                {/* Button */}
+                <div className="mt-auto">
+                  <div className="w-full rounded-full h-10 bg-purple-600 text-white flex items-center justify-center hover:brightness-105 shadow-sm shadow-purple-600/20 gap-2 font-medium">
+                    <Wand2 className="w-4 h-4" />
+                    Abrir Gerador
+                  </div>
+                </div>
+              </div>
             </div>
 
             <InstalledGeneratorsTab

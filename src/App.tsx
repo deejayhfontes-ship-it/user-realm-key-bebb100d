@@ -43,6 +43,7 @@ import ArcanoGerarImagem from "@/pages/admin/arcano/ArcanoGerarImagem";
 import BibliotecaPrompts from "@/pages/admin/arcano/BibliotecaPrompts";
 import FerramentasIA from "@/pages/admin/arcano/FerramentasIA";
 import HeliodoraGeradorPage from "@/pages/admin/geradores/HeliodoraGeradorPage";
+import GeradorTeste2026 from "@/pages/admin/geradores/gerador-teste-2026/GeradorTeste2026";
 
 // Public Pages
 import Terms from "@/pages/public/Terms";
@@ -188,6 +189,7 @@ const App = () => (
                 <Route path="clients" element={<AdminClients />} />
                 <Route path="generators" element={<AdminGenerators />} />
                 <Route path="generators/heliodora" element={<HeliodoraGeradorPage />} />
+                <Route path="generators/teste-2026" element={<GeradorTeste2026 />} />
                 <Route path="ai-providers" element={<AdminAIProviders />} />
                 <Route path="payments" element={<AdminPayments />} />
                 <Route path="pedidos" element={<AdminPedidos />} />
