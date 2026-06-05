@@ -9,6 +9,8 @@ import { toast } from 'sonner';
 import SidebarForm from './components/SidebarForm';
 import ResultArea from './components/ResultArea';
 import AIPanel from './components/AIPanel';
+import AgentSelector from './components/AgentSelector';
+import AgentWorkspace from './components/AgentWorkspace';
 
 // Mapear cameraShot → shotType do hook
 const SHOT_MAP: Record<string, string> = {
@@ -27,6 +29,7 @@ const FORMAT_DIM: Record<string, string> = {
 
 export default function GeradorTeste2026() {
   const navigate = useNavigate();
+  const [activeAgent, setActiveAgent] = useState<string | null>(null);
   const [resultImage, setResultImage] = useState<string | null>(null);
   const [finalPrompt, setFinalPrompt] = useState<string>('');
   const [showAI, setShowAI] = useState(false);
@@ -112,6 +115,16 @@ export default function GeradorTeste2026() {
     }
   };
 
+  if (!activeAgent) {
+    return <AgentSelector onSelectAgent={setActiveAgent} />;
+  }
+
+  // Agentes simples: abre workspace local sem construtor completo
+  const FULL_BUILDER_AGENTS = ['orion', 'orion-pro'];
+  if (!FULL_BUILDER_AGENTS.includes(activeAgent)) {
+    return <AgentWorkspace agentId={activeAgent} onBack={() => setActiveAgent(null)} />;
+  }
+
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-[#080612] text-zinc-100" style={{ fontFamily: "'Inter', sans-serif" }}>
 
@@ -119,7 +132,8 @@ export default function GeradorTeste2026() {
       <header className="shrink-0 z-50 flex items-center justify-between px-5 py-3 border-b border-white/[0.06] bg-[#080612]/95 backdrop-blur-xl">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => navigate('/admin/generators')}
+            onClick={() => setActiveAgent(null)}
+            title="Voltar para Agentes"
             className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-500 hover:bg-white/[0.06] hover:text-zinc-200 transition-all"
           >
             <ArrowLeft className="w-4 h-4" />

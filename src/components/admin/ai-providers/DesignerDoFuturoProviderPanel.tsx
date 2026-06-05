@@ -42,8 +42,8 @@ const DEFAULT_CONFIG = {
     name: 'Designer do Futuro — Gemini',
     slug: DESIGNER_SLUG,
     api_type: 'google' as const,
-    endpoint_url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent',
-    model_name: 'gemini-3.1-flash-image-preview',
+    endpoint_url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent',
+    model_name: 'gemini-3.1-flash-image',
     category: 'vision' as const,
     supports_images: true,
     is_active: true,
@@ -83,7 +83,7 @@ export function DesignerDoFuturoProviderPanel() {
     const [keyEntries, setKeyEntries] = useState<KeyEntry[]>([]);
     const [newExtraKey, setNewExtraKey] = useState('');
     const [modelImage, setModelImage] = useState(DEFAULT_CONFIG.model_name);
-    const [modelText, setModelText] = useState('gemini-3.1-pro-preview');
+    const [modelText, setModelText] = useState('gemini-3.5-flash'); // Gemini 3.5 Flash (Stable)
     const [hasChanges, setHasChanges] = useState(false);
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [showPool, setShowPool] = useState(true); // Pool aberto por padrão
@@ -199,7 +199,7 @@ export function DesignerDoFuturoProviderPanel() {
         const start = Date.now();
         try {
             const response = await fetch(
-                `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview?key=${entry.key}`
+                `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image?key=${entry.key}`
             );
             const latencyMs = Date.now() - start;
 
@@ -706,9 +706,9 @@ export function DesignerDoFuturoProviderPanel() {
                                         onChange={(e) => handleFieldChange(setModelImage, e.target.value)}
                                         className="rounded-xl font-mono text-xs h-9"
                                     />
-                                    <p className="text-xs text-muted-foreground">
-                                        Gera as imagens. Padrão: <code className="bg-muted px-1 rounded">gemini-3.1-flash-image-preview</code>
-                                    </p>
+                                     <p className="text-xs text-muted-foreground">
+                                         Gera as imagens. Padrão: <code className="bg-muted px-1 rounded">gemini-3.1-flash-image</code> (Nano Banana 2)
+                                     </p>
                                 </div>
                                 <div className="space-y-2">
                                     <Label className="flex items-center gap-2 text-xs">

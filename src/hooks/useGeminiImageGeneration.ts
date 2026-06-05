@@ -186,23 +186,28 @@ const SHOT_TYPES: Record<string, string> = {
 };
 
 // ============================================================
-// Modelos padrão — Gemini 3 (principal) + fallbacks
+// Modelos ativos — Junho/2026 (confirmados via API)
 // ============================================================
-const DEFAULT_TEXT_MODEL = 'gemini-3.1-pro-preview';
-const DEFAULT_IMAGE_MODEL = 'gemini-3-pro-image-preview';
 
-// Lista de modelos de imagem em ordem de prioridade (fallback automático)
-// Se o modelo principal estiver com 503/500, tenta o próximo da lista
+// 🎨 IMAGEM — Nano Banana 2 (GA Stable, confirmado na API)
+const DEFAULT_IMAGE_MODEL = 'gemini-3.1-flash-image';
+
+// 📝 TEXTO — Gemini 3.5 Flash (Stable) como principal
+const DEFAULT_TEXT_MODEL = 'gemini-3.5-flash';
+
+// Fallbacks de IMAGEM (ordem de prioridade)
 const IMAGE_MODEL_FALLBACKS: string[] = [
-    'gemini-3-pro-image-preview',       // 🥇 Principal — melhor qualidade
-    'gemini-3.1-flash-image-preview',   // 🥈 Rápido & barato
+    'gemini-3.1-flash-image',  // 🥇 Nano Banana 2 — GA Stable, rápido
+    'gemini-3-pro-image',      // 🥈 Nano Banana Pro — GA Stable, 4K
+    'gemini-2.5-flash-image',  // 🥉 Fallback estável 2.5
 ];
 
-// Lista de modelos de TEXTO em ordem de prioridade (fallback automático)
+// Fallbacks de TEXTO (ordem de prioridade)
 const TEXT_MODEL_FALLBACKS: string[] = [
-    'gemini-3.1-pro-preview',           // 🥇 Principal — melhor qualidade
-    'gemini-2.0-flash',                 // 🥈 Estável, funciona no v1beta
-    'gemini-1.5-flash',                 // 🥉 Legacy fallback
+    'gemini-3.5-flash',         // 🥇 Principal — Gemini 3.5 Flash (Stable)
+    'gemini-3.1-pro-preview',   // 🥈 Gemini 3.1 Pro (Preview) — máxima inteligência
+    'gemini-3-flash-preview',   // 🥉 Gemini 3 Flash (Preview) — rápido
+    'gemini-2.5-flash',         // 🏅 Fallback estável 2.5
 ];
 
 const SDK_VERSION = '@google/genai@^1.30.0';
