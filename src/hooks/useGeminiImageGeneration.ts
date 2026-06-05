@@ -377,7 +377,7 @@ function buildCompositionRules(config: GenerationConfig, referenceImages: Refere
 // ============================================================
 // Verifica se erro é retryável (503/500/429)
 // ============================================================
-function classifyError(err: any): { is429: boolean; is5xx: boolean; isRetryable: boolean } {
+function classifyError(err: any): { is429: boolean; is5xx: boolean; isRetryable: boolean; isDeprecated: boolean } {
     const msg = err?.message || '';
     const status = err?.status || err?.httpCode || 0;
     const is429 =
@@ -389,7 +389,14 @@ function classifyError(err: any): { is429: boolean; is5xx: boolean; isRetryable:
         msg.includes('falharam após múltiplas tentativas') || // ← erro re-wrapped do callWithKeyPool
         msg.includes('Todos os modelos falharam') || // ← erro re-wrapped do callWithModelFallback
         (status >= 500 && status < 600);
-    return { is429, is5xx, isRetryable: is429 || is5xx };
+    // ⚠️ 404/NOT_FOUND = modelo descontinuado — deve tentar o próximo modelo
+    const isDeprecated =
+        msg.includes('404') || status === 404 ||
+        msg.includes('NOT_FOUND') ||
+        msg.includes('no longer available') ||
+        msg.includes('is no longer available') ||
+        msg.includes('Please update your code');
+    return { is429, is5xx, isRetryable: is429 || is5xx, isDeprecated };
 }
 
 // ============================================================
@@ -483,9 +490,14 @@ async function callWithModelFallback<T>(
             return { result, usedModel: model };
         } catch (err: any) {
             lastError = err;
-            const { is5xx } = classifyError(err);
+            const { is5xx, isDeprecated } = classifyError(err);
+            if (isDeprecated) {
+                // Modelo descontinuado (404/NOT_FOUND) — tenta o próximo
+                console.warn(`[ModelFallback] 🚧 Modelo ${model} descontinuado (404), tentando próximo...`);
+                continue;
+            }
             if (!is5xx) {
-                // Erro não é 5xx (pode ser auth, formato, etc) → não tenta fallback
+                // Erro não é 5xx nem 404 (pode ser auth, formato, etc) → não tenta fallback
                 throw err;
             }
             console.warn(`[ModelFallback] ❌ Modelo ${model} falhou com 5xx, tentando próximo...`);
