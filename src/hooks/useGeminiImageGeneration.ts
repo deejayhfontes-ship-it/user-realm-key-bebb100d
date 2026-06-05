@@ -189,16 +189,18 @@ const SHOT_TYPES: Record<string, string> = {
 // Modelos ativos — Junho/2026 (confirmados via API)
 // ============================================================
 
-// 🎨 IMAGEM — Nano Banana 2 (GA Stable, confirmado na API)
-const DEFAULT_IMAGE_MODEL = 'gemini-3.1-flash-image';
+// 🎨 IMAGEM — Nano Banana Pro como principal (maior qualidade)
+const DEFAULT_IMAGE_MODEL = 'gemini-3-pro-image';
 
 // 📝 TEXTO — Gemini 3.5 Flash (Stable) como principal
 const DEFAULT_TEXT_MODEL = 'gemini-3.5-flash';
 
 // Fallbacks de IMAGEM (ordem de prioridade)
+// 🍌🍌 Nano Banana 2 = gemini-3.1-flash-image — rápido, alto volume
+// 🍌    Nano Banana Pro = gemini-3-pro-image — máxima qualidade contextual
 const IMAGE_MODEL_FALLBACKS: string[] = [
-    'gemini-3.1-flash-image',  // 🥇 Nano Banana 2 — GA Stable, rápido
-    'gemini-3-pro-image',      // 🥈 Nano Banana Pro — GA Stable, 4K
+    'gemini-3-pro-image',      // 🥇 Nano Banana Pro (GA) — máxima qualidade, contextual
+    'gemini-3.1-flash-image',  // 🥈 Nano Banana 2 (GA) — rápido, alto volume
     'gemini-2.5-flash-image',  // 🥉 Fallback estável 2.5
 ];
 
@@ -547,7 +549,23 @@ export function useGeminiImageGeneration() {
         let imageModel = DEFAULT_IMAGE_MODEL;
 
         if (data) {
-            imageModel = data.model_name || DEFAULT_IMAGE_MODEL;
+            // ⚠️ Sanitização: substitui modelos deprecados vindos do banco pelo substituto ativo
+            const DEPRECATED_IMAGE_MODELS: Record<string, string> = {
+                'gemini-3-pro-image-preview':           'gemini-3-pro-image',
+                'gemini-3.1-flash-image-preview':       'gemini-3.1-flash-image',
+                'gemini-3-pro-preview':                 'gemini-3.5-flash',
+                'gemini-3.1-pro-preview-old':           'gemini-3.5-flash',
+                'gemini-2.0-flash-preview-image-generation': 'gemini-3.1-flash-image',
+            };
+            const DEPRECATED_TEXT_MODELS: Record<string, string> = {
+                'gemini-3-pro-preview':                 'gemini-3.5-flash',
+                'gemini-3.1-pro-preview-old':           'gemini-3.5-flash',
+                'gemini-1.5-pro':                       'gemini-3.5-flash',
+                'gemini-1.5-flash':                     'gemini-3.5-flash',
+            };
+
+            const rawImageModel = data.model_name || DEFAULT_IMAGE_MODEL;
+            imageModel = DEPRECATED_IMAGE_MODELS[rawImageModel] ?? rawImageModel;
 
             // Key principal
             if (data.api_key_encrypted) {
@@ -558,7 +576,10 @@ export function useGeminiImageGeneration() {
             if (data.system_prompt) {
                 try {
                     const meta = JSON.parse(data.system_prompt);
-                    if (meta.model_text) textModel = meta.model_text;
+                    if (meta.model_text) {
+                        const rawText = meta.model_text;
+                        textModel = DEPRECATED_TEXT_MODELS[rawText] ?? rawText;
+                    }
                     // Pool de keys ativas
                     if (Array.isArray(meta.api_keys)) {
                         for (const entry of meta.api_keys) {
