@@ -36,3 +36,45 @@ src/config/trello.local.ts
 !.env.example
 
 scripts/
+
+# ============================================================
+# PROTEÇÃO CONTRA VAZAMENTO DE CREDENCIAIS — NUNCA REMOVER!
+# Adicionado após incidente de API key exposta no git (jun/2026)
+# ============================================================
+
+# Scripts de teste e análise (nunca subir)
+*.cjs
+*.mjs
+test_*.ts
+test_*.cjs
+test_*.mjs
+analisar-*.cjs
+extrator-*.mjs
+capturar-*.mjs
+explorador-*.mjs
+garimpar-*.cjs
+injetor-*.mjs
+buscar-*.mjs
+salvar-*.mjs
+teste-*.mjs
+
+# Arquivos de sessão e dados capturados
+*.session.json
+orion-*.json
+orion-*.html
+resultado-gerado.*
+teste-screenshot.*
+upload_dist.*
+
+# Pastas de pesquisa e raspagem (nunca subir)
+nova-raspagem-definitiva/
+novaraspagem/
+research/
+
+# Migrations com dados sensíveis (seeds com credenciais)
+# REGRA: Migrations NUNCA devem conter API keys, passwords ou tokens
+# Use apenas estrutura SQL pura (CREATE TABLE, CREATE POLICY, etc.)
+supabase/migrations/*seed*.sql
+supabase/migrations/*keys*.sql
+supabase/migrations/*secret*.sql
+supabase/migrations/*credential*.sql
