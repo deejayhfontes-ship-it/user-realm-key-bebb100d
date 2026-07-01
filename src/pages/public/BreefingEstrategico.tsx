@@ -258,7 +258,7 @@ export default function BreefingEstrategico() {
               <textarea id="q13" name="q1_3" style={{ minHeight: '64px' }} value={formData.q1_3 || ''} onChange={handleTextChange}></textarea></div>
             <div className="q"><label className="qt" htmlFor="q14"><span className="qnum">1.4</span>E quais três palavras VOCÊ usaria para se descrever?</label>
               <textarea id="q14" name="q1_4" style={{ minHeight: '64px' }} value={formData.q1_4 || ''} onChange={handleTextChange}></textarea></div>
-            <div className="q"><label className="qt" htmlFor="q15"><span class="qnum">1.5</span>O que você faz fora da política que revela quem você é? (hobbies, esportes, música, fé, família)</label>
+            <div className="q"><label className="qt" htmlFor="q15"><span className="qnum">1.5</span>O que você faz fora da política que revela quem você é? (hobbies, esportes, música, fé, família)</label>
               <textarea id="q15" name="q1_5" value={formData.q1_5 || ''} onChange={handleTextChange}></textarea></div>
           </section>
 
