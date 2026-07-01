@@ -27,12 +27,28 @@ const APPS = [
   "Carro de som / outdoor", "Documentos oficiais", "Adesivos e brindes"
 ];
 
+const CORES = [
+  { cor: "Azul", hex: "#2563EB" },
+  { cor: "Verde", hex: "#16A34A" },
+  { cor: "Amarelo", hex: "#FACC15" },
+  { cor: "Laranja", hex: "#F97316" },
+  { cor: "Vermelho", hex: "#DC2626" },
+  { cor: "Roxo", hex: "#7C3AED" },
+  { cor: "Rosa", hex: "#EC4899" },
+  { cor: "Turquesa", hex: "#0D9488" },
+  { cor: "Dourado", hex: "#D4A017" },
+  { cor: "Preto", hex: "#111827" },
+  { cor: "Branco", hex: "#FFFFFF" },
+  { cor: "Cinza", hex: "#6B7280" }
+];
+
 export default function BreefingEstrategico() {
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [palavras, setPalavras] = useState<string[]>([]);
   const [estilos, setEstilos] = useState<string[]>([]);
   const [aplicacoes, setAplicacoes] = useState<string[]>([]);
   const [escalas, setEscalas] = useState<Record<string, string>>({});
+  const [coresSelecionadas, setCoresSelecionadas] = useState<Array<{cor: string, hex: string, significado: string}>>([]);
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<{ type: 'ok' | 'err'; msg: string } | null>(null);
 
@@ -64,6 +80,19 @@ export default function BreefingEstrategico() {
     }
   };
 
+  const handleCorToggle = (c: {cor: string, hex: string}) => {
+    const isSelected = coresSelecionadas.some(x => x.cor === c.cor);
+    if (isSelected) {
+      setCoresSelecionadas(coresSelecionadas.filter(x => x.cor !== c.cor));
+    } else if (coresSelecionadas.length < 3) {
+      setCoresSelecionadas([...coresSelecionadas, { ...c, significado: '' }]);
+    }
+  };
+
+  const handleCorSignificado = (cor: string, value: string) => {
+    setCoresSelecionadas(coresSelecionadas.map(c => c.cor === cor ? { ...c, significado: value } : c));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.nome?.trim() || !formData.cidade?.trim()) {
@@ -79,7 +108,8 @@ export default function BreefingEstrategico() {
       ...formData,
       palavras,
       estilos,
-      aplicacoes
+      aplicacoes,
+      cores: coresSelecionadas
     };
 
     SCALES.forEach((s, i) => {
@@ -104,6 +134,7 @@ export default function BreefingEstrategico() {
       setEstilos([]);
       setAplicacoes([]);
       setEscalas({});
+      setCoresSelecionadas([]);
     } catch (err: any) {
       console.error(err);
       setStatus({ type: 'err', msg: 'Não foi possível enviar agora. Verifique sua conexão e tente novamente.' });
@@ -175,6 +206,16 @@ export default function BreefingEstrategico() {
         .breefing-page .msg.err { display: block; background: #FDE8E8; color: #B42318; }
         .breefing-page footer { color: var(--grey); font-size: .8rem; text-align: center; margin-top: 40px; }
         .breefing-page footer b { color: var(--navy); }
+        .breefing-page .swatch-grid { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 24px; }
+        .breefing-page .swatch-item { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; width: 72px; }
+        .breefing-page .swatch-circle { width: 48px; height: 48px; border-radius: 50%; border: 1px solid #E5E7EB; transition: .2s; position: relative; }
+        .breefing-page .swatch-item input { display: none; }
+        .breefing-page .swatch-item input:checked + .swatch-circle { box-shadow: 0 0 0 3px #fff, 0 0 0 5px var(--azure); border-color: transparent; }
+        .breefing-page .swatch-item input:checked + .swatch-circle::after { content: '✓'; position: absolute; color: white; background: var(--azure); width: 18px; height: 18px; border-radius: 50%; font-size: 11px; font-weight: bold; display: flex; align-items: center; justify-content: center; bottom: -2px; right: -2px; }
+        .breefing-page .swatch-name { font-size: .75rem; font-weight: 600; text-align: center; color: var(--navy); }
+        .breefing-page .swatch-item.disabled { opacity: 0.4; cursor: not-allowed; }
+        .breefing-page .cor-meanings { display: flex; flex-direction: column; gap: 16px; margin-bottom: 28px; background: #F8FAFC; padding: 20px; border-radius: 12px; border: 1px solid #E2E8F0; }
+        .breefing-page .cor-meanings:empty { display: none; }
       `}</style>
       <div className="breefing-page">
         <div className="hero">
@@ -316,9 +357,52 @@ export default function BreefingEstrategico() {
             <div className="sec-head"><div className="badge">05</div><h2>Direção visual</h2></div>
             <p className="sec-sub">Suas preferências estéticas. Aqui não decidimos o design — coletamos repertório.</p>
             <hr className="sec-rule" />
-            <div className="q"><label className="qt" htmlFor="q51"><span className="qnum">5.1</span>Existem cores que você gosta, que já usa, ou que têm significado para sua história/campanha?</label>
-              <textarea id="q51" name="q5_1" style={{ minHeight: '64px' }} value={formData.q5_1 || ''} onChange={handleTextChange}></textarea></div>
-            <div className="q"><label className="qt" htmlFor="q52"><span className="qnum">5.2</span>E cores que devemos EVITAR? (associações partidárias indesejadas, rivais, etc.)</label>
+            
+            <div className="q">
+              <label className="qt" htmlFor="q51"><span className="qnum">5.1</span>Quais cores têm a ver com você? Escolha até 3.</label>
+              
+              <div className="swatch-grid">
+                {CORES.map(c => {
+                  const isSelected = coresSelecionadas.some(x => x.cor === c.cor);
+                  const isDisabled = !isSelected && coresSelecionadas.length >= 3;
+                  return (
+                    <label key={c.cor} className={`swatch-item ${isDisabled ? 'disabled' : ''}`}>
+                      <input 
+                        type="checkbox" 
+                        value={c.cor}
+                        checked={isSelected}
+                        disabled={isDisabled}
+                        onChange={() => handleCorToggle(c)}
+                      />
+                      <div className="swatch-circle" style={{ backgroundColor: c.hex }} data-cor={c.cor}></div>
+                      <span className="swatch-name">{c.cor}</span>
+                    </label>
+                  );
+                })}
+              </div>
+
+              <div className="cor-meanings">
+                {coresSelecionadas.map(c => (
+                  <div key={c.cor} className="f">
+                    <label>O que o {c.cor.toUpperCase()} significa pra você? Que sentimento, memória ou valor essa cor carrega na sua história?</label>
+                    <p className="hint" style={{ margin: '0 0 8px 0' }}>Ex.: 'o verde me lembra a roça onde cresci', 'o azul é a cor do time que uni a cidade', 'o amarelo é energia, sou movido a isso'.</p>
+                    <textarea 
+                      value={c.significado} 
+                      onChange={(e) => handleCorSignificado(c.cor, e.target.value)}
+                      style={{ minHeight: '64px' }}
+                    ></textarea>
+                  </div>
+                ))}
+              </div>
+
+              <div className="f" style={{ marginTop: '16px' }}>
+                <label className="qt" htmlFor="cor_outra"><span className="qnum">5.1.c</span>Alguma outra cor específica que não está aí em cima? Descreva ela e o que significa.</label>
+                <textarea id="cor_outra" name="cor_outra" style={{ minHeight: '64px' }} value={formData.cor_outra || ''} onChange={handleTextChange}></textarea>
+              </div>
+            </div>
+
+            <div className="q"><label className="qt" htmlFor="q52"><span className="qnum">5.2</span>E cores que devemos EVITAR?</label>
+              <p className="hint">E por quê? Rivais, partidos, gestões anteriores...</p>
               <textarea id="q52" name="q5_2" style={{ minHeight: '64px' }} value={formData.q5_2 || ''} onChange={handleTextChange}></textarea></div>
             <div className="q"><label className="qt" htmlFor="q53"><span className="qnum">5.3</span>Marcas, logos ou perfis (de qualquer área) que você acha visualmente incríveis. Cite ou cole links.</label>
               <p className="hint">Podem ser marcas de empresas, artistas, outros políticos, times — o que te atrai visualmente.</p>

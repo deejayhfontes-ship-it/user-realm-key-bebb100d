@@ -17,7 +17,7 @@ const SECTIONS = [
   { t: '01 · Quem é você', qs: [['q1_1', '1.1 Trajetória'], ['q1_2', '1.2 Motivação para a política'], ['q1_3', '1.3 Três palavras (dos outros)'], ['q1_4', '1.4 Três palavras (suas)'], ['q1_5', '1.5 Fora da política']] },
   { t: '02 · Posicionamento & Visão', qs: [['q2_1', '2.1 Gestão em uma frase'], ['q2_2', '2.2 Três bandeiras'], ['q2_3', '2.3 O que faz diferente'], ['q2_4', '2.4 Legado em 4 anos'], ['q2_5', '2.5 Valor inegociável']] },
   { t: '03 · Público & Percepção', qs: [['q3_1', '3.1 Cidadão típico'], ['q3_2', '3.2 Grupo a conquistar'], ['q3_3', '3.3 Como é visto hoje'], ['q3_4', '3.4 Como gostaria de ser visto'], ['q3_5', '3.5 Crítica/rótulo a combater']] },
-  { t: '05 · Direção visual', qs: [['q5_1', '5.1 Cores que gosta/usa'], ['q5_2', '5.2 Cores a evitar'], ['q5_3', '5.3 Referências visuais'], ['q5_4', '5.4 Símbolos locais']] },
+  { t: '05 · Direção visual', qs: [['cor_outra', '5.1.c Outras cores específicas'], ['q5_2', '5.2 Cores a evitar'], ['q5_3', '5.3 Referências visuais'], ['q5_4', '5.4 Símbolos locais']] },
   { t: '06 · Aplicações & Próximos passos', qs: [['q6_1', '6.1 Marca da gestão ou pessoal'], ['q6_2', '6.2 Prazo / data de lançamento'], ['q6_3', '6.3 Espaço livre']] }
 ];
 
@@ -97,6 +97,12 @@ export default function AdminBriefings() {
           .b-admin .actions { display: none; }
           .b-admin .sec { border: none; margin-bottom: 10px; padding: 0; break-inside: avoid; }
         }
+        
+        .b-admin .swatch-admin-grid { display: grid; gap: 16px; margin-bottom: 24px; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+        .b-admin .swatch-admin-item { display: flex; flex-direction: column; gap: 10px; background: #F8FAFC; border: 1px solid #E2E8F0; padding: 18px; border-radius: 14px; }
+        .b-admin .swatch-admin-head { display: flex; align-items: center; gap: 12px; font-weight: 700; color: var(--navy); font-size: 1.05rem; }
+        .b-admin .swatch-admin-circle { width: 32px; height: 32px; border-radius: 50%; border: 1px solid #E5E7EB; flex-shrink: 0; }
+        .b-admin .swatch-admin-desc { font-size: .92rem; color: #33404F; margin: 0; line-height: 1.5; white-space: pre-wrap; }
       `}</style>
       <div className="b-admin">
         <header className="header-b">
@@ -146,12 +152,35 @@ export default function AdminBriefings() {
                 {SECTIONS.map((sec, idx) => (
                   <div className="sec" key={idx}>
                     <h3>{sec.t}</h3>
-                    {sec.qs.map(([k, label]) => (
-                      <div className="qa" key={k}>
-                        <div className="q">{label}</div>
-                        <div className="a">{activeBriefing.respostas?.[k] || ''}</div>
+                    
+                    {sec.t === '05 · Direção visual' && activeBriefing.respostas?.cores && activeBriefing.respostas.cores.length > 0 && (
+                      <div className="qa">
+                        <div className="q">5.1 Cores escolhidas & Significados</div>
+                        <div className="swatch-admin-grid" style={{ marginTop: '12px' }}>
+                          {activeBriefing.respostas.cores.map((corItem: any, cIdx: number) => (
+                            <div className="swatch-admin-item" key={cIdx}>
+                              <div className="swatch-admin-head">
+                                <div className="swatch-admin-circle" style={{ backgroundColor: corItem.hex }}></div>
+                                {corItem.cor}
+                              </div>
+                              {corItem.significado && (
+                                <p className="swatch-admin-desc">{corItem.significado}</p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    ))}
+                    )}
+
+                    {sec.qs.map(([k, label]) => {
+                      if (!activeBriefing.respostas?.[k]) return null;
+                      return (
+                        <div className="qa" key={k}>
+                          <div className="q">{label}</div>
+                          <div className="a">{activeBriefing.respostas[k]}</div>
+                        </div>
+                      );
+                    })}
                   </div>
                 ))}
 
