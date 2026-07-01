@@ -1,544 +1,228 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { AdminHeader } from '@/components/admin/AdminHeader';
 import { useBriefings, Briefing } from '@/hooks/useBriefings';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { 
-  Search, 
-  Eye, 
-  FileText, 
-  Loader2,
-  Mail,
-  Phone,
-  Building2,
-  Calendar,
-  Clock,
-  ExternalLink,
-  Trash2,
-  AlertTriangle,
-  Paperclip,
-  Receipt,
-  FileSignature
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
 
-const STATUS_CONFIG: Record<Briefing['status'], { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive'; className: string }> = {
-  novo: { label: 'Novo', variant: 'default', className: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
-  em_analise: { label: 'Em Análise', variant: 'secondary', className: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
-  orcamento_criado: { label: 'Orçamento Criado', variant: 'outline', className: 'bg-purple-500/20 text-purple-400 border-purple-500/30' },
-  proposta_criada: { label: 'Proposta Criada', variant: 'outline', className: 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30' },
-  aprovado: { label: 'Aprovado', variant: 'default', className: 'bg-green-500/20 text-green-400 border-green-500/30' },
-  recusado: { label: 'Recusado', variant: 'destructive', className: 'bg-red-500/20 text-red-400 border-red-500/30' },
-  cancelado: { label: 'Cancelado', variant: 'secondary', className: 'bg-gray-500/20 text-gray-400 border-gray-500/30' },
-};
+const SCALES = [
+  ["Formal", "Descontraída"],
+  ["Tradicional", "Inovadora"],
+  ["Séria", "Bem-humorada"],
+  ["Institucional", "Próxima do povo"],
+  ["Discreta", "Ousada"],
+  ["Técnica", "Emocional"]
+];
 
-const PRIORIDADE_CONFIG: Record<Briefing['prioridade'], { label: string; className: string }> = {
-  baixa: { label: 'Baixa', className: 'text-gray-400' },
-  normal: { label: 'Normal', className: 'text-blue-400' },
-  alta: { label: 'Alta', className: 'text-orange-400' },
-  urgente: { label: 'Urgente', className: 'text-red-400' },
-};
+const SECTIONS = [
+  { t: 'Dados básicos', qs: [['nome', 'Nome completo'], ['apelido', 'Como gosta de ser chamado(a)'], ['idade', 'Idade'], ['cidade', 'Cidade / Estado'], ['cargo', 'Cargo e mandato'], ['redes', 'Redes sociais']] },
+  { t: '01 · Quem é você', qs: [['q1_1', '1.1 Trajetória'], ['q1_2', '1.2 Motivação para a política'], ['q1_3', '1.3 Três palavras (dos outros)'], ['q1_4', '1.4 Três palavras (suas)'], ['q1_5', '1.5 Fora da política']] },
+  { t: '02 · Posicionamento & Visão', qs: [['q2_1', '2.1 Gestão em uma frase'], ['q2_2', '2.2 Três bandeiras'], ['q2_3', '2.3 O que faz diferente'], ['q2_4', '2.4 Legado em 4 anos'], ['q2_5', '2.5 Valor inegociável']] },
+  { t: '03 · Público & Percepção', qs: [['q3_1', '3.1 Cidadão típico'], ['q3_2', '3.2 Grupo a conquistar'], ['q3_3', '3.3 Como é visto hoje'], ['q3_4', '3.4 Como gostaria de ser visto'], ['q3_5', '3.5 Crítica/rótulo a combater']] },
+  { t: '05 · Direção visual', qs: [['q5_1', '5.1 Cores que gosta/usa'], ['q5_2', '5.2 Cores a evitar'], ['q5_3', '5.3 Referências visuais'], ['q5_4', '5.4 Símbolos locais']] },
+  { t: '06 · Aplicações & Próximos passos', qs: [['q6_1', '6.1 Marca da gestão ou pessoal'], ['q6_2', '6.2 Prazo / data de lançamento'], ['q6_3', '6.3 Espaço livre']] }
+];
 
 export default function AdminBriefings() {
-  const navigate = useNavigate();
-  const { briefings, isLoading, updateStatus, updateBriefing, deleteBriefing, isDeleting } = useBriefings();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [selectedBriefing, setSelectedBriefing] = useState<Briefing | null>(null);
-  const [viewModalOpen, setViewModalOpen] = useState(false);
-  const [internalNotes, setInternalNotes] = useState('');
+  const { briefings, isLoading, deleteBriefing, isDeleting } = useBriefings();
+  const [activeId, setActiveId] = useState<string | null>(null);
 
-  // Filter briefings
-  const filteredBriefings = briefings.filter(b => {
-    const matchesSearch = searchTerm === '' || 
-      b.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      b.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      b.empresa?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = statusFilter === 'all' || b.status === statusFilter;
-    
-    return matchesSearch && matchesStatus;
-  });
+  const activeBriefing = briefings.find(b => b.id === activeId);
 
-  // Stats
-  const stats = {
-    novos: briefings.filter(b => b.status === 'novo').length,
-    emAnalise: briefings.filter(b => b.status === 'em_analise').length,
-    urgentes: briefings.filter(b => b.prioridade === 'urgente').length,
-    total: briefings.length,
+  const handleCopy = () => {
+    if (!activeBriefing) return;
+    navigator.clipboard.writeText(JSON.stringify(activeBriefing.respostas, null, 2));
+    toast.success('Respostas copiadas em JSON.');
   };
 
-  const handleViewBriefing = (briefing: Briefing) => {
-    setSelectedBriefing(briefing);
-    setInternalNotes(briefing.notas_internas || '');
-    setViewModalOpen(true);
-  };
-
-  const handleStatusChange = (id: string, newStatus: Briefing['status']) => {
-    updateStatus({ id, status: newStatus });
-    if (selectedBriefing && selectedBriefing.id === id) {
-      setSelectedBriefing({ ...selectedBriefing, status: newStatus });
+  const handleDelete = () => {
+    if (!activeBriefing) return;
+    if (confirm('Excluir este briefing? Esta ação não pode ser desfeita.')) {
+      deleteBriefing(activeBriefing.id);
+      setActiveId(null);
     }
   };
 
-  const handleSaveNotes = () => {
-    if (selectedBriefing) {
-      updateBriefing({ 
-        id: selectedBriefing.id, 
-        updates: { notas_internas: internalNotes } 
-      });
-      toast.success('Notas salvas!');
-    }
-  };
-
-  const handleDelete = (id: string) => {
-    if (confirm('Tem certeza que deseja excluir este briefing?')) {
-      deleteBriefing(id);
-    }
-  };
-
-  const handleCreateBudget = (briefing: Briefing) => {
-    // Store briefing data in sessionStorage for pre-filling the budget form
-    const budgetData = {
-      fromBriefing: true,
-      briefingId: briefing.id,
-      clientName: briefing.nome,
-      clientEmail: briefing.email,
-      clientPhone: briefing.telefone,
-      clientCompany: briefing.empresa,
-      notes: `Briefing: ${briefing.tipo_projeto || 'Projeto'}\n\n${briefing.descricao}`,
-    };
-    sessionStorage.setItem('budgetPrefill', JSON.stringify(budgetData));
-    
-    // Update status to orcamento_criado
-    updateStatus({ id: briefing.id, status: 'orcamento_criado' });
-    
-    setViewModalOpen(false);
-    navigate('/admin/budgets');
-    toast.success('Redirecionando para criar orçamento...');
-  };
-
-  const handleCreateProposal = (briefing: Briefing) => {
-    // Store briefing data in sessionStorage for pre-filling the proposal form
-    const proposalData = {
-      fromBriefing: true,
-      briefingId: briefing.id,
-      clientName: briefing.nome,
-      clientEmail: briefing.email,
-      clientPhone: briefing.telefone,
-      clientCompany: briefing.empresa,
-      projectTitle: briefing.tipo_projeto || 'Novo Projeto',
-      projectDescription: briefing.descricao,
-      notes: briefing.referencias || '',
-    };
-    sessionStorage.setItem('proposalPrefill', JSON.stringify(proposalData));
-    
-    // Update status to proposta_criada
-    updateStatus({ id: briefing.id, status: 'proposta_criada' });
-    
-    setViewModalOpen(false);
-    navigate('/admin/propostas');
-    toast.success('Redirecionando para criar proposta...');
-  };
-
-  const getFileNameFromUrl = (url: string) => {
-    try {
-      const urlObj = new URL(url);
-      const pathname = urlObj.pathname;
-      const fileName = pathname.split('/').pop() || 'arquivo';
-      return decodeURIComponent(fileName);
-    } catch {
-      return url.split('/').pop() || 'arquivo';
-    }
+  const handlePrint = () => {
+    window.print();
   };
 
   return (
-    <div className="flex flex-col h-full">
-      <AdminHeader 
-        title="Central de Pedidos" 
-        subtitle="Gerenciar briefings e solicitações"
-      />
-      
-      <div className="flex-1 p-6 space-y-6">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card className="border border-border bg-blue-500/10">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Novos</p>
-                  <p className="text-2xl font-bold text-blue-400">{stats.novos}</p>
-                </div>
-                <Mail className="h-8 w-8 text-blue-400/50" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="border border-border bg-yellow-500/10">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Em Análise</p>
-                  <p className="text-2xl font-bold text-yellow-400">{stats.emAnalise}</p>
-                </div>
-                <Clock className="h-8 w-8 text-yellow-400/50" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="border border-border bg-red-500/10">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Urgentes</p>
-                  <p className="text-2xl font-bold text-red-400">{stats.urgentes}</p>
-                </div>
-                <AlertTriangle className="h-8 w-8 text-red-400/50" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="border border-border">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Total</p>
-                  <p className="text-2xl font-bold">{stats.total}</p>
-                </div>
-                <FileText className="h-8 w-8 text-muted-foreground/50" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Filters */}
-        <Card className="border border-border">
-          <CardContent className="p-4">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar por nome, email ou empresa..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full md:w-48">
-                  <SelectValue placeholder="Filtrar status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos os status</SelectItem>
-                  <SelectItem value="novo">Novos</SelectItem>
-                  <SelectItem value="em_analise">Em Análise</SelectItem>
-                  <SelectItem value="orcamento_criado">Orçamento Criado</SelectItem>
-                  <SelectItem value="proposta_criada">Proposta Criada</SelectItem>
-                  <SelectItem value="aprovado">Aprovados</SelectItem>
-                  <SelectItem value="recusado">Recusados</SelectItem>
-                  <SelectItem value="cancelado">Cancelados</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Table */}
-        <Card className="border border-border">
-          <CardHeader>
-            <CardTitle>Briefings</CardTitle>
-          </CardHeader>
-          <CardContent>
+    <>
+      <style>{`
+        :root { --navy:#0B1C37; --azure:#3B82F6; --lime:#C6F432; --off:#FAFAF8; --grey:#73808F; --line:#E4E8EF; }
+        .b-admin { font-family: 'DM Sans', sans-serif; background: var(--off); color: var(--navy); height: calc(100vh - 64px); display: flex; flex-direction: column; overflow: hidden; }
+        .b-admin .header-b { background: var(--navy); color: #fff; padding: 22px 28px; display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+        .b-admin .header-b .dot { width: 14px; height: 14px; background: var(--lime); border-radius: 50%; }
+        .b-admin .header-b h1 { font-family: 'Archivo Black', sans-serif; font-size: 1.1rem; text-transform: uppercase; letter-spacing: .03em; margin: 0; }
+        .b-admin .header-b span { color: var(--azure); font-size: .85rem; margin-left: auto; }
+        .b-admin .layout { display: grid; grid-template-columns: 360px 1fr; flex: 1; min-height: 0; }
+        @media(max-width:900px) { .b-admin .layout { grid-template-columns: 1fr; } }
+        
+        /* LISTA */
+        .b-admin .list { border-right: 1px solid var(--line); background: #fff; overflow-y: auto; }
+        .b-admin .list h2 { font-size: .78rem; letter-spacing: .1em; text-transform: uppercase; color: var(--grey); padding: 20px 22px 10px; margin: 0; }
+        .b-admin .item { display: block; width: 100%; text-align: left; background: none; border: none; border-bottom: 1px solid var(--line); padding: 16px 22px; cursor: pointer; font: inherit; }
+        .b-admin .item:hover { background: #F1F5FD; }
+        .b-admin .item.active { background: #EAF1FE; border-left: 4px solid var(--azure); }
+        .b-admin .item b { display: block; font-size: 1rem; color: var(--navy); }
+        .b-admin .item small { color: var(--grey); }
+        .b-admin .empty { padding: 30px 22px; color: var(--grey); }
+        
+        /* DETALHE */
+        .b-admin .detail { padding: 34px 40px; overflow-y: auto; background: var(--off); }
+        .b-admin .detail .placeholder { color: var(--grey); margin-top: 60px; text-align: center; }
+        .b-admin .d-head { display: flex; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 6px; }
+        .b-admin .d-head h2 { font-family: 'Archivo Black', sans-serif; font-size: 1.6rem; margin: 0; color: var(--navy); }
+        .b-admin .d-head .meta { color: var(--grey); font-size: .9rem; width: 100%; margin: 0; }
+        .b-admin .actions { margin: 14px 0 26px; display: flex; gap: 12px; flex-wrap: wrap; }
+        .b-admin .actions button { font: inherit; font-weight: 700; border-radius: 999px; padding: 10px 22px; cursor: pointer; border: 1.5px solid var(--navy); background: #fff; color: var(--navy); }
+        .b-admin .actions button.primary { background: var(--navy); color: var(--lime); border-color: var(--navy); }
+        .b-admin .actions button.danger { border-color: #B42318; color: #B42318; }
+        .b-admin .sec { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 24px 26px; margin-bottom: 20px; }
+        .b-admin .sec h3 { font-family: 'Archivo Black', sans-serif; font-size: .95rem; text-transform: uppercase; color: var(--navy); border-bottom: 3px solid var(--azure); display: inline-block; padding-bottom: 6px; margin-bottom: 18px; margin-top: 0; }
+        .b-admin .qa { margin-bottom: 16px; }
+        .b-admin .qa .q { font-weight: 700; font-size: .92rem; color: var(--navy); }
+        .b-admin .qa .a { white-space: pre-wrap; color: #33404F; margin-top: 4px; background: var(--off); border-radius: 10px; padding: 10px 14px; font-size: .95rem; min-height: 24px; }
+        .b-admin .qa .a:empty::before { content: '— não respondido —'; color: #A7B0BC; }
+        .b-admin .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+        .b-admin .tags span { background: var(--navy); color: var(--lime); border-radius: 999px; padding: 6px 14px; font-size: .82rem; font-weight: 500; }
+        .b-admin .scalerow { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px; font-size: .9rem; color: var(--navy); }
+        .b-admin .scaleval { display: flex; gap: 6px; }
+        .b-admin .scaleval i { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--azure); display: inline-block; }
+        .b-admin .scaleval i.on { background: var(--azure); }
+        
+        @media print {
+          body * { visibility: hidden; }
+          .b-admin, .b-admin .detail, .b-admin .detail * { visibility: visible; }
+          .b-admin .detail { position: absolute; left: 0; top: 0; width: 100%; height: auto; overflow: visible; padding: 0; background: #fff; }
+          .b-admin .actions { display: none; }
+          .b-admin .sec { border: none; margin-bottom: 10px; padding: 0; break-inside: avoid; }
+        }
+      `}</style>
+      <div className="b-admin">
+        <header className="header-b">
+          <div className="dot"></div>
+          <h1>Briefings Recebidos</h1>
+          <span>Fontes Graphics · Painel ADM</span>
+        </header>
+        
+        <div className="layout">
+          <aside className="list">
+            <h2>Formulários preenchidos</h2>
             {isLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
-            ) : filteredBriefings.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">
-                Nenhum briefing encontrado.
-              </div>
+              <p className="empty">Carregando…</p>
+            ) : briefings.length === 0 ? (
+              <p className="empty">Nenhum briefing recebido ainda. Compartilhe o link <b>/breefingestrategico</b> com o cliente.</p>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Data</TableHead>
-                    <TableHead>Cliente</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead>Prazo</TableHead>
-                    <TableHead>Prioridade</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Anexos</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredBriefings.map((briefing) => (
-                    <TableRow key={briefing.id}>
-                      <TableCell className="whitespace-nowrap">
-                        {format(new Date(briefing.created_at), 'dd/MM/yy', { locale: ptBR })}
-                      </TableCell>
-                      <TableCell>
-                        <div>
-                          <p className="font-medium">{briefing.nome}</p>
-                          <p className="text-xs text-muted-foreground">{briefing.email}</p>
-                        </div>
-                      </TableCell>
-                      <TableCell>{briefing.tipo_projeto || '-'}</TableCell>
-                      <TableCell>{briefing.prazo || '-'}</TableCell>
-                      <TableCell>
-                        <span className={cn('text-sm font-medium', PRIORIDADE_CONFIG[briefing.prioridade].className)}>
-                          {PRIORIDADE_CONFIG[briefing.prioridade].label}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={cn('text-xs', STATUS_CONFIG[briefing.status].className)}>
-                          {STATUS_CONFIG[briefing.status].label}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {briefing.arquivo_urls && briefing.arquivo_urls.length > 0 ? (
-                          <div className="flex items-center gap-1 text-primary">
-                            <Paperclip className="h-4 w-4" />
-                            <span className="text-xs">{briefing.arquivo_urls.length}</span>
-                          </div>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleViewBriefing(briefing)}
-                            title="Visualizar"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleCreateBudget(briefing)}
-                            title="Criar Orçamento"
-                            className="text-purple-400 hover:text-purple-300"
-                          >
-                            <Receipt className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleCreateProposal(briefing)}
-                            title="Criar Proposta"
-                            className="text-indigo-400 hover:text-indigo-300"
-                          >
-                            <FileSignature className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDelete(briefing.id)}
-                            disabled={isDeleting}
-                            title="Excluir"
-                          >
-                            <Trash2 className="h-4 w-4 text-red-400" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              briefings.map(b => (
+                <button 
+                  key={b.id} 
+                  className={`item ${activeId === b.id ? 'active' : ''}`}
+                  onClick={() => setActiveId(b.id)}
+                >
+                  <b>{b.nome}</b>
+                  <small>{b.cidade} · {format(new Date(b.created_at), 'dd/MM/yyyy HH:mm')}</small>
+                </button>
+              ))
             )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* View Modal */}
-      <Dialog open={viewModalOpen} onOpenChange={setViewModalOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Detalhes do Briefing</DialogTitle>
-            <DialogDescription>
-              Recebido em {selectedBriefing && format(new Date(selectedBriefing.created_at), "dd 'de' MMMM 'de' yyyy 'às' HH:mm", { locale: ptBR })}
-            </DialogDescription>
-          </DialogHeader>
-
-          {selectedBriefing && (
-            <div className="space-y-6">
-              {/* Client Info */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <Label className="text-muted-foreground text-xs">Nome</Label>
-                  <p className="font-medium">{selectedBriefing.nome}</p>
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-muted-foreground text-xs">Empresa</Label>
-                  <p className="font-medium flex items-center gap-2">
-                    <Building2 className="h-4 w-4" />
-                    {selectedBriefing.empresa || '-'}
+          </aside>
+          
+          <main className="detail">
+            {!activeBriefing ? (
+              <p className="placeholder">Selecione um briefing na lista para visualizar as respostas.</p>
+            ) : (
+              <>
+                <div className="d-head">
+                  <h2>{activeBriefing.respostas?.nome || '(sem nome)'}</h2>
+                  <p className="meta">
+                    {activeBriefing.cargo || ''} · {activeBriefing.cidade || ''} · recebido em {format(new Date(activeBriefing.created_at), 'dd/MM/yyyy HH:mm')}
                   </p>
                 </div>
-                <div className="space-y-1">
-                  <Label className="text-muted-foreground text-xs">Email</Label>
-                  <p className="font-medium flex items-center gap-2">
-                    <Mail className="h-4 w-4" />
-                    <a href={`mailto:${selectedBriefing.email}`} className="text-primary hover:underline">
-                      {selectedBriefing.email}
-                    </a>
-                  </p>
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-muted-foreground text-xs">Telefone</Label>
-                  <p className="font-medium flex items-center gap-2">
-                    <Phone className="h-4 w-4" />
-                    {selectedBriefing.telefone ? (
-                      <a href={`tel:${selectedBriefing.telefone}`} className="text-primary hover:underline">
-                        {selectedBriefing.telefone}
-                      </a>
-                    ) : '-'}
-                  </p>
-                </div>
-              </div>
-
-              {/* Project Info */}
-              <div className="space-y-4 pt-4 border-t border-border">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <Label className="text-muted-foreground text-xs">Tipo de Projeto</Label>
-                    <p className="font-medium">{selectedBriefing.tipo_projeto || '-'}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-muted-foreground text-xs">Prazo</Label>
-                    <p className="font-medium flex items-center gap-2">
-                      <Calendar className="h-4 w-4" />
-                      {selectedBriefing.prazo || '-'}
-                    </p>
-                  </div>
+                <div className="actions">
+                  <button className="primary" onClick={handlePrint}>Imprimir / PDF</button>
+                  <button onClick={handleCopy}>Copiar respostas</button>
+                  <button className="danger" onClick={handleDelete} disabled={isDeleting}>Excluir</button>
                 </div>
 
-                <div className="space-y-1">
-                  <Label className="text-muted-foreground text-xs">Descrição do Projeto</Label>
-                  <div className="p-3 bg-secondary/50 rounded-lg whitespace-pre-wrap text-sm">
-                    {selectedBriefing.descricao}
-                  </div>
-                </div>
-
-                {selectedBriefing.referencias && (
-                  <div className="space-y-1">
-                    <Label className="text-muted-foreground text-xs">Referências</Label>
-                    <div className="p-3 bg-secondary/50 rounded-lg whitespace-pre-wrap text-sm">
-                      {selectedBriefing.referencias}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Attachments */}
-              {selectedBriefing.arquivo_urls && selectedBriefing.arquivo_urls.length > 0 && (
-                <div className="space-y-2 pt-4 border-t border-border">
-                  <Label className="text-muted-foreground text-xs flex items-center gap-2">
-                    <Paperclip className="h-4 w-4" />
-                    Arquivos Anexados ({selectedBriefing.arquivo_urls.length})
-                  </Label>
-                  <div className="space-y-2">
-                    {selectedBriefing.arquivo_urls.map((url, index) => (
-                      <a
-                        key={index}
-                        href={url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 p-2 bg-secondary/50 rounded-lg hover:bg-secondary/80 transition-colors group"
-                      >
-                        <FileText className="h-4 w-4 text-primary" />
-                        <span className="text-sm flex-1 truncate">{getFileNameFromUrl(url)}</span>
-                        <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
-                      </a>
+                {SECTIONS.map((sec, idx) => (
+                  <div className="sec" key={idx}>
+                    <h3>{sec.t}</h3>
+                    {sec.qs.map(([k, label]) => (
+                      <div className="qa" key={k}>
+                        <div className="q">{label}</div>
+                        <div className="a">{activeBriefing.respostas?.[k] || ''}</div>
+                      </div>
                     ))}
                   </div>
-                </div>
-              )}
+                ))}
 
-              {/* Status Control */}
-              <div className="space-y-4 pt-4 border-t border-border">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Status</Label>
-                    <Select 
-                      value={selectedBriefing.status} 
-                      onValueChange={(v) => handleStatusChange(selectedBriefing.id, v as Briefing['status'])}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="novo">Novo</SelectItem>
-                        <SelectItem value="em_analise">Em Análise</SelectItem>
-                        <SelectItem value="orcamento_criado">Orçamento Criado</SelectItem>
-                        <SelectItem value="proposta_criada">Proposta Criada</SelectItem>
-                        <SelectItem value="aprovado">Aprovado</SelectItem>
-                        <SelectItem value="recusado">Recusado</SelectItem>
-                        <SelectItem value="cancelado">Cancelado</SelectItem>
-                      </SelectContent>
-                    </Select>
+                <div className="sec">
+                  <h3>04 · Personalidade da marca</h3>
+                  {SCALES.map((s, i) => {
+                    const v = parseInt(activeBriefing.respostas?.[`escala_${i}`] || '0');
+                    return (
+                      <div className="scalerow" key={i}>
+                        <span>{s[0]}</span>
+                        <span className="scaleval">
+                          {[1, 2, 3, 4, 5].map(n => (
+                            <i key={n} className={n === v ? 'on' : ''}></i>
+                          ))}
+                        </span>
+                        <span>{s[1]}</span>
+                      </div>
+                    );
+                  })}
+
+                  <div className="qa" style={{ marginTop: '14px' }}>
+                    <div className="q">Palavras selecionadas</div>
+                    <div className="tags">
+                      {(activeBriefing.respostas?.palavras || []).length > 0 ? (
+                        activeBriefing.respostas.palavras.map((p: string, i: number) => (
+                          <span key={i}>{p}</span>
+                        ))
+                      ) : (
+                        <span style={{ background: '#eee', color: '#888' }}>nenhuma</span>
+                      )}
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Prioridade</Label>
-                    <Badge className={cn('text-sm', PRIORIDADE_CONFIG[selectedBriefing.prioridade].className)}>
-                      {PRIORIDADE_CONFIG[selectedBriefing.prioridade].label}
-                    </Badge>
+
+                  <div className="qa">
+                    <div className="q">4.1 Comunicação que admira</div>
+                    <div className="a">{activeBriefing.respostas?.q4_1 || ''}</div>
                   </div>
                 </div>
 
-                {/* Notas Internas */}
-                <div className="space-y-2">
-                  <Label>Notas Internas</Label>
-                  <Textarea 
-                    placeholder="Adicione notas internas sobre este briefing..."
-                    value={internalNotes}
-                    onChange={(e) => setInternalNotes(e.target.value)}
-                    className="min-h-20"
-                  />
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={handleSaveNotes}
-                    className="mt-2"
-                  >
-                    Salvar Notas
-                  </Button>
+                <div className="sec">
+                  <h3>Seleções rápidas</h3>
+                  <div className="qa">
+                    <div className="q">Estilos visuais preferidos</div>
+                    <div className="tags">
+                      {(activeBriefing.respostas?.estilos || []).length > 0 ? (
+                        activeBriefing.respostas.estilos.map((e: string, i: number) => (
+                          <span key={i}>{e}</span>
+                        ))
+                      ) : (
+                        <span style={{ background: 'transparent', color: '#888', padding: 0 }}>—</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="qa">
+                    <div className="q">Onde a marca será usada</div>
+                    <div className="tags">
+                      {(activeBriefing.respostas?.aplicacoes || []).length > 0 ? (
+                        activeBriefing.respostas.aplicacoes.map((a: string, i: number) => (
+                          <span key={i}>{a}</span>
+                        ))
+                      ) : (
+                        <span style={{ background: 'transparent', color: '#888', padding: 0 }}>—</span>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-
-              {/* Actions */}
-              <div className="flex gap-2 pt-4 border-t border-border">
-                <Button 
-                  variant="outline" 
-                  className="flex-1"
-                  onClick={() => handleCreateBudget(selectedBriefing)}
-                >
-                  <Receipt className="h-4 w-4 mr-2" />
-                  Criar Orçamento
-                </Button>
-                <Button 
-                  className="flex-1"
-                  onClick={() => handleCreateProposal(selectedBriefing)}
-                >
-                  <FileSignature className="h-4 w-4 mr-2" />
-                  Criar Proposta
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-    </div>
+              </>
+            )}
+          </main>
+        </div>
+      </div>
+    </>
   );
 }

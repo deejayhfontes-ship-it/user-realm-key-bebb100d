@@ -73,6 +73,7 @@ import AdminBiblioteca from "@/pages/admin/AdminBiblioteca";
 import SolicitarServico from "@/pages/public/SolicitarServico";
 import CorridaAutismo from "@/pages/public/CorridaAutismo";
 import AdminCorridaAutismo from "@/pages/admin/AdminCorridaAutismo";
+import BreefingEstrategico from "@/pages/public/BreefingEstrategico";
 
 // Client Pages
 import ClientLogin from "@/pages/client/Login";
@@ -158,6 +159,7 @@ const App = () => (
               <Route path="/acompanhar/:protocolo" element={<PublicTracking />} />
               <Route path="/solicitar-servico" element={<SolicitarServico />} />
               <Route path="/corridadoautismo" element={<CorridaAutismo />} />
+              <Route path="/breefingestrategico" element={<BreefingEstrategico />} />
 
               {/* Faculdade routes */}
               <Route path="/faculdade" element={<FaculdadeRoute><FaculdadeHub /></FaculdadeRoute>} />
