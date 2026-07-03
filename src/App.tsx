@@ -74,6 +74,7 @@ import SolicitarServico from "@/pages/public/SolicitarServico";
 import CorridaAutismo from "@/pages/public/CorridaAutismo";
 import AdminCorridaAutismo from "@/pages/admin/AdminCorridaAutismo";
 import BreefingEstrategico from "@/pages/public/BreefingEstrategico";
+import BriefingVideo from "@/pages/public/BriefingVideo";
 
 // Client Pages
 import ClientLogin from "@/pages/client/Login";
@@ -160,6 +161,7 @@ const App = () => (
               <Route path="/solicitar-servico" element={<SolicitarServico />} />
               <Route path="/corridadoautismo" element={<CorridaAutismo />} />
               <Route path="/breefingestrategico" element={<BreefingEstrategico />} />
+              <Route path="/briefing-video" element={<BriefingVideo />} />
 
               {/* Faculdade routes */}
               <Route path="/faculdade" element={<FaculdadeRoute><FaculdadeHub /></FaculdadeRoute>} />

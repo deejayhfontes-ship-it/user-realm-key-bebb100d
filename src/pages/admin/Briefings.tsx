@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useBriefings, Briefing } from '@/hooks/useBriefings';
+import { useVideoBriefings } from '@/hooks/useVideoBriefings';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 
@@ -23,9 +24,13 @@ const SECTIONS = [
 
 export default function AdminBriefings() {
   const { briefings, isLoading, deleteBriefing, isDeleting } = useBriefings();
+  const { videoBriefings, isLoading: vLoading, deleteVideoBriefing, isDeleting: vDeleting } = useVideoBriefings();
+  const [tab, setTab] = useState<'politico' | 'video'>('politico');
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
 
   const activeBriefing = briefings.find(b => b.id === activeId);
+  const activeVideo = videoBriefings.find(b => b.id === activeVideoId);
 
   const handleCopy = () => {
     if (!activeBriefing) return;
@@ -45,6 +50,31 @@ export default function AdminBriefings() {
     window.print();
   };
 
+  const handleVideoCopy = () => {
+    if (!activeVideo) return;
+    navigator.clipboard.writeText(JSON.stringify(activeVideo.respostas, null, 2));
+    toast.success('Respostas copiadas em JSON.');
+  };
+
+  const handleVideoDelete = () => {
+    if (!activeVideo) return;
+    if (confirm('Excluir este briefing de vídeo? Esta ação não pode ser desfeita.')) {
+      deleteVideoBriefing(activeVideo.id);
+      setActiveVideoId(null);
+    }
+  };
+
+  // Rótulos e ordem de exibição das respostas do briefing de vídeo
+  const VIDEO_SECTIONS: Array<{ t: string; rows: Array<[string, string]> }> = [
+    { t: 'Dados do cliente', rows: [['whatsapp', 'WhatsApp'], ['email', 'E-mail']] },
+    { t: 'Dados do evento', rows: [['evento', 'Nome do evento'], ['data', 'Data do evento']] },
+    { t: 'Direção criativa', rows: [['ideia', 'Ideia principal'], ['cores', 'Cores / identidade'], ['naoQuero', 'O que NÃO quer']] },
+    { t: 'Frases e informações', rows: [['frases', 'Frases do vídeo'], ['ordemFrases', 'Ordem das frases'], ['logo', 'Precisa de logo?']] },
+    { t: 'Referências', rows: [['referenciaAnterior', 'Referência anterior']] },
+    { t: 'Formato técnico', rows: [['duracao', 'Duração'], ['audio', 'Áudio']] },
+    { t: 'Observações', rows: [['observacoes', 'Observações finais']] },
+  ];
+
   return (
     <>
       <style>{`
@@ -54,6 +84,11 @@ export default function AdminBriefings() {
         .b-admin .header-b .dot { width: 14px; height: 14px; background: var(--lime); border-radius: 50%; }
         .b-admin .header-b h1 { font-family: 'Archivo Black', sans-serif; font-size: 1.1rem; text-transform: uppercase; letter-spacing: .03em; margin: 0; }
         .b-admin .header-b span { color: var(--azure); font-size: .85rem; margin-left: auto; }
+        .b-admin .tabs-bar { display: flex; gap: 8px; background: #fff; border-bottom: 1px solid var(--line); padding: 10px 22px 0; flex-shrink: 0; }
+        .b-admin .tab-btn { font: inherit; font-weight: 700; font-size: .9rem; color: var(--grey); background: none; border: none; border-bottom: 3px solid transparent; padding: 12px 18px; cursor: pointer; }
+        .b-admin .tab-btn:hover { color: var(--navy); }
+        .b-admin .tab-btn.active { color: var(--navy); border-bottom-color: var(--azure); }
+        .b-admin .val-chip { display: inline-block; background: var(--navy); color: var(--lime); border-radius: 999px; padding: 4px 12px; font-size: .82rem; font-weight: 700; }
         .b-admin .layout { display: grid; grid-template-columns: 360px 1fr; flex: 1; min-height: 0; }
         @media(max-width:900px) { .b-admin .layout { grid-template-columns: 1fr; } }
         
@@ -110,7 +145,17 @@ export default function AdminBriefings() {
           <h1>Briefings Recebidos</h1>
           <span>Fontes Graphics · Painel ADM</span>
         </header>
-        
+
+        <div className="tabs-bar">
+          <button className={`tab-btn ${tab === 'politico' ? 'active' : ''}`} onClick={() => setTab('politico')}>
+            Briefings Políticos {briefings.length > 0 && `(${briefings.length})`}
+          </button>
+          <button className={`tab-btn ${tab === 'video' ? 'active' : ''}`} onClick={() => setTab('video')}>
+            Briefings de Vídeo {videoBriefings.length > 0 && `(${videoBriefings.length})`}
+          </button>
+        </div>
+
+        {tab === 'politico' && (
         <div className="layout">
           <aside className="list">
             <h2>Formulários preenchidos</h2>
@@ -251,6 +296,100 @@ export default function AdminBriefings() {
             )}
           </main>
         </div>
+        )}
+
+        {tab === 'video' && (
+          <div className="layout">
+            <aside className="list">
+              <h2>Briefings de vídeo</h2>
+              {vLoading ? (
+                <p className="empty">Carregando…</p>
+              ) : videoBriefings.length === 0 ? (
+                <p className="empty">Nenhum briefing de vídeo recebido ainda. Compartilhe o link <b>/briefing-video</b> com o cliente.</p>
+              ) : (
+                videoBriefings.map(b => (
+                  <button
+                    key={b.id}
+                    className={`item ${activeVideoId === b.id ? 'active' : ''}`}
+                    onClick={() => setActiveVideoId(b.id)}
+                  >
+                    <b>{b.nome}</b>
+                    <small>{b.evento || '—'} · {format(new Date(b.created_at), 'dd/MM/yyyy HH:mm')}</small>
+                  </button>
+                ))
+              )}
+            </aside>
+
+            <main className="detail">
+              {!activeVideo ? (
+                <p className="placeholder">Selecione um briefing de vídeo na lista para visualizar as respostas.</p>
+              ) : (
+                <>
+                  <div className="d-head">
+                    <h2>{activeVideo.nome}</h2>
+                    <p className="meta">
+                      {activeVideo.evento || ''}
+                      {activeVideo.respostas?.tipo_video ? ` · ${activeVideo.respostas.tipo_video}` : ''}
+                      {activeVideo.valor ? ` · R$ ${activeVideo.valor.toLocaleString('pt-BR')},00 (sinal R$ ${(activeVideo.valor / 2).toLocaleString('pt-BR')},00)` : ''}
+                      {' · recebido em '}{format(new Date(activeVideo.created_at), 'dd/MM/yyyy HH:mm')}
+                    </p>
+                  </div>
+                  <div className="actions">
+                    <button className="primary" onClick={handlePrint}>Imprimir / PDF</button>
+                    <button onClick={handleVideoCopy}>Copiar respostas</button>
+                    <button className="danger" onClick={handleVideoDelete} disabled={vDeleting}>Excluir</button>
+                  </div>
+
+                  <div className="sec">
+                    <h3>Tipo de vídeo e investimento</h3>
+                    <div className="qa">
+                      <div className="q">Tipo escolhido</div>
+                      <div className="a">
+                        {activeVideo.respostas?.tipo_video || '—'}
+                        {activeVideo.valor ? <> · <span className="val-chip">R$ {activeVideo.valor.toLocaleString('pt-BR')},00</span></> : null}
+                      </div>
+                    </div>
+                  </div>
+
+                  {VIDEO_SECTIONS.map((sec, i) => (
+                    <div className="sec" key={i}>
+                      <h3>{sec.t}</h3>
+                      {sec.rows.map(([k, label]) => (
+                        <div className="qa" key={k}>
+                          <div className="q">{label}</div>
+                          <div className="a">{activeVideo.respostas?.[k] || ''}</div>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+
+                  <div className="sec">
+                    <h3>Seleções</h3>
+                    {([
+                      ['exibicao', 'Onde será exibido'],
+                      ['sensacoes', 'Sensações'],
+                      ['infos', 'Informações obrigatórias'],
+                      ['formatos', 'Formatos'],
+                      ['links', 'Links de referência'],
+                    ] as Array<[string, string]>).map(([k, label]) => {
+                      const arr = activeVideo.respostas?.[k];
+                      return (
+                        <div className="qa" key={k}>
+                          <div className="q">{label}</div>
+                          <div className="tags">
+                            {Array.isArray(arr) && arr.length > 0
+                              ? arr.map((v: string, idx: number) => <span key={idx}>{v}</span>)
+                              : <span style={{ background: 'transparent', color: '#888', padding: 0 }}>—</span>}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </main>
+          </div>
+        )}
       </div>
     </>
   );
