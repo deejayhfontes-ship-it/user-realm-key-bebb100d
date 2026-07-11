@@ -345,7 +345,10 @@ const StoriesNoticia = () => {
                 textAlign: "left",
                 paddingLeft: "36px",
                 textShadow: "0 4px 4px rgba(0, 0, 0, 0.25)",
-                wordWrap: "break-word",
+                minWidth: 0,
+                flex: 1,
+                overflowWrap: "anywhere",
+                wordBreak: "break-word",
                 whiteSpace: "pre-wrap",
               }}
             >
