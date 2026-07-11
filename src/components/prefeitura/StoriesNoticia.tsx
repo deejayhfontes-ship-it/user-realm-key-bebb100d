@@ -201,9 +201,12 @@ const StoriesNoticia = () => {
   // No post, logo/tarjinha/textos reduzem na mesma proporção do frame (1350/1920)
   const maskScale = fmt.height / 1920;
 
-  // Conteúdo da arte — interactive liga o drag no preview
+  // Conteúdo da arte — interactive liga o drag no preview.
+  // translate="no" impede o Google Tradutor do navegador de reescrever a manchete
+  // (ex: "AS" virava "COMO" com a página traduzida).
   const renderStoryContent = (interactive: boolean) => (
     <div
+      translate="no"
       style={{
         width: `${fmt.width}px`,
         height: `${fmt.height}px`,
