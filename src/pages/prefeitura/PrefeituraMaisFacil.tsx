@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { backupImageToHostGator } from '@/hooks/useImageBackup';
 import { Link, useSearchParams } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import html2canvas from "html2canvas";
 import { saveAs } from "file-saver";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ import { Slider } from "@/components/ui/slider";
 import { toast } from "sonner";
 import { Download, Upload, ArrowLeft, X, Image, ZoomIn, MoveHorizontal, MoveVertical, Check } from "lucide-react";
 import CarrosselInteracoes from "@/components/prefeitura/CarrosselInteracoes";
+import StoriesNoticia from "@/components/prefeitura/StoriesNoticia";
 
 const defaultMask = "/prefeitura-assets/mascaras/02 CAPA PARA INSTA - MASK LOGO color.png";
 
@@ -21,7 +23,7 @@ const CUSTOM_MASKS = [
 ];
 
 
-type GeneratorType = "stories" | "carrossel" | "custom";
+type GeneratorType = "stories" | "carrossel" | "custom" | "noticia";
 type PhotoCount = 1 | 2 | 3;
 
 interface ImageSettings {
@@ -38,7 +40,8 @@ const defaultImageSettings: ImageSettings = {
 
 const PrefeituraMaisFacil = () => {
   const [searchParams] = useSearchParams();
-  const initialTab = searchParams.get('tab') === 'carrossel' ? 'carrossel' : searchParams.get('tab') === 'custom' ? 'custom' : 'stories';
+  const { user } = useAuth();
+  const initialTab = searchParams.get('tab') === 'carrossel' ? 'carrossel' : searchParams.get('tab') === 'custom' ? 'custom' : searchParams.get('tab') === 'noticia' ? 'noticia' : 'stories';
   const [generatorType, setGeneratorType] = useState<GeneratorType>(initialTab);
   const [photoCount, setPhotoCount] = useState<PhotoCount>(1);
   const [backgroundImages, setBackgroundImages] = useState<(string | null)[]>([null, null, null]);
@@ -416,11 +419,13 @@ const PrefeituraMaisFacil = () => {
 
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center gap-4 mb-6">
-          <Link to="/prefeitura">
-            <Button variant="ghost" size="icon" className="hover:bg-primary/10">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
+          {user && (
+            <Link to="/prefeitura">
+              <Button variant="ghost" size="icon" className="hover:bg-primary/10">
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+            </Link>
+          )}
           <h1 className="text-2xl md:text-3xl font-bold text-foreground">
             Gerador de Conteúdo - Prefeitura
           </h1>
@@ -449,10 +454,19 @@ const PrefeituraMaisFacil = () => {
           >
             Carrossel de Interações
           </Button>
+          <Button
+            variant={generatorType === "noticia" ? "default" : "outline"}
+            onClick={() => setGeneratorType("noticia")}
+            className="flex-1 md:flex-none"
+          >
+            Stories Notícia
+          </Button>
         </div>
 
         {generatorType === "carrossel" ? (
           <CarrosselInteracoes />
+        ) : generatorType === "noticia" ? (
+          <StoriesNoticia />
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Formulário */}
