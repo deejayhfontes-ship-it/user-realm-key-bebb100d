@@ -28,8 +28,6 @@ const LOGOS_POST = [
   },
 ];
 
-const MAX_CHARS = 140;
-
 type FormatType = "story" | "post";
 
 const FORMATS: Record<FormatType, { label: string; width: number; height: number; gradientHeight: number; textBottom: number }> = {
@@ -72,18 +70,21 @@ const StoriesNoticia = () => {
   const [maskImage, setMaskImage] = useState<string>(MASKS[0]);
   const [logoPost, setLogoPost] = useState<typeof LOGOS_POST[number]>(LOGOS_POST[0]);
   const [gradientIntensity, setGradientIntensity] = useState<number>(100);
+  const [fontSizeOverride, setFontSizeOverride] = useState<number | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const captureRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Fonte auto-ajusta pelo comprimento da manchete
+  // Fonte auto-ajusta pelo comprimento da manchete (sem limite de caracteres)
   const calculateFontSize = (text: string): number => {
     const length = text.length;
     if (length <= 60) return 60;
     if (length <= 90) return 56;
     if (length <= 120) return 50;
-    return 46;
+    if (length <= 180) return 46;
+    if (length <= 250) return 40;
+    return 34;
   };
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -194,7 +195,7 @@ const StoriesNoticia = () => {
     }
   };
 
-  const fontSize = calculateFontSize(manchete);
+  const fontSize = fontSizeOverride ?? calculateFontSize(manchete);
 
   const fmt = FORMATS[format];
   // No post, logo/tarjinha/textos reduzem na mesma proporção do frame (1350/1920)
@@ -649,21 +650,51 @@ const StoriesNoticia = () => {
               <Label htmlFor="noticia-manchete" className="text-foreground">
                 Manchete
               </Label>
-              <span className={`text-xs ${manchete.length >= MAX_CHARS ? "text-destructive font-semibold" : "text-muted-foreground"}`}>
-                {manchete.length}/{MAX_CHARS}
+              <span className="text-xs text-muted-foreground">
+                {manchete.length} caracteres
               </span>
             </div>
             <Textarea
               id="noticia-manchete"
               value={manchete}
-              onChange={(e) => setManchete(e.target.value.slice(0, MAX_CHARS))}
+              onChange={(e) => setManchete(e.target.value)}
               placeholder="Digite a manchete da notícia..."
-              maxLength={MAX_CHARS}
               className="mt-2 min-h-[120px]"
             />
-            <p className="text-xs text-muted-foreground mt-1">
-              Tamanho da fonte: {fontSize}px
-            </p>
+          </div>
+
+          {/* Tamanho da fonte: automático pelo texto, com ajuste manual em paralelo */}
+          <div className="space-y-3">
+            <div className="flex justify-between items-center">
+              <Label className="text-foreground">Tamanho da Fonte</Label>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">{fontSize}px</span>
+                {fontSizeOverride !== null ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-6 px-2 text-xs"
+                    onClick={() => setFontSizeOverride(null)}
+                  >
+                    Voltar pro automático
+                  </Button>
+                ) : (
+                  <span className="text-xs text-muted-foreground">(automático)</span>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-muted-foreground">Menor</span>
+              <Slider
+                value={[fontSize]}
+                onValueChange={(value) => setFontSizeOverride(value[0])}
+                min={26}
+                max={72}
+                step={1}
+                className="flex-1"
+              />
+              <span className="text-xs text-muted-foreground">Maior</span>
+            </div>
           </div>
 
           <Button
