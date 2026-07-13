@@ -76,6 +76,14 @@ const StoriesNoticia = () => {
   const captureRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Data automática formatada (igual ao gerador de stories original)
+  const today = new Date();
+  const formattedDate = today.toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+
   // Fonte auto-ajusta pelo comprimento da manchete (sem limite de caracteres)
   const calculateFontSize = (text: string): number => {
     const length = text.length;
@@ -345,6 +353,9 @@ const StoriesNoticia = () => {
                 width: "14px",
                 flexShrink: 0,
                 backgroundColor: colorPreset.cor,
+                // encurta a barra pra alinhar com o texto (desconta o respiro do
+                // line-height acima da primeira letra e abaixo da última linha)
+                margin: `${Math.round(fontSize * 0.2)}px 0 ${Math.round(fontSize * 0.12)}px`,
               }}
             />
             <div
@@ -395,6 +406,33 @@ const StoriesNoticia = () => {
             </span>
           </div>
         )}
+      </div>
+
+      {/* Data e setinha (igual ao gerador de stories original) */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: format === "story" ? "150px" : "105px",
+          right: "90px",
+          display: "flex",
+          alignItems: "center",
+          gap: "60px",
+          pointerEvents: "none",
+        }}
+      >
+        <span
+          style={{
+            fontFamily: "Arial, sans-serif",
+            fontWeight: 400,
+            fontSize: "24px",
+            color: "#ffffff",
+            textShadow: "0 4px 4px rgba(0, 0, 0, 0.25)",
+            letterSpacing: "1px",
+          }}
+        >
+          {formattedDate}
+        </span>
+        <span style={{ color: "#ffffff", fontSize: "32px" }}>→</span>
       </div>
     </div>
   );
