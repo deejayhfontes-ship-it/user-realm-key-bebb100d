@@ -372,10 +372,18 @@ const StoriesNoticia = () => {
                 fontWeight: 800,
                 fontSize: "30px",
                 letterSpacing: "1px",
-                padding: "18px 48px",
+                // altura fixa + line-height igual (sem padding vertical):
+                // html2canvas desloca o texto pra cima quando há padding em inline-block
+                height: "72px",
+                lineHeight: "72px",
+                padding: "0 48px",
               }}
             >
-              {secretaria}
+              {/* html2canvas desenha o texto ~14px abaixo do navegador (métrica de
+                  baseline); o span interno compensa só no render de export */}
+              <span style={{ position: "relative", top: interactive ? "0" : "-14px" }}>
+                {secretaria}
+              </span>
             </span>
           </div>
         )}
