@@ -279,32 +279,25 @@ const StoriesNoticia = () => {
         }}
       />
 
-      {/* Story: máscara 9:16 original. Post: logo avulsa no topo-direita
+      {/* Story: máscara 9:16 original em altura total (a tarjinha azul dela é coberta
+          pela tarjinha colorida desenhada abaixo). Post: logo avulsa no topo-direita
           (a máscara tem véu branco que corta feio no frame 4:5). */}
       {format === "story" ? (
-        <div
+        <img
+          src={maskImage}
+          alt="Mask"
+          crossOrigin="anonymous"
           style={{
             position: "absolute",
             top: 0,
             left: 0,
             width: `${fmt.width}px`,
-            height: `${fmt.height - 40}px`,
-            overflow: "hidden",
+            height: `${fmt.height}px`,
+            objectFit: "cover",
+            objectPosition: "top",
             pointerEvents: "none",
           }}
-        >
-          <img
-            src={maskImage}
-            alt="Mask"
-            crossOrigin="anonymous"
-            style={{
-              width: `${fmt.width}px`,
-              height: `${fmt.height}px`,
-              objectFit: "cover",
-              objectPosition: "top",
-            }}
-          />
-        </div>
+        />
       ) : (
         <img
           src={logoPost.src}
@@ -322,15 +315,16 @@ const StoriesNoticia = () => {
         />
       )}
 
-      {/* Tarjinha do rodapé na cor do preset (medidas da original, escaladas por formato) */}
+      {/* Tarjinha do rodapé na cor do preset. No story ela é 4px maior que a azul
+          original da máscara pra cobri-la por completo (inclusive a borda serrilhada). */}
       <div
         style={{
           position: "absolute",
           bottom: 0,
-          left: `${Math.round((fmt.width - 622 * maskScale) / 2)}px`,
-          width: `${Math.round(622 * maskScale)}px`,
-          height: `${Math.round(26 * maskScale)}px`,
-          borderRadius: `${Math.round(13 * maskScale)}px ${Math.round(13 * maskScale)}px 0 0`,
+          left: `${Math.round((fmt.width - (format === "story" ? 626 : Math.round(622 * maskScale))) / 2)}px`,
+          width: `${format === "story" ? 626 : Math.round(622 * maskScale)}px`,
+          height: `${format === "story" ? 30 : Math.round(26 * maskScale)}px`,
+          borderRadius: format === "story" ? "15px 15px 0 0" : `${Math.round(13 * maskScale)}px ${Math.round(13 * maskScale)}px 0 0`,
           backgroundColor: colorPreset.cor,
           pointerEvents: "none",
         }}
