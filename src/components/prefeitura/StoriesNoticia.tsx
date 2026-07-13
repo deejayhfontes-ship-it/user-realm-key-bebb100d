@@ -152,6 +152,14 @@ const StoriesNoticia = () => {
       captureEl.style.opacity = '1';
       captureEl.style.zIndex = '-9999';
 
+      // Garante que a Aspekta carregou antes de capturar — sem isso o html2canvas
+      // pode desenhar com Arial (fallback) e o texto muda de posição entre exports
+      try {
+        await document.fonts.load("800 30px 'Aspekta'");
+        await document.fonts.load("500 30px 'Aspekta'");
+        await document.fonts.ready;
+      } catch { /* segue com fallback se a fonte falhar */ }
+
       await new Promise(resolve => setTimeout(resolve, 300));
 
       const canvas = await html2canvas(captureEl, {
