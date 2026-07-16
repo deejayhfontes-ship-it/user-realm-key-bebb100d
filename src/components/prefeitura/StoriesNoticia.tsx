@@ -369,7 +369,16 @@ const StoriesNoticia = () => {
                 whiteSpace: "pre-wrap",
               }}
             >
-              {manchete}
+              {/* html2canvas desenha o texto ~0.45em abaixo do navegador (baseline);
+                  o span interno compensa só no render de export, sem mover a barra */}
+              <span
+                style={{
+                  position: "relative",
+                  top: interactive ? "0" : `${-Math.round(fontSize * 0.45)}px`,
+                }}
+              >
+                {manchete}
+              </span>
             </div>
           </div>
         )}
