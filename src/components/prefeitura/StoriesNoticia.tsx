@@ -375,8 +375,9 @@ const StoriesNoticia = () => {
                   left: `${win.imgLeft}px`,
                   width: `${fmt.width}px`,
                   height: `${fmt.height}px`,
-                  objectFit: "cover",
-                  objectPosition: "top",
+                  // Tailwind aplica max-width:100% em img — dentro da janela estreita
+                  // isso encolhia a máscara e bagunçava o alinhamento
+                  maxWidth: "none",
                 }}
               />
             </div>
