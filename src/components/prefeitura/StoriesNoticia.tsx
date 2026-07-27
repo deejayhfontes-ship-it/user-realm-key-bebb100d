@@ -60,10 +60,17 @@ const defaultImageSettings: ImageSettings = {
   positionY: 0,
 };
 
+type PhotoCount = 1 | 2 | 3;
+
 const StoriesNoticia = () => {
   const [format, setFormat] = useState<FormatType>("story");
-  const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
-  const [imageSettings, setImageSettings] = useState<ImageSettings>({ ...defaultImageSettings });
+  const [photoCount, setPhotoCount] = useState<PhotoCount>(1);
+  const [backgroundImages, setBackgroundImages] = useState<(string | null)[]>([null, null, null]);
+  const [imageSettings, setImageSettings] = useState<ImageSettings[]>([
+    { ...defaultImageSettings },
+    { ...defaultImageSettings },
+    { ...defaultImageSettings },
+  ]);
   const [secretaria, setSecretaria] = useState("");
   const [manchete, setManchete] = useState("");
   const [colorPreset, setColorPreset] = useState<ColorPreset>(COLOR_PRESETS[0]);
@@ -72,9 +79,9 @@ const StoriesNoticia = () => {
   const [gradientIntensity, setGradientIntensity] = useState<number>(100);
   const [fontSizeOverride, setFontSizeOverride] = useState<number | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
+  const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
   const captureRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRefs = useRef<(HTMLInputElement | null)[]>([null, null, null]);
 
   // Data automática formatada (igual ao gerador de stories original)
   const today = new Date();
@@ -95,35 +102,67 @@ const StoriesNoticia = () => {
     return 34;
   };
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = (index: number) => (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        setBackgroundImage(e.target?.result as string);
+        setBackgroundImages((prev) => {
+          const next = [...prev];
+          next[index] = e.target?.result as string;
+          return next;
+        });
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const removeImage = () => {
-    setBackgroundImage(null);
-    setImageSettings({ ...defaultImageSettings });
+  const removeImage = (index: number) => {
+    setBackgroundImages((prev) => {
+      const next = [...prev];
+      next[index] = null;
+      return next;
+    });
+    setImageSettings((prev) => {
+      const next = [...prev];
+      next[index] = { ...defaultImageSettings };
+      return next;
+    });
   };
 
-  const updateImageSetting = (key: keyof ImageSettings, value: number) => {
-    setImageSettings((prev) => ({ ...prev, [key]: value }));
+  const updateImageSetting = (index: number, key: keyof ImageSettings, value: number) => {
+    setImageSettings((prev) => {
+      const next = [...prev];
+      next[index] = { ...next[index], [key]: value };
+      return next;
+    });
   };
 
-  const handleMouseDown = (e: React.MouseEvent) => {
+  const handlePhotoCountChange = (count: PhotoCount) => {
+    setPhotoCount(count);
+    // limpa fotos extras se diminuir
+    if (count < photoCount) {
+      setBackgroundImages((prev) => prev.map((img, i) => (i < count ? img : null)));
+      setImageSettings((prev) => prev.map((s, i) => (i < count ? s : { ...defaultImageSettings })));
+    }
+  };
+
+  const hasRequiredImages = () => {
+    for (let i = 0; i < photoCount; i++) {
+      if (!backgroundImages[i]) return false;
+    }
+    return true;
+  };
+
+  const handleMouseDown = (index: number) => (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsDragging(true);
+    setDraggingIndex(index);
 
     const startX = e.clientX;
     const startY = e.clientY;
-    const startPosX = imageSettings.positionX;
-    const startPosY = imageSettings.positionY;
+    const startPosX = imageSettings[index].positionX;
+    const startPosY = imageSettings[index].positionY;
 
     const handleMove = (moveEvent: MouseEvent) => {
       moveEvent.preventDefault();
@@ -132,11 +171,15 @@ const StoriesNoticia = () => {
       const deltaY = (moveEvent.clientY - startY) * scaleFactor;
       const newX = Math.max(-50, Math.min(50, startPosX + deltaX));
       const newY = Math.max(-50, Math.min(50, startPosY + deltaY));
-      setImageSettings((prev) => ({ ...prev, positionX: newX, positionY: newY }));
+      setImageSettings((prev) => {
+        const next = [...prev];
+        next[index] = { ...next[index], positionX: newX, positionY: newY };
+        return next;
+      });
     };
 
     const handleUp = () => {
-      setIsDragging(false);
+      setDraggingIndex(null);
       window.removeEventListener('mousemove', handleMove);
       window.removeEventListener('mouseup', handleUp);
     };
@@ -231,38 +274,58 @@ const StoriesNoticia = () => {
         backgroundColor: "#1a1a2e",
       }}
     >
-      {/* Foto de fundo */}
+      {/* Fotos de fundo empilhadas (1 a 3, cada uma com altura frame/quantidade) */}
       <div
-        onMouseDown={interactive ? handleMouseDown : undefined}
         style={{
           position: "absolute",
-          inset: 0,
-          cursor: interactive ? "move" : undefined,
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
         }}
       >
-        {backgroundImage && (
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              backgroundImage: `url(${backgroundImage})`,
-              backgroundSize: `${imageSettings.scale * 100}%`,
-              backgroundPosition: `${50 + imageSettings.positionX}% ${50 + imageSettings.positionY}%`,
-              backgroundRepeat: "no-repeat",
-              pointerEvents: "none",
-            }}
-          />
-        )}
-        {interactive && backgroundImage && (
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              border: isDragging ? "4px solid #3b82f6" : "2px dashed rgba(255,255,255,0.3)",
-              pointerEvents: "none",
-            }}
-          />
-        )}
+        {Array.from({ length: photoCount }).map((_, index) => {
+          const settings = imageSettings[index];
+          return (
+            <div
+              key={index}
+              onMouseDown={interactive ? handleMouseDown(index) : undefined}
+              style={{
+                width: "100%",
+                height: `${fmt.height / photoCount}px`,
+                overflow: "hidden",
+                position: "relative",
+                cursor: interactive ? "move" : undefined,
+              }}
+            >
+              {backgroundImages[index] && (
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    backgroundImage: `url(${backgroundImages[index]})`,
+                    backgroundSize: `${settings.scale * 100}%`,
+                    backgroundPosition: `${50 + settings.positionX}% ${50 + settings.positionY}%`,
+                    backgroundRepeat: "no-repeat",
+                    pointerEvents: "none",
+                  }}
+                />
+              )}
+              {interactive && backgroundImages[index] && (
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    border: draggingIndex === index ? "4px solid #3b82f6" : "2px dashed rgba(255,255,255,0.3)",
+                    pointerEvents: "none",
+                  }}
+                />
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {/* Gradiente escuro embaixo */}
@@ -279,25 +342,46 @@ const StoriesNoticia = () => {
         }}
       />
 
-      {/* Story: máscara 9:16 original em altura total (a tarjinha azul dela é coberta
-          pela tarjinha colorida desenhada abaixo). Post: logo avulsa no topo-direita
-          (a máscara tem véu branco que corta feio no frame 4:5). */}
+      {/* Story: máscara 9:16 original em altura total, renderizada em 3 janelas de
+          recorte que excluem só o retângulo da tarjinha azul original (x227-853,
+          últimos 30px) — assim a tarjinha nova pode ser menor sem sobra azul.
+          Post: logo avulsa no topo-direita (a máscara corta feio no frame 4:5). */}
       {format === "story" ? (
-        <img
-          src={maskImage}
-          alt="Mask"
-          crossOrigin="anonymous"
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: `${fmt.width}px`,
-            height: `${fmt.height}px`,
-            objectFit: "cover",
-            objectPosition: "top",
-            pointerEvents: "none",
-          }}
-        />
+        <>
+          {[
+            { left: 0, width: 227, height: fmt.height, imgLeft: 0 },
+            { left: 853, width: fmt.width - 853, height: fmt.height, imgLeft: -853 },
+            { left: 227, width: 626, height: fmt.height - 30, imgLeft: -227 },
+          ].map((win, i) => (
+            <div
+              key={i}
+              style={{
+                position: "absolute",
+                top: 0,
+                left: `${win.left}px`,
+                width: `${win.width}px`,
+                height: `${win.height}px`,
+                overflow: "hidden",
+                pointerEvents: "none",
+              }}
+            >
+              <img
+                src={maskImage}
+                alt=""
+                crossOrigin="anonymous"
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: `${win.imgLeft}px`,
+                  width: `${fmt.width}px`,
+                  height: `${fmt.height}px`,
+                  objectFit: "cover",
+                  objectPosition: "top",
+                }}
+              />
+            </div>
+          ))}
+        </>
       ) : (
         <img
           src={logoPost.src}
@@ -315,16 +399,16 @@ const StoriesNoticia = () => {
         />
       )}
 
-      {/* Tarjinha do rodapé na cor do preset. No story ela é 4px maior que a azul
-          original da máscara pra cobri-la por completo (inclusive a borda serrilhada). */}
+      {/* Tarjinha do rodapé na cor do preset — largura da original, altura reduzida
+          (a azul original da máscara é excluída pelo recorte acima) */}
       <div
         style={{
           position: "absolute",
           bottom: 0,
-          left: `${Math.round((fmt.width - (format === "story" ? 626 : Math.round(622 * maskScale))) / 2)}px`,
-          width: `${format === "story" ? 626 : Math.round(622 * maskScale)}px`,
-          height: `${format === "story" ? 30 : Math.round(26 * maskScale)}px`,
-          borderRadius: format === "story" ? "15px 15px 0 0" : `${Math.round(13 * maskScale)}px ${Math.round(13 * maskScale)}px 0 0`,
+          left: `${Math.round((fmt.width - Math.round(622 * maskScale)) / 2)}px`,
+          width: `${Math.round(622 * maskScale)}px`,
+          height: `${format === "story" ? 14 : 10}px`,
+          borderRadius: format === "story" ? "7px 7px 0 0" : "5px 5px 0 0",
           backgroundColor: colorPreset.cor,
           pointerEvents: "none",
         }}
@@ -478,95 +562,125 @@ const StoriesNoticia = () => {
             </div>
           </div>
 
-          {/* Upload de imagem */}
-          <div className="space-y-2">
-            <Label className="text-foreground">Imagem de Fundo</Label>
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleImageUpload}
-              accept="image/*"
-              className="hidden"
-            />
+          {/* Quantidade de fotos */}
+          <div>
+            <Label className="text-foreground mb-3 block">Quantidade de Fotos</Label>
+            <div className="flex gap-2">
+              {([1, 2, 3] as PhotoCount[]).map((count) => (
+                <Button
+                  key={count}
+                  variant={photoCount === count ? "default" : "outline"}
+                  onClick={() => handlePhotoCountChange(count)}
+                  className="flex-1"
+                >
+                  {count} {count === 1 ? "Foto" : "Fotos"}
+                </Button>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Cada foto ocupa {fmt.width}x{Math.round(fmt.height / photoCount)}px
+            </p>
+          </div>
 
-            {backgroundImage ? (
-              <div className="space-y-2">
-                <div className="relative h-20 rounded-lg overflow-hidden border border-border">
-                  <img
-                    src={backgroundImage}
-                    alt="Preview"
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center gap-2">
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      Trocar
-                    </Button>
-                    <Button variant="destructive" size="sm" onClick={removeImage}>
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
+          {/* Upload de imagens */}
+          <div className="space-y-4">
+            <Label className="text-foreground">
+              {photoCount === 1 ? "Imagem de Fundo" : `Imagens de Fundo (${photoCount})`}
+            </Label>
 
-                {/* Controles de zoom e posição */}
-                <div className="bg-secondary/30 p-3 rounded-lg space-y-3">
-                  <div className="flex items-center gap-3">
-                    <ZoomIn className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    <Slider
-                      value={[imageSettings.scale]}
-                      onValueChange={(value) => updateImageSetting('scale', value[0])}
-                      min={1}
-                      max={3}
-                      step={0.1}
-                      className="flex-1"
-                    />
-                    <span className="text-xs text-muted-foreground w-12 text-right">
-                      {Math.round(imageSettings.scale * 100)}%
-                    </span>
+            {Array.from({ length: photoCount }).map((_, index) => (
+              <div key={index} className="space-y-2">
+                <input
+                  type="file"
+                  ref={(el) => (fileInputRefs.current[index] = el)}
+                  onChange={handleImageUpload(index)}
+                  accept="image/*"
+                  className="hidden"
+                />
+
+                {backgroundImages[index] ? (
+                  <div className="space-y-2">
+                    <div className="relative h-20 rounded-lg overflow-hidden border border-border">
+                      <img
+                        src={backgroundImages[index]!}
+                        alt={`Preview ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center gap-2">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => fileInputRefs.current[index]?.click()}
+                        >
+                          Trocar
+                        </Button>
+                        <Button variant="destructive" size="sm" onClick={() => removeImage(index)}>
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <span className="absolute top-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
+                        Foto {index + 1}
+                      </span>
+                    </div>
+
+                    {/* Controles de zoom e posição */}
+                    <div className="bg-secondary/30 p-3 rounded-lg space-y-3">
+                      <div className="flex items-center gap-3">
+                        <ZoomIn className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        <Slider
+                          value={[imageSettings[index].scale]}
+                          onValueChange={(value) => updateImageSetting(index, 'scale', value[0])}
+                          min={1}
+                          max={3}
+                          step={0.1}
+                          className="flex-1"
+                        />
+                        <span className="text-xs text-muted-foreground w-12 text-right">
+                          {Math.round(imageSettings[index].scale * 100)}%
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <MoveHorizontal className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        <Slider
+                          value={[imageSettings[index].positionX]}
+                          onValueChange={(value) => updateImageSetting(index, 'positionX', value[0])}
+                          min={-50}
+                          max={50}
+                          step={1}
+                          className="flex-1"
+                        />
+                        <span className="text-xs text-muted-foreground w-12 text-right">
+                          {imageSettings[index].positionX > 0 ? '+' : ''}{Math.round(imageSettings[index].positionX)}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <MoveVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        <Slider
+                          value={[imageSettings[index].positionY]}
+                          onValueChange={(value) => updateImageSetting(index, 'positionY', value[0])}
+                          min={-50}
+                          max={50}
+                          step={1}
+                          className="flex-1"
+                        />
+                        <span className="text-xs text-muted-foreground w-12 text-right">
+                          {imageSettings[index].positionY > 0 ? '+' : ''}{Math.round(imageSettings[index].positionY)}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <MoveHorizontal className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    <Slider
-                      value={[imageSettings.positionX]}
-                      onValueChange={(value) => updateImageSetting('positionX', value[0])}
-                      min={-50}
-                      max={50}
-                      step={1}
-                      className="flex-1"
-                    />
-                    <span className="text-xs text-muted-foreground w-12 text-right">
-                      {imageSettings.positionX > 0 ? '+' : ''}{Math.round(imageSettings.positionX)}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <MoveVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    <Slider
-                      value={[imageSettings.positionY]}
-                      onValueChange={(value) => updateImageSetting('positionY', value[0])}
-                      min={-50}
-                      max={50}
-                      step={1}
-                      className="flex-1"
-                    />
-                    <span className="text-xs text-muted-foreground w-12 text-right">
-                      {imageSettings.positionY > 0 ? '+' : ''}{Math.round(imageSettings.positionY)}
-                    </span>
-                  </div>
-                </div>
+                ) : (
+                  <Button
+                    variant="outline"
+                    onClick={() => fileInputRefs.current[index]?.click()}
+                    className="w-full h-16 border-dashed"
+                  >
+                    <Upload className="mr-2 h-5 w-5" />
+                    {photoCount === 1 ? "Carregue aqui sua foto" : `Carregue aqui a foto ${index + 1}`}
+                  </Button>
+                )}
               </div>
-            ) : (
-              <Button
-                variant="outline"
-                onClick={() => fileInputRef.current?.click()}
-                className="w-full h-16 border-dashed"
-              >
-                <Upload className="mr-2 h-5 w-5" />
-                Carregue aqui sua foto
-              </Button>
-            )}
+            ))}
           </div>
 
           {/* Seleção de logo: post usa logos avulsas (2 versões) */}
@@ -759,7 +873,7 @@ const StoriesNoticia = () => {
 
           <Button
             onClick={generateImage}
-            disabled={isGenerating || !backgroundImage || !manchete}
+            disabled={isGenerating || !hasRequiredImages() || !manchete}
             className="w-full h-12 text-lg"
           >
             <Download className="mr-2 h-5 w-5" />
