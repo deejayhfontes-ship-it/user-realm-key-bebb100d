@@ -52,6 +52,11 @@ const COLOR_PRESETS: ColorPreset[] = [
   { nome: "Verde Saúde", cor: "#00995D", textoTarja: "#ffffff" },
   { nome: "Azul Educação", cor: "#005EB8", textoTarja: "#ffffff" },
   { nome: "Roxo Cultura", cor: "#9C27B0", textoTarja: "#ffffff" },
+  // Cores das artes de campanha (Miguilim, corrida, deputados)
+  { nome: "Rosa Pink", cor: "#F5127E", textoTarja: "#ffffff" },
+  { nome: "Laranja", cor: "#FF8A00", textoTarja: "#ffffff" },
+  { nome: "Verde Limão", cor: "#C6E326", textoTarja: "#14395C" },
+  { nome: "Roxo Vibrante", cor: "#5B2AB5", textoTarja: "#ffffff" },
 ];
 
 interface ImageSettings {
