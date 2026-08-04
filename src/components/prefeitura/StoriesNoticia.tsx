@@ -46,6 +46,12 @@ const COLOR_PRESETS: ColorPreset[] = [
   { nome: "Azul Claro", cor: "#3B9EDD", textoTarja: "#ffffff" },
   { nome: "Azul Escuro", cor: "#14395C", textoTarja: "#ffffff" },
   { nome: "Amarelo", cor: "#F8C617", textoTarja: "#14395C" },
+  // Paleta oficial do design system da prefeitura (brand-kit-data.ts + config das secretarias)
+  { nome: "Azul Prefeitura", cor: "#004691", textoTarja: "#ffffff" },
+  { nome: "Verde Institucional", cor: "#2D7D46", textoTarja: "#ffffff" },
+  { nome: "Verde Saúde", cor: "#00995D", textoTarja: "#ffffff" },
+  { nome: "Azul Educação", cor: "#005EB8", textoTarja: "#ffffff" },
+  { nome: "Roxo Cultura", cor: "#9C27B0", textoTarja: "#ffffff" },
 ];
 
 interface ImageSettings {
