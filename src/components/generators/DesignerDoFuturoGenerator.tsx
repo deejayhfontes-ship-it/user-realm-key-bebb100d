@@ -31,7 +31,36 @@ import {
     FolderPlus,
     Pencil,
     Trash2,
+    CircleOff,
+    Triangle,
+    SquareSplitHorizontal,
+    RotateCw,
+    Sunset,
+    MoveRight,
+    Lamp,
+    Sunrise,
+    Crown,
+    Briefcase,
+    Gem,
+    Flame,
+    Building2,
+    Cpu,
+    Layers,
+    LayoutDashboard,
+    Minus,
+    Smile,
+    GraduationCap,
+    PartyPopper,
+    Gamepad2,
+    Camera,
+    Aperture,
+    Clapperboard,
+    Zap,
+    Moon,
+    Lightbulb,
+    type LucideIcon,
 } from 'lucide-react';
+import { LIGHTING_SCHEMES } from '@/lib/studioLighting';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -43,6 +72,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useGeminiImageGeneration } from '@/hooks/useGeminiImageGeneration';
 import { useGalleryDB } from '@/hooks/useGalleryDB';
 import { ForensicPanel } from './ForensicPanel';
+import { ApiCostBadge } from './ApiCostBadge';
 import { ImageLightbox } from './ImageLightbox';
 import { AIChatPanel } from './AIChatPanel';
 import JSZip from 'jszip';
@@ -74,7 +104,7 @@ interface DesignerConfig {
     // Sujeito
     subjectImages: ReferenceImage[];
     quantity: number;
-    gender: 'Masculino' | 'Feminino';
+    gender: 'Masculino' | 'Feminino' | 'Nenhum';
     subjectDescription: string;
 
     // Posição
@@ -106,6 +136,7 @@ interface DesignerConfig {
         complementary: string;
     };
     ambientOpacity: number;
+    lightingDirection: string;
 
     // Composição
     framing: 'CLOSE_UP' | 'MEDIUM' | 'AMERICAN';
@@ -120,6 +151,8 @@ interface DesignerConfig {
     selectedStyle: string;
     useBlur: boolean;
     useGradient: boolean;
+    usePortraitVolume: boolean;
+    portraitVolumeIntensity: number;
 
     // Prompt Adicional
     useExtraPrompt: boolean;
@@ -144,6 +177,7 @@ const DEFAULT_CONFIG: DesignerConfig = {
     activeColors: { ambient: false, rim: false, complementary: false },
     colors: { ambient: '#000000', rim: '#a3e635', complementary: '#6366f1' },
     ambientOpacity: 50,
+    lightingDirection: 'none',
     framing: 'MEDIUM',
     useFloatingElements: false,
     styleReferences: [],
@@ -152,6 +186,8 @@ const DEFAULT_CONFIG: DesignerConfig = {
     selectedStyle: 'ultra_realistic',
     useBlur: false,
     useGradient: false,
+    usePortraitVolume: false,
+    portraitVolumeIntensity: 50,
     useExtraPrompt: false,
     extraPrompt: '',
 };
@@ -183,15 +219,62 @@ const STYLES = [
     { id: 'neon_futuristic', label: 'Neon' },
 ];
 
+const STYLE_ICONS: Record<string, LucideIcon> = {
+    classic: Crown,
+    formal: Briefcase,
+    elegant: Gem,
+    sexy: Flame,
+    institutional: Building2,
+    tech: Cpu,
+    glassmorphism: Layers,
+    ui_interface: LayoutDashboard,
+    minimalist: Minus,
+    playful: Smile,
+    cartoon: Palette,
+    infoproduct: GraduationCap,
+    jovial: PartyPopper,
+    gamer: Gamepad2,
+    pro_portrait: Camera,
+    ultra_realistic: Aperture,
+    glow: Sparkles,
+    cinematic_render: Clapperboard,
+    '3d_unreal_engine': Box,
+    cyber_punk: Zap,
+    minimalist_studio: Lamp,
+    dark_luxury: Moon,
+    neon_futuristic: Lightbulb,
+};
+
+const LIGHTING_ICONS: Record<string, LucideIcon> = {
+    none: Wand2,
+    rembrandt: Triangle,
+    butterfly: Sun,
+    split: SquareSplitHorizontal,
+    loop: RotateCw,
+    backlight: Sunset,
+    side: MoveRight,
+    top: Lamp,
+    golden_hour: Sunrise,
+};
+
 const GALLERY_STORAGE_KEY = 'designer-gallery';
 const PROJECTS_STORAGE_KEY = 'designer-projects';
 const MAX_GALLERY_ITEMS = 50;
+
+const PORTRAIT_RETOUCH_PROMPT = `Professional portrait retouch (volumetric dodge & burn style): enhance facial volume and dimension with light-and-shadow sculpting, even out skin tone while fully preserving natural skin texture and pores (no plastic or blurred skin), brighten the eyes with natural catchlights, naturally whiten teeth, subtly clean stray hairs and temporary skin blemishes. Keep the person's identity, expression, pose, framing, colors, text and background EXACTLY the same. Photorealistic result.`;
 
 const createProject = (name: string): Project => ({
     id: crypto.randomUUID(),
     name,
     config: { ...DEFAULT_CONFIG },
     gallery: [],
+});
+
+// Configs salvos antes de novos campos existirem ganham os defaults via spread
+const migrateConfig = (raw: Partial<DesignerConfig> | undefined): DesignerConfig => ({
+    ...DEFAULT_CONFIG,
+    ...(raw ?? {}),
+    gender: raw?.gender === 'Feminino' || raw?.gender === 'Nenhum' ? raw.gender : 'Masculino',
 });
 
 export function DesignerDoFuturoGenerator() {
@@ -229,7 +312,9 @@ export function DesignerDoFuturoGenerator() {
     const [projects, setProjects] = useState<Project[]>(() => {
         try {
             const saved = localStorage.getItem(PROJECTS_STORAGE_KEY);
-            if (saved) return JSON.parse(saved);
+            if (saved) {
+                return (JSON.parse(saved) as Project[]).map(p => ({ ...p, config: migrateConfig(p.config) }));
+            }
         } catch { }
         return [createProject('Projeto Alpha')];
     });
@@ -280,7 +365,7 @@ export function DesignerDoFuturoGenerator() {
             const filtered = prev.filter(p => p.id !== projectId);
             if (activeProjectId === projectId) {
                 setActiveProjectId(filtered[0].id);
-                setConfig(filtered[0].config);
+                setConfig(migrateConfig(filtered[0].config));
                 setGallery(filtered[0].gallery);
             }
             return filtered;
@@ -297,7 +382,7 @@ export function DesignerDoFuturoGenerator() {
         const target = projects.find(p => p.id === projectId);
         if (target) {
             setActiveProjectId(projectId);
-            setConfig({ ...target.config });
+            setConfig(migrateConfig(target.config));
             setGallery([...target.gallery]);
         }
     };
@@ -360,6 +445,24 @@ export function DesignerDoFuturoGenerator() {
             toast({ title: '✨ Refinamento concluído!', className: 'bg-emerald-600 text-white border-none' });
         } catch (err: any) {
             toast({ title: 'Erro no refinamento', description: err.message, variant: 'destructive' });
+        }
+    }, [inpaintImage]);
+
+    // ── Handler: Retoque de retrato via Lightbox (inpaint sem máscara, prompt fixo) ──
+    const handlePortraitRetouch = useCallback(async (imageSrc: string) => {
+        toast({ title: '✨ Aplicando retoque de retrato...', className: 'bg-lime-500 text-white border-none' });
+        try {
+            const result = await inpaintImage(imageSrc, '', PORTRAIT_RETOUCH_PROMPT);
+            const retouched: GeneratedImage = {
+                src: `data:${result.mimeType};base64,${result.imageBase64}`,
+                prompt: '[Retoque de Retrato]',
+                timestamp: Date.now(),
+            };
+            await addImageToGallery(retouched);
+            setLightboxIndex(0);
+            toast({ title: '✨ Retoque concluído!', className: 'bg-emerald-600 text-white border-none' });
+        } catch (err: any) {
+            toast({ title: 'Erro no retoque', description: err.message, variant: 'destructive' });
         }
     }, [inpaintImage]);
 
@@ -588,6 +691,9 @@ export function DesignerDoFuturoGenerator() {
                 ambientOpacity: config.ambientOpacity,
                 useBlur: config.useBlur,
                 useGradient: config.useGradient,
+                lightingDirection: config.lightingDirection,
+                usePortraitVolume: config.usePortraitVolume,
+                portraitVolumeIntensity: config.portraitVolumeIntensity,
                 useFloatingElements: config.useFloatingElements,
                 floatingElementsDescription: '',
                 shotType: config.framing || 'MEDIUM',
@@ -664,14 +770,15 @@ export function DesignerDoFuturoGenerator() {
         <div className="h-px bg-white/5 my-5" />
     );
 
-    const SelectionButton = ({ active, onClick, children, className }: any) => (
+    const SelectionButton = ({ active, onClick, children, className, title }: any) => (
         <button
             onClick={onClick}
+            title={title}
             className={`
-                flex-1 py-1.5 px-3 rounded-lg text-[10px] uppercase font-bold text-center border transition-all
+                flex-1 py-2 px-3 rounded-xl text-[10px] uppercase font-bold text-center border transition-all duration-200 active:scale-[0.97] backdrop-blur-xl
                 ${active
-                    ? 'bg-lime-500/20 text-lime-300 border-lime-400/50 shadow-sm shadow-lime-400/10'
-                    : 'bg-white/5 text-white/40 border-white/10 hover:bg-white/10 hover:text-white/60'
+                    ? 'bg-lime-400/15 text-lime-200 border-lime-300/40 shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_4px_16px_rgba(163,230,53,0.15)]'
+                    : 'bg-white/[0.06] text-white/50 border-white/[0.12] hover:bg-white/[0.1] hover:text-white/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]'
                 }
                 ${className}
             `}
@@ -687,10 +794,17 @@ export function DesignerDoFuturoGenerator() {
     };
 
     return (
-        <div className="flex flex-col lg:flex-row h-[calc(100vh-100px)] gap-0 bg-[#0a0a0a] p-0 rounded-2xl overflow-hidden font-sans">
+        <div className="relative isolate flex flex-col lg:flex-row h-[calc(100vh-100px)] gap-0 bg-[#08080a] p-0 rounded-2xl overflow-hidden font-sans">
+
+            {/* ── AMBIENT GLOW (fundo do liquid glass) ── */}
+            <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+                <div className="absolute -top-40 -left-32 w-[480px] h-[480px] rounded-full bg-lime-500/[0.08] blur-[130px]" />
+                <div className="absolute top-1/3 right-[-160px] w-[520px] h-[520px] rounded-full bg-emerald-400/[0.05] blur-[150px]" />
+                <div className="absolute bottom-[-180px] left-1/3 w-[560px] h-[560px] rounded-full bg-lime-300/[0.04] blur-[160px]" />
+            </div>
 
             {/* ── MOBILE NAV ── */}
-            <div className="flex lg:hidden items-center gap-1 px-3 py-2 border-b border-white/5 bg-[#111111] overflow-x-auto scrollbar-hide">
+            <div className="flex lg:hidden items-center gap-1 px-3 py-2 border-b border-white/[0.08] bg-white/[0.03] backdrop-blur-2xl overflow-x-auto scrollbar-hide">
                 <button
                     onClick={() => setSidebarTab('explore')}
                     className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider whitespace-nowrap transition-all ${sidebarTab === 'explore' ? 'bg-lime-500/20 text-lime-300' : 'text-white/40 hover:text-white/70'}`}
@@ -718,7 +832,7 @@ export function DesignerDoFuturoGenerator() {
             </div>
 
             {/* ── SIDEBAR (desktop) ── */}
-            <div className="hidden lg:flex flex-col w-[68px] bg-[#111111] border-r border-white/5 items-center py-4 gap-1 shrink-0">
+            <div className="hidden lg:flex flex-col w-[68px] bg-white/[0.03] backdrop-blur-2xl border-r border-white/[0.08] items-center py-4 gap-1 shrink-0">
                 <button
                     onClick={() => setSidebarTab('explore')}
                     className={`flex flex-col items-center gap-1 w-14 py-2.5 rounded-xl transition-all text-[8px] font-bold uppercase tracking-wider ${sidebarTab === 'explore'
@@ -773,7 +887,7 @@ export function DesignerDoFuturoGenerator() {
 
             {/* ── PAINEL ESQUERDO (CONFIGURAÇÕES) — só visível na tab Criar ── */}
             {sidebarTab === 'create' && (
-                <div className="w-full lg:w-[420px] bg-[#111111] rounded-none lg:rounded-none border-r border-white/5 flex flex-col shadow-sm shrink-0">
+                <div className="w-full lg:w-[420px] bg-white/[0.03] backdrop-blur-2xl rounded-none lg:rounded-none border-r border-white/[0.08] flex flex-col shadow-sm shrink-0">
 
                     {/* ── TABS DE PROJETO ── */}
                     <div className="h-[38px] border-b border-white/5 flex items-center gap-0 px-1 overflow-x-auto scrollbar-hide">
@@ -891,13 +1005,20 @@ export function DesignerDoFuturoGenerator() {
                                     >
                                         <VenusIcon className="w-3 h-3 inline mr-1" /> Feminino
                                     </SelectionButton>
+                                    <SelectionButton
+                                        active={config.gender === 'Nenhum'}
+                                        onClick={() => updateConfig('gender', 'Nenhum')}
+                                        title="Sem gênero no prompt — ideal para objetos e produtos"
+                                    >
+                                        <CircleOff className="w-3 h-3 inline mr-1" /> Nenhum
+                                    </SelectionButton>
                                 </div>
                             </div>
 
                             {/* Descrição */}
                             <Textarea
                                 placeholder="Descrição da pose ou roupa (opcional)..."
-                                className="bg-white/5 border-white/10 text-xs text-white resize-none focus:border-lime-400/50 focus:ring-0 min-h-[60px] rounded-xl placeholder:text-white/30"
+                                className="bg-white/[0.06] border-white/[0.12] backdrop-blur-xl text-xs text-white resize-none focus:border-lime-400/50 focus:ring-0 min-h-[60px] rounded-xl placeholder:text-white/30"
                                 value={config.subjectDescription}
                                 onChange={e => updateConfig('subjectDescription', e.target.value)}
                             />
@@ -915,10 +1036,10 @@ export function DesignerDoFuturoGenerator() {
                                         key={pos.id}
                                         onClick={() => updateConfig('position', pos.id)}
                                         className={`
-                                        flex-1 h-16 rounded-xl border flex flex-col items-center justify-end pb-1.5 gap-1.5 transition-all
+                                        flex-1 h-16 rounded-2xl border flex flex-col items-center justify-end pb-1.5 gap-1.5 transition-all duration-200 active:scale-[0.97] backdrop-blur-xl
                                         ${config.position === pos.id
-                                                ? 'border-lime-400/50 bg-lime-500/10'
-                                                : 'border-white/10 hover:border-white/20 bg-white/5'
+                                                ? 'border-lime-300/40 bg-lime-400/15 shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_4px_16px_rgba(163,230,53,0.15)]'
+                                                : 'border-white/[0.12] hover:border-white/20 bg-white/[0.06] shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]'
                                             }
                                     `}
                                     >
@@ -948,10 +1069,10 @@ export function DesignerDoFuturoGenerator() {
                                         key={dim.id}
                                         onClick={() => updateConfig('dimension', dim.id)}
                                         className={`
-                                        flex items-center gap-2 px-3 py-2.5 rounded-xl border text-left transition-all
+                                        flex items-center gap-2 px-3 py-2.5 rounded-2xl border text-left transition-all duration-200 active:scale-[0.97] backdrop-blur-xl
                                         ${config.dimension === dim.id
-                                                ? 'border-lime-400/50 bg-lime-500/10 text-lime-300'
-                                                : 'border-white/10 text-white/40 hover:bg-white/10'
+                                                ? 'border-lime-300/40 bg-lime-400/15 text-lime-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_4px_16px_rgba(163,230,53,0.15)]'
+                                                : 'border-white/[0.12] bg-white/[0.06] text-white/50 hover:bg-white/[0.1] shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]'
                                             }
                                     `}
                                     >
@@ -970,19 +1091,19 @@ export function DesignerDoFuturoGenerator() {
                             {config.useText && (
                                 <div className="space-y-2 mb-4 animate-in fade-in slide-in-from-top-2 duration-300">
                                     <Input
-                                        className="h-8 text-xs border-white/10 bg-white/5 text-white placeholder:text-white/30"
+                                        className="h-8 text-xs border-white/[0.12] bg-white/[0.06] backdrop-blur-xl rounded-xl text-white placeholder:text-white/30"
                                         placeholder="Headline (H1)"
                                         value={config.textH1}
                                         onChange={e => updateConfig('textH1', e.target.value)}
                                     />
                                     <Input
-                                        className="h-8 text-xs border-white/10 bg-white/5 text-white placeholder:text-white/30"
+                                        className="h-8 text-xs border-white/[0.12] bg-white/[0.06] backdrop-blur-xl rounded-xl text-white placeholder:text-white/30"
                                         placeholder="Subheadline (H2)"
                                         value={config.textH2}
                                         onChange={e => updateConfig('textH2', e.target.value)}
                                     />
                                     <Input
-                                        className="h-8 text-xs border-white/10 bg-white/5 text-white placeholder:text-white/30"
+                                        className="h-8 text-xs border-white/[0.12] bg-white/[0.06] backdrop-blur-xl rounded-xl text-white placeholder:text-white/30"
                                         placeholder="Botão (CTA)"
                                         value={config.textCTA}
                                         onChange={e => updateConfig('textCTA', e.target.value)}
@@ -995,13 +1116,13 @@ export function DesignerDoFuturoGenerator() {
                             {/* PROJETO & CENÁRIO */}
                             <SectionTitle>Projeto & Cenário</SectionTitle>
                             <Input
-                                className="h-9 mb-2 text-xs border-white/10 bg-white/5 text-white placeholder:text-white/30"
+                                className="h-9 mb-2 text-xs border-white/[0.12] bg-white/[0.06] backdrop-blur-xl rounded-xl text-white placeholder:text-white/30"
                                 placeholder="Nicho/Projeto (Ex: Trader de Elite)"
                                 value={config.niche}
                                 onChange={e => updateConfig('niche', e.target.value)}
                             />
                             <Input
-                                className="h-9 mb-2 text-xs border-white/10 bg-white/5 text-white placeholder:text-white/30"
+                                className="h-9 mb-2 text-xs border-white/[0.12] bg-white/[0.06] backdrop-blur-xl rounded-xl text-white placeholder:text-white/30"
                                 placeholder="Ambiente (Ex: Escritório Moderno)"
                                 value={config.environment}
                                 onChange={e => updateConfig('environment', e.target.value)}
@@ -1025,7 +1146,7 @@ export function DesignerDoFuturoGenerator() {
                                 >
                                     <Palette className="w-3.5 h-3.5" />
                                 </button>
-                                <div className="flex-1 flex items-center gap-2 px-3 py-1.5 rounded-xl border border-white/10 bg-white/5">
+                                <div className="flex-1 flex items-center gap-2 px-3 py-1.5 rounded-xl border border-white/[0.12] bg-white/[0.06] backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
                                     <span className="text-[10px] font-bold text-white/50 uppercase flex-1">Cor do Ambiente</span>
                                     <input
                                         type="color"
@@ -1044,7 +1165,7 @@ export function DesignerDoFuturoGenerator() {
                                 >
                                     <Sun className="w-3.5 h-3.5" />
                                 </button>
-                                <div className="flex-1 flex items-center gap-2 px-3 py-1.5 rounded-xl border border-white/10 bg-white/5">
+                                <div className="flex-1 flex items-center gap-2 px-3 py-1.5 rounded-xl border border-white/[0.12] bg-white/[0.06] backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
                                     <span className="text-[10px] font-bold text-white/50 uppercase flex-1">Luz de Recorte</span>
                                     <input
                                         type="color"
@@ -1063,7 +1184,7 @@ export function DesignerDoFuturoGenerator() {
                                 >
                                     <Wand2 className="w-3.5 h-3.5" />
                                 </button>
-                                <div className="flex-1 flex items-center gap-2 px-3 py-1.5 rounded-xl border border-white/10 bg-white/5">
+                                <div className="flex-1 flex items-center gap-2 px-3 py-1.5 rounded-xl border border-white/[0.12] bg-white/[0.06] backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
                                     <span className="text-[10px] font-bold text-white/50 uppercase flex-1">Luz Complementar</span>
                                     <input
                                         type="color"
@@ -1075,7 +1196,7 @@ export function DesignerDoFuturoGenerator() {
                             </div>
 
                             {/* Opacidade do ambiente */}
-                            <div className="bg-white/5 rounded-xl p-3 mb-3">
+                            <div className="bg-white/[0.05] backdrop-blur-xl border border-white/[0.08] rounded-2xl p-3 mb-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
                                 <div className="flex justify-between mb-2">
                                     <Label className="text-[10px] uppercase font-bold text-white/50">Opacidade do Ambiente</Label>
                                     <span className="text-[10px] font-bold text-white">{config.ambientOpacity}%</span>
@@ -1093,6 +1214,33 @@ export function DesignerDoFuturoGenerator() {
                                 </div>
                             </div>
 
+                            {/* Direção da luz de estúdio */}
+                            <div className="mb-3">
+                                <Label className="text-[9px] uppercase font-bold tracking-wider text-white/40 mb-1.5 block">Direção da Luz</Label>
+                                <div className="grid grid-cols-3 gap-1.5">
+                                    {LIGHTING_SCHEMES.map(scheme => {
+                                        const Icon = LIGHTING_ICONS[scheme.id] || Sun;
+                                        const active = config.lightingDirection === scheme.id;
+                                        return (
+                                            <button
+                                                key={scheme.id}
+                                                onClick={() => updateConfig('lightingDirection', scheme.id)}
+                                                className={`
+                                                flex flex-col items-center gap-1 py-2 rounded-2xl border transition-all duration-200 active:scale-[0.97] backdrop-blur-xl
+                                                ${active
+                                                        ? 'border-lime-300/40 bg-lime-400/15 text-lime-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_4px_16px_rgba(163,230,53,0.15)]'
+                                                        : 'border-white/[0.12] bg-white/[0.06] text-white/50 hover:bg-white/[0.1] hover:text-white/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]'
+                                                    }
+                                            `}
+                                            >
+                                                <Icon className="w-3.5 h-3.5" />
+                                                <span className="text-[9px] font-bold uppercase">{scheme.label}</span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
                             <Separator />
 
                             {/* COMPOSIÇÃO */}
@@ -1107,10 +1255,10 @@ export function DesignerDoFuturoGenerator() {
                                         key={item.id}
                                         onClick={() => updateConfig('framing', item.id)}
                                         className={`
-                                        flex items-center gap-3 px-3 py-2.5 rounded-xl border text-left transition-all
+                                        flex items-center gap-3 px-3 py-2.5 rounded-2xl border text-left transition-all duration-200 active:scale-[0.97] backdrop-blur-xl
                                         ${config.framing === item.id
-                                                ? 'border-lime-400/50 bg-lime-500/10'
-                                                : 'border-white/10 hover:bg-white/10'
+                                                ? 'border-lime-300/40 bg-lime-400/15 shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_4px_16px_rgba(163,230,53,0.15)]'
+                                                : 'border-white/[0.12] bg-white/[0.06] hover:bg-white/[0.1] shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]'
                                             }
                                     `}
                                     >
@@ -1136,7 +1284,7 @@ export function DesignerDoFuturoGenerator() {
                             <Separator />
 
                             {/* REFERÊNCIAS DE ESTILO (Ref Upload) */}
-                            <div className="p-3 bg-white/5 border border-white/10 rounded-2xl mb-4">
+                            <div className="p-3 bg-white/[0.05] backdrop-blur-xl border border-white/[0.08] rounded-2xl mb-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
                                 <div className="text-[10px] font-extrabold uppercase tracking-[0.08em] text-white/50 mb-3">
                                     Referências de Estilo
                                 </div>
@@ -1183,7 +1331,7 @@ export function DesignerDoFuturoGenerator() {
                             {/* ATRIBUTOS VISUAIS */}
                             <SectionTitle>Atributos Visuais & Estilo</SectionTitle>
 
-                            <div className="bg-white/5 rounded-xl p-3 mb-4">
+                            <div className="bg-white/[0.05] backdrop-blur-xl border border-white/[0.08] rounded-2xl p-3 mb-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
                                 <div className="flex justify-between mb-2">
                                     <Label className="text-[10px] uppercase font-bold text-white/50">Sobriedade</Label>
                                     <span className="text-[10px] font-bold text-white">{config.sobriety}</span>
@@ -1209,21 +1357,25 @@ export function DesignerDoFuturoGenerator() {
                             </div>
 
                             <div className={`grid grid-cols-2 sm:grid-cols-3 gap-1.5 transition-opacity ${config.useVisualstyle ? 'opacity-100 pointer-events-auto' : 'opacity-40 pointer-events-none'}`}>
-                                {STYLES.map(s => (
-                                    <button
-                                        key={s.id}
-                                        onClick={() => updateConfig('selectedStyle', s.id)}
-                                        className={`
-                                        px-1 py-1.5 rounded text-[9px] font-bold border transition-colors truncate
-                                        ${config.selectedStyle === s.id
-                                                ? 'bg-lime-500/30 text-lime-200 border-lime-400/50'
-                                                : 'bg-white/5 text-white/40 border-white/10 hover:border-white/20'
-                                            }
-                                    `}
-                                    >
-                                        {s.label}
-                                    </button>
-                                ))}
+                                {STYLES.map(s => {
+                                    const StyleIcon = STYLE_ICONS[s.id] || Sparkles;
+                                    return (
+                                        <button
+                                            key={s.id}
+                                            onClick={() => updateConfig('selectedStyle', s.id)}
+                                            className={`
+                                            flex flex-col items-center gap-1 px-1 py-2 rounded-2xl text-[9px] font-bold border transition-all duration-200 active:scale-[0.97] backdrop-blur-xl
+                                            ${config.selectedStyle === s.id
+                                                    ? 'bg-lime-400/15 text-lime-200 border-lime-300/40 shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_4px_16px_rgba(163,230,53,0.15)]'
+                                                    : 'bg-white/[0.06] text-white/50 border-white/[0.12] hover:bg-white/[0.1] hover:text-white/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]'
+                                                }
+                                        `}
+                                        >
+                                            <StyleIcon className="w-4 h-4" />
+                                            <span className="truncate max-w-full">{s.label}</span>
+                                        </button>
+                                    );
+                                })}
                             </div>
 
                             <Separator />
@@ -1236,6 +1388,29 @@ export function DesignerDoFuturoGenerator() {
                                 <span className="text-[10px] font-bold uppercase text-white/40">Degradê Lateral</span>
                                 <Switch checked={config.useGradient} onCheckedChange={v => updateConfig('useGradient', v)} />
                             </div>
+                            <div className="flex items-center justify-between py-2">
+                                <span className="text-[10px] font-bold uppercase text-white/40" title="Dodge & burn volumétrico com textura de pele preservada (estilo Retouch4me)">Retoque de Volume (Pele)</span>
+                                <Switch checked={config.usePortraitVolume} onCheckedChange={v => updateConfig('usePortraitVolume', v)} />
+                            </div>
+                            {config.usePortraitVolume && (
+                                <div className="bg-white/[0.05] backdrop-blur-xl border border-white/[0.08] rounded-2xl p-3 mb-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] animate-in fade-in slide-in-from-top-2 duration-300">
+                                    <div className="flex justify-between mb-2">
+                                        <Label className="text-[10px] uppercase font-bold text-white/50">Intensidade do Retoque</Label>
+                                        <span className="text-[10px] font-bold text-white">{config.portraitVolumeIntensity}</span>
+                                    </div>
+                                    <Slider
+                                        value={[config.portraitVolumeIntensity]}
+                                        onValueChange={([v]) => updateConfig('portraitVolumeIntensity', v)}
+                                        max={100}
+                                        step={5}
+                                        className="mb-1"
+                                    />
+                                    <div className="flex justify-between text-[8px] uppercase font-bold text-white/30">
+                                        <span>Sutil</span>
+                                        <span>Intenso</span>
+                                    </div>
+                                </div>
+                            )}
 
                             <Separator />
 
@@ -1247,7 +1422,7 @@ export function DesignerDoFuturoGenerator() {
                             {config.useExtraPrompt && (
                                 <Textarea
                                     placeholder="Instruções extras..."
-                                    className="text-xs bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                                    className="text-xs bg-white/[0.06] border-white/[0.12] backdrop-blur-xl rounded-xl text-white placeholder:text-white/30"
                                     value={config.extraPrompt}
                                     onChange={e => updateConfig('extraPrompt', e.target.value)}
                                 />
@@ -1256,7 +1431,7 @@ export function DesignerDoFuturoGenerator() {
 
 
                             {/* BOTÕES DE AÇÃO */}
-                            <div className="sticky bottom-0 bg-[#111111] pt-4 pb-2 border-t border-white/5 mt-4 space-y-2 z-10">
+                            <div className="sticky bottom-0 bg-[#0d0d0f]/80 backdrop-blur-2xl pt-4 pb-2 border-t border-white/[0.08] mt-4 space-y-2 z-10">
                                 <Button
                                     onClick={handleGenerate}
                                     disabled={isGenerating}
@@ -1264,7 +1439,7 @@ export function DesignerDoFuturoGenerator() {
                                     w-full h-11 rounded-xl text-xs font-bold uppercase tracking-wider
                                     ${isGenerating
                                             ? 'bg-lime-900/30 text-lime-300'
-                                            : 'bg-lime-500 text-white hover:bg-lime-400 hover:scale-[1.01] transition-transform'
+                                            : 'bg-gradient-to-b from-lime-400 to-lime-500 text-black hover:from-lime-300 hover:to-lime-400 hover:scale-[1.01] shadow-[inset_0_1px_0_rgba(255,255,255,0.4),0_8px_24px_rgba(163,230,53,0.3)] transition-all duration-200'
                                         }
                                 `}
                                 >
@@ -1325,48 +1500,53 @@ export function DesignerDoFuturoGenerator() {
 
             {/* ── PAINEL ESQUERDO: EXPLORAR ── */}
             {sidebarTab === 'explore' && (
-                <div className="w-full lg:w-[420px] bg-[#111111] border-r border-white/5 flex flex-col shrink-0">
-                    <div className="h-[38px] border-b border-white/5 flex items-center px-4">
+                <div className="w-full lg:w-[420px] bg-white/[0.03] backdrop-blur-2xl border-r border-white/[0.08] flex flex-col shrink-0">
+                    <div className="h-[38px] border-b border-white/[0.08] flex items-center px-4">
                         <span className="text-[9px] font-extrabold uppercase tracking-[0.12em] text-white/40">Explorar Estilos</span>
                     </div>
                     <ScrollArea className="flex-1">
                         <div className="p-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
-                            {STYLES.map(style => (
-                                <button
-                                    key={style.id}
-                                    onClick={() => {
-                                        updateConfig('selectedStyle', style.id);
-                                        updateConfig('useVisualstyle', true);
-                                        setSidebarTab('create');
-                                        toast({ title: `🎨 Estilo "${style.label}" selecionado!` });
-                                    }}
-                                    className={`group relative overflow-hidden rounded-xl border transition-all h-24 flex items-end p-3 ${config.selectedStyle === style.id
-                                        ? 'border-lime-400 bg-lime-500/20'
-                                        : 'border-white/10 bg-white/5 hover:border-lime-400/50 hover:bg-white/10'
-                                        }`}
-                                >
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                                    <span className="relative z-10 text-[10px] font-bold uppercase tracking-wider text-white drop-shadow-lg">
-                                        {style.label}
-                                    </span>
-                                    {config.selectedStyle === style.id && (
-                                        <div className="absolute top-2 right-2 z-10 w-5 h-5 rounded-full bg-lime-400 flex items-center justify-center">
-                                            <Check className="w-3 h-3 text-white" />
-                                        </div>
-                                    )}
-                                </button>
-                            ))}
+                            {STYLES.map(style => {
+                                const StyleIcon = STYLE_ICONS[style.id] || Sparkles;
+                                return (
+                                    <button
+                                        key={style.id}
+                                        onClick={() => {
+                                            updateConfig('selectedStyle', style.id);
+                                            updateConfig('useVisualstyle', true);
+                                            setSidebarTab('create');
+                                            toast({ title: `🎨 Estilo "${style.label}" selecionado!` });
+                                        }}
+                                        className={`group relative overflow-hidden rounded-2xl border transition-all duration-200 active:scale-[0.97] h-24 flex items-end p-3 backdrop-blur-xl ${config.selectedStyle === style.id
+                                            ? 'border-lime-300/60 bg-lime-400/15 shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_4px_16px_rgba(163,230,53,0.15)]'
+                                            : 'border-white/[0.12] bg-white/[0.06] hover:border-lime-400/50 hover:bg-white/[0.1] shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]'
+                                            }`}
+                                    >
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                                        <StyleIcon className={`absolute top-3 left-3 w-5 h-5 transition-colors ${config.selectedStyle === style.id ? 'text-lime-300' : 'text-white/30 group-hover:text-white/60'}`} />
+                                        <span className="relative z-10 text-[10px] font-bold uppercase tracking-wider text-white drop-shadow-lg">
+                                            {style.label}
+                                        </span>
+                                        {config.selectedStyle === style.id && (
+                                            <div className="absolute top-2 right-2 z-10 w-5 h-5 rounded-full bg-lime-400 flex items-center justify-center">
+                                                <Check className="w-3 h-3 text-white" />
+                                            </div>
+                                        )}
+                                    </button>
+                                );
+                            })}
                         </div>
                     </ScrollArea>
                 </div>
             )}
 
             {/* ── PAINEL DIREITO (PREVIEW + GALERIA) ── */}
-            <div className="flex-1 bg-[#0f0f0f] flex flex-col min-w-0">
-                <div className="h-[38px] border-b border-white/5 flex items-center justify-between px-4 bg-[#111111]">
+            <div className="flex-1 bg-transparent flex flex-col min-w-0">
+                <div className="h-[38px] border-b border-white/[0.08] flex items-center justify-between px-4 bg-white/[0.03] backdrop-blur-2xl">
                     <span className="text-[9px] font-extrabold uppercase tracking-[0.12em] text-white/40">Galeria</span>
                     <div className="flex items-center gap-3">
                         <span className="text-[9px] font-medium text-white/30">{gallery.length} imagens</span>
+                        <ApiCostBadge />
                         <button
                             onClick={handleExportZip}
                             disabled={gallery.length === 0}
@@ -1394,10 +1574,13 @@ export function DesignerDoFuturoGenerator() {
                     {/* Progress bar */}
                     {isGenerating && progress && (
                         <div className="w-full max-w-md mx-auto mb-4 px-4">
-                            <div className="bg-white/5 rounded-full p-3 border border-white/10 backdrop-blur-sm">
-                                <div className="flex items-center gap-3">
+                            <div className="bg-white/[0.04] rounded-2xl p-4 border border-white/[0.08] backdrop-blur-md shadow-xl shadow-black/20">
+                                <div className="flex items-center gap-3 mb-2.5">
                                     <Loader2 className="w-4 h-4 text-lime-300 animate-spin shrink-0" />
                                     <span className="text-xs text-white/70 font-medium truncate">{progress}</span>
+                                </div>
+                                <div className="h-1 rounded-full bg-white/5 overflow-hidden">
+                                    <div className="h-full w-1/2 rounded-full bg-gradient-to-r from-lime-500/20 via-lime-400 to-lime-500/20 animate-pulse" />
                                 </div>
                             </div>
                         </div>
@@ -1426,7 +1609,7 @@ export function DesignerDoFuturoGenerator() {
 
                         {/* Gallery Items */}
                         {gallery.map((img, idx) => (
-                            <div key={idx} className="rounded-xl overflow-hidden bg-white/5 border border-white/10 group relative animate-in fade-in slide-in-from-bottom-4 duration-500 hover:border-lime-400/30 transition-colors">
+                            <div key={idx} className="rounded-2xl overflow-hidden bg-white/[0.05] backdrop-blur-xl border border-white/[0.1] shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] group relative animate-in fade-in slide-in-from-bottom-4 duration-500 hover:border-lime-400/30 hover:ring-1 hover:ring-lime-400/20 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/30 transition-all duration-200">
                                 {/* Imagem clicável → abre lightbox */}
                                 <button
                                     onClick={() => openLightbox(idx)}
@@ -1436,7 +1619,7 @@ export function DesignerDoFuturoGenerator() {
                                 </button>
 
                                 {/* Barra de ações sempre visível */}
-                                <div className="flex items-center gap-1.5 p-2 bg-black/40 backdrop-blur-sm">
+                                <div className="flex items-center gap-1.5 p-2 bg-white/[0.04] backdrop-blur-xl border-t border-white/[0.08]">
                                     <button
                                         onClick={() => openLightbox(idx)}
                                         className="flex-1 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-[9px] font-bold uppercase tracking-wider transition-colors"
@@ -1501,6 +1684,7 @@ export function DesignerDoFuturoGenerator() {
                 onReframe={handleReframe}
                 onTextOverlay={handleTextOverlay}
                 onRefine={handleLightboxRefine}
+                onRetouch={handlePortraitRetouch}
                 initialTexts={{ h1: config.textH1, h2: config.textH2, cta: config.textCTA }}
             />
 

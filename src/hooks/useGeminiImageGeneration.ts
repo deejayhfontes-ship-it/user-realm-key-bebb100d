@@ -1,6 +1,8 @@
 import { useState, useCallback, useRef } from 'react';
 import { GoogleGenAI } from '@google/genai';
 import { supabase } from '@/integrations/supabase/client';
+import { getLightingScheme } from '@/lib/studioLighting';
+import { recordUsage } from '@/lib/apiCostTracker';
 
 // ============================================================
 // SYSTEM PROMPT — replicado do Design Builder (P0 / ZR)
@@ -87,6 +89,10 @@ export interface GenerationConfig {
         position: string;
         useGradient?: boolean;
     };
+    // Campos aditivos — quando ausentes/desligados o prompt permanece idêntico ao original
+    lightingDirection?: string;
+    usePortraitVolume?: boolean;
+    portraitVolumeIntensity?: number;
 }
 
 export interface ReferenceImage {
@@ -251,11 +257,15 @@ function buildUserMessage(config: GenerationConfig): string {
     `
         : 'Foque em um único sujeito principal.';
 
+    // Gênero "Nenhum" → linha omitida (sujeito pode ser objeto/produto); demais valores → saída idêntica à original
+    const genderLine = config.gender && config.gender !== 'Nenhum'
+        ? `- Gênero: ${config.gender}\n    `
+        : '';
+
     return `
     INPUTS DO USUÁRIO:
     - Nicho: ${config.niche}
-    - Gênero: ${config.gender}
-    - Descrição do Sujeito: ${config.subjectDescription || 'Não especificado'}
+    ${genderLine}- Descrição do Sujeito: ${config.subjectDescription || 'Não especificado'}
     - Ambiente Específico: ${config.environment || 'Não especificado'}
     
     ESTILO E TOM:
@@ -369,6 +379,19 @@ function buildCompositionRules(config: GenerationConfig, referenceImages: Refere
       POSITION: Place text on the ${config.textOverlay.position}.
       ${config.textOverlay.useGradient ? 'BACKGROUND: Add a subtle gradient/scrim behind the text area to ensure readability.' : ''}
       Ensure the text does not overlap the subject's face.`);
+    }
+
+    // STUDIO LIGHTING DIRECTION — aditivo, só emite se esquema escolhido
+    const lightingScheme = getLightingScheme(config.lightingDirection);
+    if (lightingScheme) {
+        rules.push(`STUDIO LIGHTING DIRECTION ${lightingScheme.prompt}`);
+    }
+
+    // PORTRAIT RETOUCH / VOLUME — aditivo, modulado por intensidade
+    if (config.usePortraitVolume) {
+        const intensity = Math.max(0, Math.min(100, config.portraitVolumeIntensity ?? 50));
+        const level = intensity <= 33 ? 'SUBTLE' : intensity <= 66 ? 'MODERATE' : 'STRONG';
+        rules.push(`PORTRAIT RETOUCH / VOLUME (${level} — intensity ${intensity}/100): Apply professional volumetric dodge & burn retouching to the subject's face and skin: enhance the natural light-and-shadow volume on cheekbones, jawline and forehead; even out skin tone while FULLY PRESERVING real skin texture and pores (absolutely no plastic, blurred or airbrushed look); add subtle catchlights and clarity to the eyes; teeth naturally white, never bleached. Scale the strength of the sculpting proportionally to the stated intensity. Result must remain photorealistic.`);
     }
 
     return rules;
@@ -668,6 +691,12 @@ export function useGeminiImageGeneration() {
 
             const text = response.text;
             if (!text) throw new Error('Nenhum prompt retornado pela API.');
+            recordUsage({
+                model: textModel,
+                kind: 'text',
+                inputTokens: response.usageMetadata?.promptTokenCount,
+                outputTokens: response.usageMetadata?.candidatesTokenCount,
+            });
             return text.trim();
         });
 
@@ -755,6 +784,13 @@ export function useGeminiImageGeneration() {
 
             for (const part of candidates[0]?.content?.parts || []) {
                 if (part.inlineData) {
+                    recordUsage({
+                        model: imageModel,
+                        kind: 'image',
+                        inputTokens: response.usageMetadata?.promptTokenCount,
+                        outputTokens: response.usageMetadata?.candidatesTokenCount,
+                        images: 1,
+                    });
                     return {
                         imageBase64: part.inlineData.data || '',
                         mimeType: part.inlineData.mimeType || 'image/png',
@@ -850,6 +886,13 @@ EDIT SCOPE: Apply changes ONLY within the designated edit area.` },
 
                         for (const part of candidates[0]?.content?.parts || []) {
                             if (part.inlineData) {
+                                recordUsage({
+                                    model: modelToUse,
+                                    kind: 'image',
+                                    inputTokens: response.usageMetadata?.promptTokenCount,
+                                    outputTokens: response.usageMetadata?.candidatesTokenCount,
+                                    images: 1,
+                                });
                                 return {
                                     imageBase64: part.inlineData.data || '',
                                     mimeType: part.inlineData.mimeType || 'image/png',
@@ -925,6 +968,13 @@ EDIT SCOPE: Apply changes ONLY within the designated edit area.` },
 
                         for (const part of candidates[0]?.content?.parts || []) {
                             if (part.inlineData) {
+                                recordUsage({
+                                    model: modelToUse,
+                                    kind: 'image',
+                                    inputTokens: response.usageMetadata?.promptTokenCount,
+                                    outputTokens: response.usageMetadata?.candidatesTokenCount,
+                                    images: 1,
+                                });
                                 return {
                                     imageBase64: part.inlineData.data || '',
                                     mimeType: part.inlineData.mimeType || 'image/png',
@@ -993,6 +1043,12 @@ Retorne um JSON com os campos: pose, clothing, lighting, cameraAngle, suggestedP
             });
 
             const text = response.text || '';
+            recordUsage({
+                model: textModel,
+                kind: 'text',
+                inputTokens: response.usageMetadata?.promptTokenCount,
+                outputTokens: response.usageMetadata?.candidatesTokenCount,
+            });
             console.log('[ExtractRef] Response text:', text?.substring(0, 200));
             try {
                 // Tenta parsear JSON
@@ -1043,6 +1099,12 @@ Return a JSON array of exactly 5 scene descriptions in Portuguese (Brazil). Each
             });
 
             const text = response.text || '';
+            recordUsage({
+                model: textModel,
+                kind: 'text',
+                inputTokens: response.usageMetadata?.promptTokenCount,
+                outputTokens: response.usageMetadata?.candidatesTokenCount,
+            });
             try {
                 const jsonMatch = text.match(/\[[\s\S]*\]/);
                 if (jsonMatch) {

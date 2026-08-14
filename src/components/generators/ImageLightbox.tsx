@@ -22,10 +22,11 @@ interface ImageLightboxProps {
     onReframe?: (imageSrc: string, targetRatio: string, direction: 'vertical' | 'horizontal') => void;
     onTextOverlay?: (resultBase64: string) => void;
     onRefine?: (imageSrc: string, refinePrompt: string) => Promise<void>;
+    onRetouch?: (imageSrc: string) => Promise<void>;
     initialTexts?: { h1?: string; h2?: string; cta?: string };
 }
 
-export function ImageLightbox({ images, currentIndex, isOpen, onClose, onIndexChange, onInpaint, onReframe, onTextOverlay, onRefine, initialTexts }: ImageLightboxProps) {
+export function ImageLightbox({ images, currentIndex, isOpen, onClose, onIndexChange, onInpaint, onReframe, onTextOverlay, onRefine, onRetouch, initialTexts }: ImageLightboxProps) {
     const [zoom, setZoom] = useState(1);
     const [copied, setCopied] = useState(false);
     const [downloadFormat, setDownloadFormat] = useState<'png' | 'jpg'>('png');
@@ -33,6 +34,7 @@ export function ImageLightbox({ images, currentIndex, isOpen, onClose, onIndexCh
     const [showTextOverlay, setShowTextOverlay] = useState(false);
     const [refineText, setRefineText] = useState('');
     const [refineLoading, setRefineLoading] = useState(false);
+    const [retouchLoading, setRetouchLoading] = useState(false);
 
     const image = images[currentIndex];
 
@@ -212,7 +214,7 @@ export function ImageLightbox({ images, currentIndex, isOpen, onClose, onIndexCh
             </div>
 
             {/* Bottom toolbar */}
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[110] flex items-center gap-2 bg-black/60 backdrop-blur-lg rounded-2xl px-4 py-2.5 border border-white/10 flex-wrap justify-center">
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[110] flex items-center gap-2 bg-white/[0.07] backdrop-blur-2xl rounded-2xl px-4 py-2.5 border border-white/[0.14] shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_16px_48px_rgba(0,0,0,0.6)] flex-wrap justify-center">
 
                 {/* Counter */}
                 <span className="text-white/60 text-xs font-medium px-2">
@@ -271,6 +273,23 @@ export function ImageLightbox({ images, currentIndex, isOpen, onClose, onIndexCh
                     >
                         <Paintbrush className="w-3.5 h-3.5" />
                         Máscara
+                    </button>
+                )}
+
+                {/* ── Portrait Retouch button ── */}
+                {onRetouch && (
+                    <button
+                        onClick={() => {
+                            if (retouchLoading) return;
+                            setRetouchLoading(true);
+                            onRetouch(image.src).finally(() => setRetouchLoading(false));
+                        }}
+                        disabled={retouchLoading}
+                        className="flex items-center gap-1 px-3 py-2 rounded-lg bg-lime-600/40 hover:bg-lime-500/50 disabled:opacity-50 text-white text-[10px] font-bold uppercase tracking-wider transition-colors"
+                        title="Retoque de retrato (volume, pele, olhos, dentes)"
+                    >
+                        {retouchLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wand2 className="w-3.5 h-3.5" />}
+                        Retocar
                     </button>
                 )}
 

@@ -481,6 +481,13 @@
     }
   }
 
+  /* Skeleton shimmer (usado pelo animate-[shimmer_...] dos geradores) */
+  @keyframes shimmer {
+    to {
+      background-position-x: -200%;
+    }
+  }
+
   /* Glow effect on hover */
   .glow-lime {
     transition: box-shadow 0.3s ease;
