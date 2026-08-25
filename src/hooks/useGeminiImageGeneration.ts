@@ -466,6 +466,8 @@ async function callWithKeyPool<T>(
                     if (is5xx) saw5xx = true;
                     if (!isRetryable) throw err;
                     console.warn(`[KeyPool] Key ${ki + 1}/${shuffled.length} falhou (${status || msg.substring(0, 60)}), tentando próxima... [round ${round + 1}, retry ${retry + 1}/${maxRetries}]`);
+                    // Detalhe completo do erro — em 429 mostra qual cota estourou (FreeTier vs paga)
+                    console.warn(`[KeyPool] Detalhe key ${ki + 1} (…${key.slice(-4)}): ${msg.substring(0, 400)}`);
 
                     if (is5xx) {
                         // Erro de servidor → pular DIRETO pra próxima key, sem delay
