@@ -292,8 +292,10 @@ export function DesignerDoFuturoGenerator() {
         if (progress && progress.includes('indisponível')) {
             const match = progress.match(/tentando (.+)\.\.\./);
             const fallbackModel = match ? match[1] : 'modelo alternativo';
+            const overloadedMatch = progress.match(/Modelo (.+) indisponível/);
+            const overloadedModel = overloadedMatch ? overloadedMatch[1] : 'Modelo principal';
             toast({
-                title: '⚠️ Gemini 3.1 sobrecarregado',
+                title: `⚠️ ${overloadedModel} sobrecarregado`,
                 description: `Servidor cheio no momento. Usando ${fallbackModel} como alternativa. A geração vai continuar normalmente.`,
                 variant: 'default',
                 duration: 7000,

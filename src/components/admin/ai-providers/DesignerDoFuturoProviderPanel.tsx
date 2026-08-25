@@ -83,7 +83,7 @@ export function DesignerDoFuturoProviderPanel() {
     const [keyEntries, setKeyEntries] = useState<KeyEntry[]>([]);
     const [newExtraKey, setNewExtraKey] = useState('');
     const [modelImage, setModelImage] = useState(DEFAULT_CONFIG.model_name);
-    const [modelText, setModelText] = useState('gemini-3.5-flash'); // Gemini 3.5 Flash (Stable)
+    const [modelText, setModelText] = useState('gemini-3.7-flash'); // Gemini 3.7 Flash (Stable mais recente)
     const [hasChanges, setHasChanges] = useState(false);
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [showPool, setShowPool] = useState(true); // Pool aberto por padrão

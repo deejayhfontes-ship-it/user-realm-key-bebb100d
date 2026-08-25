@@ -121,7 +121,7 @@ serve(async (req) => {
     if (testConfig.apiType === 'google') {
       // Se o endpoint não inclui o caminho do modelo, construir automaticamente
       if (!endpoint.includes(':generateContent') && !endpoint.includes(':streamGenerateContent')) {
-        const model = testConfig.modelName || 'gemini-2.5-flash';
+        const model = testConfig.modelName || 'gemini-3.7-flash';
         endpoint = `${endpoint}/models/${model}:generateContent`;
       }
       endpoint = `${endpoint}?key=${testConfig.apiKey}`;

@@ -186,12 +186,12 @@ export function PremiumProMaxProviderPanel() {
     const handleApiTypeChange = (type: string) => {
         const endpoints: Record<string, string> = {
             openai: 'https://api.groq.com/openai/v1/chat/completions',
-            google: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
+            google: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent',
             anthropic: 'https://api.anthropic.com/v1/messages',
         };
         const defaultModels: Record<string, string> = {
             openai: 'llama-3.3-70b-versatile',
-            google: 'gemini-2.5-flash',
+            google: 'gemini-3.7-flash',
             anthropic: 'claude-sonnet-4-20250514',
         };
         setConfig(prev => ({

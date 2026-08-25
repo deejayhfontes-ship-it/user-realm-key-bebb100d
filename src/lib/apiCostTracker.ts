@@ -50,13 +50,16 @@ interface ModelPrice {
 }
 
 const PRICE_TABLE: Record<string, ModelPrice> = {
-    'gemini-3-pro-image':     { textIn: 2.00, textOut: 12.00, perImage: 0.12 },
-    'gemini-3.1-flash-image': { textIn: 0.30, textOut: 2.50,  perImage: 0.04 },
-    'gemini-2.5-flash-image': { textIn: 0.30, textOut: 2.50,  perImage: 0.039 },
-    'gemini-3.5-flash':       { textIn: 0.30, textOut: 2.50,  perImage: 0 },
-    'gemini-3.1-pro-preview': { textIn: 1.25, textOut: 10.00, perImage: 0 },
-    'gemini-3-flash-preview': { textIn: 0.10, textOut: 0.40,  perImage: 0 },
-    'gemini-2.5-flash':       { textIn: 0.30, textOut: 2.50,  perImage: 0 },
+    'gemini-3-pro-image':          { textIn: 2.00, textOut: 12.00, perImage: 0.134 },
+    'gemini-3.1-flash-image':      { textIn: 0.30, textOut: 2.50,  perImage: 0.045 },
+    'gemini-3.1-flash-lite-image': { textIn: 0.30, textOut: 2.50,  perImage: 0.034 },
+    'gemini-2.5-flash-image':      { textIn: 0.30, textOut: 2.50,  perImage: 0.039 },
+    'gemini-3.7-flash':            { textIn: 0.75, textOut: 3.75,  perImage: 0 }, // promo até 31/12/2026 ($1.50/$7.50 depois)
+    'gemini-3.6-flash':            { textIn: 0.75, textOut: 3.75,  perImage: 0 }, // promo até 31/12/2026
+    'gemini-3.5-flash':            { textIn: 1.50, textOut: 9.00,  perImage: 0 },
+    'gemini-3.1-pro-preview':      { textIn: 1.25, textOut: 10.00, perImage: 0 },
+    'gemini-3-flash-preview':      { textIn: 0.10, textOut: 0.40,  perImage: 0 },
+    'gemini-2.5-flash':            { textIn: 0.30, textOut: 2.50,  perImage: 0 },
 };
 
 const DEFAULT_PRICE: ModelPrice = { textIn: 0.50, textOut: 3.00, perImage: 0.06 };

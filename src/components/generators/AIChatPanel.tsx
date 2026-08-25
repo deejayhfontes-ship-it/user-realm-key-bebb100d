@@ -121,7 +121,7 @@ export function AIChatPanel({ isOpen, onClose }: AIChatPanelProps) {
             const fullPrompt = historyContents;
 
             const response = await genAI.models.generateContent({
-                model: 'gemini-3.1-pro-preview',
+                model: 'gemini-3.7-flash',
                 contents: fullPrompt,
                 config: {
                     systemInstruction: selectedPersona.systemInstruction,

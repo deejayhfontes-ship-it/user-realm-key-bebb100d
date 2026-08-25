@@ -89,8 +89,8 @@ serve(async (req: Request) => {
         }
 
         // Parse model names
-        const imageModel = provider.model_name || "gemini-2.5-flash-image";
-        let textModel = "gemini-2.5-flash";
+        const imageModel = provider.model_name || "gemini-3.1-flash-image";
+        let textModel = "gemini-3.7-flash";
         try {
             const meta = provider.system_prompt ? JSON.parse(provider.system_prompt) : null;
             if (meta?.model_text) textModel = meta.model_text;
