@@ -438,6 +438,8 @@ async function callWithKeyPool<T>(
 
     let globalAttempt = 0;
     let roundHad429 = false; // rastreia se houve 429 no round anterior (merece espera)
+    let saw429 = false;      // houve pelo menos um 429 (cota) em qualquer tentativa
+    let saw5xx = false;      // houve pelo menos um 5xx (sobrecarga) em qualquer tentativa
     for (let round = 0; round < rounds; round++) {
         if (round > 0) {
             if (roundHad429) {
@@ -460,6 +462,8 @@ async function callWithKeyPool<T>(
                     const { is429, is5xx, isRetryable } = classifyError(err);
                     const msg = err?.message || '';
                     const status = err?.status || err?.httpCode || 0;
+                    if (is429) saw429 = true;
+                    if (is5xx) saw5xx = true;
                     if (!isRetryable) throw err;
                     console.warn(`[KeyPool] Key ${ki + 1}/${shuffled.length} falhou (${status || msg.substring(0, 60)}), tentando próxima... [round ${round + 1}, retry ${retry + 1}/${maxRetries}]`);
 
@@ -479,6 +483,11 @@ async function callWithKeyPool<T>(
         }
     }
 
+    // Mensagem diagnóstica — mantém o trecho "falharam após múltiplas tentativas"
+    // (classifyError usa esse texto para acionar o fallback de modelos)
+    if (saw429 && !saw5xx) {
+        throw new Error(`Chaves falharam após múltiplas tentativas: COTA ESGOTADA (429) nas ${keys.length} key(s). Adicione billing no Google AI Studio (aistudio.google.com) ou cadastre mais keys no painel Provedores IA. Cota gratuita reseta à meia-noite (horário do Pacífico, ~4h da manhã no Brasil).`);
+    }
     throw new Error('Todas as chaves do pool falharam após múltiplas tentativas. Tente novamente em alguns minutos.');
 }
 
