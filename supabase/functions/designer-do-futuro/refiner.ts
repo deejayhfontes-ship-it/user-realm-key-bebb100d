@@ -12,7 +12,7 @@ export async function refinePrompt(
 ): Promise<string> {
     const userInput = buildUserInputTemplate(config);
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`;
 
     const body = {
         system_instruction: {
@@ -32,7 +32,8 @@ export async function refinePrompt(
 
     const response = await fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        // Key no header — obrigatório para as keys novas formato "AQ." (query param falha)
+        headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
         body: JSON.stringify(body),
     });
 

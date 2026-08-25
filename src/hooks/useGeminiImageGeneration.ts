@@ -217,7 +217,7 @@ const TEXT_MODEL_FALLBACKS: string[] = [
     'gemini-3.1-pro-preview',   // 🥉 Gemini 3.1 Pro (Preview) — máxima inteligência
 ];
 
-const SDK_VERSION = '@google/genai@^1.30.0';
+const SDK_VERSION = '@google/genai@^2.18.0';
 const CACHE_TTL_MS = 30 * 1000; // 30 segundos — para que mudanças de keys entrem rápido
 
 // ============================================================

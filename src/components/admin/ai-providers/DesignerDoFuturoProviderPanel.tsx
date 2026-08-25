@@ -199,7 +199,9 @@ export function DesignerDoFuturoProviderPanel() {
         const start = Date.now();
         try {
             const response = await fetch(
-                `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image?key=${entry.key}`
+                `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image`,
+                // Key no header — obrigatório para as keys novas formato "AQ." (query param falha)
+                { headers: { 'x-goog-api-key': entry.key } }
             );
             const latencyMs = Date.now() - start;
 

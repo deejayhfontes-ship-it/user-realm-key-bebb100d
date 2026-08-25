@@ -124,7 +124,8 @@ serve(async (req) => {
         const model = testConfig.modelName || 'gemini-3.7-flash';
         endpoint = `${endpoint}/models/${model}:generateContent`;
       }
-      endpoint = `${endpoint}?key=${testConfig.apiKey}`;
+      // Key no header — obrigatório para as keys novas formato "AQ." (query param falha)
+      headers['x-goog-api-key'] = testConfig.apiKey;
     }
 
     const startTime = Date.now();

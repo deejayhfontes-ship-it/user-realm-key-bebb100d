@@ -25,7 +25,7 @@ export async function generateImage(
 ): Promise<GenerateImageResult> {
     const { apiKey, modelName, prompt, referenceImageBase64, referenceImageMimeType, dimensionId } = options;
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`;
 
     // Build parts array
     const parts: any[] = [];
@@ -72,7 +72,8 @@ export async function generateImage(
 
     const response = await fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        // Key no header — obrigatório para as keys novas formato "AQ." (query param falha)
+        headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
         body: JSON.stringify(body),
     });
 

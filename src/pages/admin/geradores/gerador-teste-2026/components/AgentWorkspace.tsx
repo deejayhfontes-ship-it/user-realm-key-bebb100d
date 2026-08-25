@@ -242,10 +242,11 @@ export default function AgentWorkspace({ agentId, onBack }: AgentWorkspaceProps)
       setStatus('Gerando imagem com Nano Banana 2...');
 
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent`,
         {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          // Key no header — obrigatório para as keys novas formato "AQ." (query param falha)
+          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
           body: JSON.stringify({
             contents: [{ role: 'user', parts }],
             generationConfig: {

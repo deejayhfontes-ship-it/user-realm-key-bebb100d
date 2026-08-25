@@ -54,6 +54,8 @@ function getAuthHeaders(provider: AIProvider, apiKey: string): Record<string, st
             headers['anthropic-version'] = '2023-06-01';
             break;
         case 'google':
+            // Key no header — obrigatório para as keys novas formato "AQ." (query param falha)
+            headers['x-goog-api-key'] = apiKey;
             break;
         default:
             headers['Authorization'] = `Bearer ${apiKey}`;
@@ -139,10 +141,7 @@ async function getProvider(supabase: any, category?: 'vision' | 'text') {
     console.log(`[getProvider] Usando provider: name=${typed.name}, slug=${typed.slug}, api_type=${typed.api_type}, model=${typed.model_name}, endpoint=${typed.endpoint_url}`);
 
     const apiKey = typed.api_key_encrypted || '';
-    let endpoint = typed.endpoint_url;
-    if (typed.api_type === 'google' && apiKey) {
-        endpoint = `${endpoint}?key=${apiKey}`;
-    }
+    const endpoint = typed.endpoint_url;
     return { provider: typed, apiKey, endpoint };
 }
 

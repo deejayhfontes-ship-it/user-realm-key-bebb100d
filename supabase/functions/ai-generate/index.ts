@@ -131,7 +131,8 @@ function getAuthHeaders(provider: AIProvider, apiKey: string): Record<string, st
       headers['anthropic-version'] = '2023-06-01';
       break;
     case 'google':
-      // Google usa key na URL
+      // Key no header — obrigatório para as keys novas formato "AQ." (query param falha)
+      headers['x-goog-api-key'] = apiKey;
       break;
     default:
       headers['Authorization'] = `Bearer ${apiKey}`;
@@ -276,10 +277,7 @@ serve(async (req) => {
     const systemPrompt = customSystemPrompt || typedProvider.system_prompt || "Você é um assistente útil e criativo.";
 
     // Construir endpoint
-    let endpoint = typedProvider.endpoint_url;
-    if (typedProvider.api_type === 'google') {
-      endpoint = `${endpoint}?key=${apiKey}`;
-    }
+    const endpoint = typedProvider.endpoint_url;
 
     const startTime = Date.now();
 

@@ -145,7 +145,8 @@ export function PremiumProMaxProviderPanel() {
                     max_tokens: 10,
                 };
             } else if (config.apiType === 'google') {
-                endpoint = `${config.endpoint}?key=${config.apiKey}`;
+                // Key no header — obrigatório para as keys novas formato "AQ." (query param falha)
+                headers['x-goog-api-key'] = config.apiKey;
                 body = {
                     contents: [{ role: 'user', parts: [{ text: 'Diga apenas: OK' }] }],
                     generationConfig: { maxOutputTokens: 10 },

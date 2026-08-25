@@ -218,6 +218,8 @@ function getAuthHeaders(provider: AIProvider, apiKey: string): Record<string, st
       headers['anthropic-version'] = '2023-06-01';
       break;
     case 'google':
+      // Key no header — obrigatório para as keys novas formato "AQ." (query param falha)
+      headers['x-goog-api-key'] = apiKey;
       break;
     default:
       headers['Authorization'] = `Bearer ${apiKey}`;
@@ -415,10 +417,7 @@ Retorne APENAS o JSON modificado completo.`;
     const startTime = Date.now();
 
     // Construir endpoint
-    let endpoint = typedProvider.endpoint_url;
-    if (typedProvider.api_type === 'google') {
-      endpoint = `${endpoint}?key=${apiKey}`;
-    }
+    const endpoint = typedProvider.endpoint_url;
 
     // Preparar imagens para request
     const imagesToSend = hasImages && typedProvider.supports_images ? images as ImageAttachment[] : undefined;
