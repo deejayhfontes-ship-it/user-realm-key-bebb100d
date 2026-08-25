@@ -91,9 +91,13 @@ export function DesignerDoFuturoProviderPanel() {
     const [bulkText, setBulkText] = useState('');
     const [revealedKeys, setRevealedKeys] = useState<Set<number>>(new Set());
     const [testingAll, setTestingAll] = useState(false);
+    // Hidrata do banco só 1x por provider — refetchs (ex.: foco na janela)
+    // não podem sobrescrever keys digitadas e ainda não salvas
+    const [hydratedProviderId, setHydratedProviderId] = useState<string | null>(null);
 
     useEffect(() => {
-        if (existingProvider) {
+        if (existingProvider && existingProvider.id !== hydratedProviderId) {
+            setHydratedProviderId(existingProvider.id);
             setModelImage(existingProvider.model_name || DEFAULT_CONFIG.model_name);
             try {
                 const meta = existingProvider.system_prompt ? JSON.parse(existingProvider.system_prompt) : null;
@@ -115,7 +119,7 @@ export function DesignerDoFuturoProviderPanel() {
                 // plain text, ignore
             }
         }
-    }, [existingProvider]);
+    }, [existingProvider, hydratedProviderId]);
 
     const handleFieldChange = (setter: (v: string) => void, value: string) => {
         setter(value);
@@ -413,7 +417,7 @@ export function DesignerDoFuturoProviderPanel() {
                                 </li>
                                 <li className="flex items-start gap-2">
                                     <span className="w-5 h-5 rounded-full bg-blue-500/15 text-blue-600 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
-                                    <span>Copie a chave gerada (começa com <code className="bg-muted px-1 rounded text-xs">AIzaSy...</code>)</span>
+                                    <span>Copie a chave gerada (formato novo começa com <code className="bg-muted px-1 rounded text-xs">AQ.</code>, antigo com <code className="bg-muted px-1 rounded text-xs">AIzaSy</code>)</span>
                                 </li>
                                 <li className="flex items-start gap-2">
                                     <span className="w-5 h-5 rounded-full bg-blue-500/15 text-blue-600 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">4</span>
@@ -457,7 +461,7 @@ export function DesignerDoFuturoProviderPanel() {
                             type="password"
                             value={apiKey}
                             onChange={(e) => handleFieldChange(setApiKey, e.target.value)}
-                            placeholder={isConfigured ? '••••••••••••  (chave salva — cole nova para trocar)' : 'AIzaSy...'}
+                            placeholder={isConfigured ? '••••••••••••  (chave salva — cole nova para trocar)' : 'AQ.... ou AIzaSy...'}
                             className="rounded-xl font-mono"
                         />
                         <p className="text-xs text-muted-foreground">
@@ -544,7 +548,7 @@ export function DesignerDoFuturoProviderPanel() {
                                         <Textarea
                                             value={bulkText}
                                             onChange={e => setBulkText(e.target.value)}
-                                            placeholder={"AIzaSy...key1\nAIzaSy...key2\nAIzaSy...key3"}
+                                            placeholder={"AQ....key1\nAQ....key2\nAQ....key3"}
                                             rows={5}
                                             className="font-mono text-xs rounded-lg"
                                         />
@@ -667,7 +671,7 @@ export function DesignerDoFuturoProviderPanel() {
                                         type="password"
                                         value={newExtraKey}
                                         onChange={(e) => setNewExtraKey(e.target.value)}
-                                        placeholder="AIzaSy... (key adicional)"
+                                        placeholder="AQ.... (key adicional)"
                                         className="rounded-xl font-mono text-xs flex-1"
                                         onKeyDown={(e) => e.key === 'Enter' && handleAddExtraKey()}
                                     />
