@@ -93,6 +93,13 @@ export interface GenerationConfig {
     lightingDirection?: string;
     usePortraitVolume?: boolean;
     portraitVolumeIntensity?: number;
+    /**
+     * Qualidade Máxima: por padrão (false/undefined) a geração de IMAGEM não cai
+     * para modelos reserva inferiores — falha com erro claro se o principal estiver
+     * sobrecarregado. true = permite fallback (comportamento antigo).
+     * Fallback de modelo de TEXTO continua sempre ativo (não afeta qualidade visual).
+     */
+    allowModelFallback?: boolean;
 }
 
 export interface ReferenceImage {
@@ -828,7 +835,7 @@ export function useGeminiImageGeneration() {
         originalImageBase64: string,
         maskBase64: string,
         editPrompt: string,
-        referenceConfig?: { dimension?: string }
+        referenceConfig?: { dimension?: string; allowModelFallback?: boolean }
     ): Promise<{ imageBase64: string; mimeType: string }> => {
         if (generationRef.current) {
             throw new Error('Já existe uma geração em andamento. Aguarde.');
@@ -917,8 +924,14 @@ EDIT SCOPE: Apply changes ONLY within the designated edit area.` },
                         throw new Error('Inpainting: nenhuma imagem na resposta.');
                     });
                 },
-                (msg) => setProgress(msg)
-            );
+                (msg) => setProgress(msg),
+                referenceConfig?.allowModelFallback ? undefined : []
+            ).catch((err: any) => {
+                if (!referenceConfig?.allowModelFallback && classifyError(err).isRetryable) {
+                    throw new Error(`🍌 Modelo principal (${imageModel}) sobrecarregado. Qualidade Máxima ativa: nenhum modelo reserva foi usado. Tente novamente em instantes.`);
+                }
+                throw err;
+            });
 
             setProgress('🎉 Mágica concluída!');
             return result.result;
@@ -934,7 +947,8 @@ EDIT SCOPE: Apply changes ONLY within the designated edit area.` },
     const reframeImage = useCallback(async (
         originalImageBase64: string,
         targetAspectRatio: string,
-        direction: 'vertical' | 'horizontal' = 'vertical'
+        direction: 'vertical' | 'horizontal' = 'vertical',
+        opts?: { allowModelFallback?: boolean }
     ): Promise<{ imageBase64: string; mimeType: string }> => {
         if (generationRef.current) {
             throw new Error('Já existe uma geração em andamento. Aguarde.');
@@ -999,8 +1013,14 @@ EDIT SCOPE: Apply changes ONLY within the designated edit area.` },
                         throw new Error('Reframe: nenhuma imagem na resposta.');
                     });
                 },
-                (msg) => setProgress(msg)
-            );
+                (msg) => setProgress(msg),
+                opts?.allowModelFallback ? undefined : []
+            ).catch((err: any) => {
+                if (!opts?.allowModelFallback && classifyError(err).isRetryable) {
+                    throw new Error(`🍌 Modelo principal (${imageModel}) sobrecarregado. Qualidade Máxima ativa: nenhum modelo reserva foi usado. Tente novamente em instantes.`);
+                }
+                throw err;
+            });
 
             setProgress('🎉 Mágica concluída!');
             return result.result;
@@ -1181,23 +1201,34 @@ Return a JSON array of exactly 5 scene descriptions in Portuguese (Brazil). Each
                 console.log(`[Generate] ✅ Prompt gerado com modelo fallback: ${usedTextModel} (principal era: ${textModel})`);
             }
 
-            // Etapa 2: Gera a imagem com FALLBACK AUTOMÁTICO de modelos
+            // Etapa 2: Gera a imagem. Qualidade Máxima (padrão): SEM fallback de modelo —
+            // lista vazia faz callWithModelFallback tentar apenas o principal.
             setProgress('🖼️ Gerando sua imagem...');
-            const { result: imageResult, usedModel } = await callWithModelFallback(
-                imageModel,
-                async (modelToUse) => {
-                    return generateImage(
-                        keys,
-                        modelToUse,
-                        finalPrompt,
-                        config,
-                        referenceImages,
-                        compositionRulesArr,
-                        forensicSteps
-                    );
-                },
-                (msg) => setProgress(msg)
-            );
+            let imageStepResult: { result: { imageBase64: string; mimeType: string }; usedModel: string };
+            try {
+                imageStepResult = await callWithModelFallback(
+                    imageModel,
+                    async (modelToUse) => {
+                        return generateImage(
+                            keys,
+                            modelToUse,
+                            finalPrompt,
+                            config,
+                            referenceImages,
+                            compositionRulesArr,
+                            forensicSteps
+                        );
+                    },
+                    (msg) => setProgress(msg),
+                    config.allowModelFallback ? undefined : []
+                );
+            } catch (err: any) {
+                if (!config.allowModelFallback && classifyError(err).isRetryable) {
+                    throw new Error(`🍌 Modelo principal (${imageModel}) sobrecarregado no momento. Qualidade Máxima ativa: nenhum modelo reserva foi usado. Tente gerar novamente em alguns instantes.`);
+                }
+                throw err;
+            }
+            const { result: imageResult, usedModel } = imageStepResult;
 
             const { imageBase64, mimeType } = imageResult;
 

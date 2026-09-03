@@ -154,6 +154,9 @@ interface DesignerConfig {
     usePortraitVolume: boolean;
     portraitVolumeIntensity: number;
 
+    // Qualidade Máxima: false = NUNCA cai pra modelo de imagem inferior (erro claro em vez de imagem ruim)
+    allowModelFallback: boolean;
+
     // Prompt Adicional
     useExtraPrompt: boolean;
     extraPrompt: string;
@@ -188,6 +191,7 @@ const DEFAULT_CONFIG: DesignerConfig = {
     useGradient: false,
     usePortraitVolume: false,
     portraitVolumeIntensity: 50,
+    allowModelFallback: false,
     useExtraPrompt: false,
     extraPrompt: '',
 };
@@ -416,6 +420,7 @@ export function DesignerDoFuturoGenerator() {
                 lastImg.src,
                 '', // sem máscara = inpaint "full"
                 refinementText,
+                { allowModelFallback: config.allowModelFallback },
             );
             const refined: GeneratedImage = {
                 src: `data:${result.mimeType};base64,${result.imageBase64}`,
@@ -430,13 +435,13 @@ export function DesignerDoFuturoGenerator() {
         } finally {
             setIsRefining(false);
         }
-    }, [refinementText, gallery, isGenerating, inpaintImage]);
+    }, [refinementText, gallery, isGenerating, inpaintImage, config.allowModelFallback]);
 
     // ── Handler: Refine via Lightbox (inline no lightbox) ──
     const handleLightboxRefine = useCallback(async (imageSrc: string, refinePrompt: string) => {
         toast({ title: '✨ Refinando imagem...', className: 'bg-fuchsia-600 text-white border-none' });
         try {
-            const result = await inpaintImage(imageSrc, '', refinePrompt);
+            const result = await inpaintImage(imageSrc, '', refinePrompt, { allowModelFallback: config.allowModelFallback });
             const refined: GeneratedImage = {
                 src: `data:${result.mimeType};base64,${result.imageBase64}`,
                 prompt: `[Refinado] ${refinePrompt}`,
@@ -448,13 +453,13 @@ export function DesignerDoFuturoGenerator() {
         } catch (err: any) {
             toast({ title: 'Erro no refinamento', description: err.message, variant: 'destructive' });
         }
-    }, [inpaintImage]);
+    }, [inpaintImage, config.allowModelFallback]);
 
     // ── Handler: Retoque de retrato via Lightbox (inpaint sem máscara, prompt fixo) ──
     const handlePortraitRetouch = useCallback(async (imageSrc: string) => {
         toast({ title: '✨ Aplicando retoque de retrato...', className: 'bg-lime-500 text-white border-none' });
         try {
-            const result = await inpaintImage(imageSrc, '', PORTRAIT_RETOUCH_PROMPT);
+            const result = await inpaintImage(imageSrc, '', PORTRAIT_RETOUCH_PROMPT, { allowModelFallback: config.allowModelFallback });
             const retouched: GeneratedImage = {
                 src: `data:${result.mimeType};base64,${result.imageBase64}`,
                 prompt: '[Retoque de Retrato]',
@@ -466,13 +471,13 @@ export function DesignerDoFuturoGenerator() {
         } catch (err: any) {
             toast({ title: 'Erro no retoque', description: err.message, variant: 'destructive' });
         }
-    }, [inpaintImage]);
+    }, [inpaintImage, config.allowModelFallback]);
 
     // ── Handler: Inpaint (via Lightbox MaskPainter) ──
     const handleInpaint = useCallback(async (imageSrc: string, maskBase64: string, editPrompt: string) => {
         toast({ title: '🎨 Aplicando inpainting...', className: 'bg-lime-500 text-white border-none' });
         try {
-            const result = await inpaintImage(imageSrc, maskBase64, editPrompt);
+            const result = await inpaintImage(imageSrc, maskBase64, editPrompt, { allowModelFallback: config.allowModelFallback });
             const edited: GeneratedImage = {
                 src: `data:${result.mimeType};base64,${result.imageBase64}`,
                 prompt: `[Inpaint] ${editPrompt}`,
@@ -484,13 +489,13 @@ export function DesignerDoFuturoGenerator() {
         } catch (err: any) {
             toast({ title: 'Erro no inpainting', description: err.message, variant: 'destructive' });
         }
-    }, [inpaintImage]);
+    }, [inpaintImage, config.allowModelFallback]);
 
     // ── Handler: Reframe (via Lightbox) ──
     const handleReframe = useCallback(async (imageSrc: string, targetRatio: string, direction: 'vertical' | 'horizontal') => {
         toast({ title: `↔ Reframe ${targetRatio}...`, className: 'bg-indigo-600 text-white border-none' });
         try {
-            const result = await reframeImage(imageSrc, targetRatio, direction);
+            const result = await reframeImage(imageSrc, targetRatio, direction, { allowModelFallback: config.allowModelFallback });
             const reframed: GeneratedImage = {
                 src: `data:${result.mimeType};base64,${result.imageBase64}`,
                 prompt: `[Reframe ${targetRatio}]`,
@@ -502,7 +507,7 @@ export function DesignerDoFuturoGenerator() {
         } catch (err: any) {
             toast({ title: 'Erro no reframe', description: err.message, variant: 'destructive' });
         }
-    }, [reframeImage]);
+    }, [reframeImage, config.allowModelFallback]);
 
     // ── Handler: Text Overlay Saved ──
     const handleTextOverlay = useCallback((resultBase64: string) => {
@@ -696,6 +701,7 @@ export function DesignerDoFuturoGenerator() {
                 lightingDirection: config.lightingDirection,
                 usePortraitVolume: config.usePortraitVolume,
                 portraitVolumeIntensity: config.portraitVolumeIntensity,
+                allowModelFallback: config.allowModelFallback,
                 useFloatingElements: config.useFloatingElements,
                 floatingElementsDescription: '',
                 shotType: config.framing || 'MEDIUM',
@@ -1434,6 +1440,18 @@ export function DesignerDoFuturoGenerator() {
 
                             {/* BOTÕES DE AÇÃO */}
                             <div className="sticky bottom-0 bg-[#0d0d0f]/80 backdrop-blur-2xl pt-4 pb-2 border-t border-white/[0.08] mt-4 space-y-2 z-10">
+                                <div
+                                    className="flex items-center justify-between px-1 pb-1"
+                                    title="Ligado: usa SOMENTE o modelo principal (Nano Banana Pro). Se sobrecarregado, mostra erro em vez de gerar imagem ruim com modelo reserva."
+                                >
+                                    <span className="text-[10px] font-bold uppercase tracking-wide text-white/50 flex items-center gap-1.5">
+                                        <Gem className="w-3 h-3 text-lime-300" /> Qualidade Máxima
+                                    </span>
+                                    <Switch
+                                        checked={!config.allowModelFallback}
+                                        onCheckedChange={v => updateConfig('allowModelFallback', !v)}
+                                    />
+                                </div>
                                 <Button
                                     onClick={handleGenerate}
                                     disabled={isGenerating}
