@@ -136,6 +136,28 @@ export interface ForensicStepLog {
     responseStatus?: number;
     responseTimeMs?: number;
     error?: string;
+    /** Metadados da resposta do modelo (finishReason, safety, texto que veio junto da imagem) */
+    responseMeta?: Record<string, any>;
+}
+
+// Extrai o "porquê" de uma resposta de imagem — finishReason, bloqueios e texto do modelo.
+// Imagem branca/vazia quase sempre vem acompanhada de um desses sinais.
+function describeImageResponse(response: any): Record<string, any> {
+    const cand = response?.candidates?.[0];
+    const parts: any[] = cand?.content?.parts || [];
+    const textParts = parts.filter(p => p?.text).map(p => String(p.text));
+    const imageParts = parts.filter(p => p?.inlineData);
+    return {
+        finishReason: cand?.finishReason ?? null,
+        finishMessage: cand?.finishMessage ?? null,
+        safetyRatings: cand?.safetyRatings ?? null,
+        promptFeedback: response?.promptFeedback ?? null,
+        imagePartsCount: imageParts.length,
+        imageMimeTypes: imageParts.map(p => p.inlineData?.mimeType),
+        imageBase64Lengths: imageParts.map(p => (p.inlineData?.data || '').length),
+        modelText: textParts.join('\n').slice(0, 1200) || null,
+        usage: response?.usageMetadata ?? null,
+    };
 }
 
 export interface ForensicLog {
@@ -727,7 +749,13 @@ export function useGeminiImageGeneration() {
             stepLog.responseStatus = 200;
 
             const text = response.text;
-            if (!text) throw new Error('Nenhum prompt retornado pela API.');
+            stepLog.responseMeta = {
+                finishReason: response.candidates?.[0]?.finishReason ?? null,
+                promptFeedback: response.promptFeedback ?? null,
+                promptFinalGerado: (text || '').slice(0, 2000),
+            };
+            console.log(`[PromptText] ${textModel} → finishReason=${stepLog.responseMeta.finishReason}\n${(text || '').slice(0, 600)}`);
+            if (!text) throw new Error(`Nenhum prompt retornado pela API. finishReason=${stepLog.responseMeta.finishReason}`);
             recordUsage({
                 model: textModel,
                 kind: 'text',
@@ -815,9 +843,17 @@ export function useGeminiImageGeneration() {
             stepLog.responseTimeMs = Date.now() - startTime;
             stepLog.responseStatus = 200;
 
+            // Diagnóstico: por que a imagem veio (ou não veio / veio branca)
+            const meta = describeImageResponse(response);
+            stepLog.responseMeta = meta;
+            console.log(`[ImageGen] ${imageModel} → finishReason=${meta.finishReason} imagens=${meta.imagePartsCount} bytes=${meta.imageBase64Lengths.join(',')}`, meta);
+            if (meta.modelText) console.warn('[ImageGen] Modelo devolveu TEXTO junto da imagem:', meta.modelText);
+
             // Procura imagem na resposta
             const candidates = response.candidates;
-            if (!candidates?.length) throw new Error('Nenhum candidato retornado pela API.');
+            if (!candidates?.length) {
+                throw new Error(`Nenhum candidato retornado pela API. promptFeedback=${JSON.stringify(meta.promptFeedback)}`);
+            }
 
             for (const part of candidates[0]?.content?.parts || []) {
                 if (part.inlineData) {
@@ -835,7 +871,7 @@ export function useGeminiImageGeneration() {
                 }
             }
 
-            throw new Error('Nenhuma imagem encontrada na resposta da API.');
+            throw new Error(`Nenhuma imagem na resposta. finishReason=${meta.finishReason}${meta.modelText ? ` — modelo disse: "${meta.modelText.slice(0, 300)}"` : ''}`);
         });
 
         forensicSteps.push(stepLog);
@@ -918,8 +954,10 @@ EDIT SCOPE: Apply changes ONLY within the designated edit area.` },
                             },
                         });
 
+                        const inpaintMeta = describeImageResponse(response);
+                        console.log(`[Inpaint] ${modelToUse} → finishReason=${inpaintMeta.finishReason} imagens=${inpaintMeta.imagePartsCount}`, inpaintMeta);
                         const candidates = response.candidates;
-                        if (!candidates?.length) throw new Error('Inpainting: sem resultado.');
+                        if (!candidates?.length) throw new Error(`Inpainting: sem resultado. promptFeedback=${JSON.stringify(inpaintMeta.promptFeedback)}`);
 
                         for (const part of candidates[0]?.content?.parts || []) {
                             if (part.inlineData) {
@@ -1007,8 +1045,10 @@ EDIT SCOPE: Apply changes ONLY within the designated edit area.` },
                             },
                         });
 
+                        const reframeMeta = describeImageResponse(response);
+                        console.log(`[Reframe] ${modelToUse} → finishReason=${reframeMeta.finishReason} imagens=${reframeMeta.imagePartsCount}`, reframeMeta);
                         const candidates = response.candidates;
-                        if (!candidates?.length) throw new Error('Reframe: sem resultado.');
+                        if (!candidates?.length) throw new Error(`Reframe: sem resultado. promptFeedback=${JSON.stringify(reframeMeta.promptFeedback)}`);
 
                         for (const part of candidates[0]?.content?.parts || []) {
                             if (part.inlineData) {
