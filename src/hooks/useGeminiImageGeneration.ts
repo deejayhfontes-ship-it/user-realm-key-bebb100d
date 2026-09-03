@@ -205,8 +205,10 @@ const SHOT_TYPES: Record<string, string> = {
 // 🎨 IMAGEM — Nano Banana Pro como principal (maior qualidade)
 const DEFAULT_IMAGE_MODEL = 'gemini-3-pro-image';
 
-// 📝 TEXTO — Gemini 3.7 Flash (Stable mais recente, menos sobrecarregado)
-const DEFAULT_TEXT_MODEL = 'gemini-3.7-flash';
+// 📝 TEXTO — Gemini 3.1 Pro: é quem ESCREVE o prompt final a partir do template.
+// A era boa do gerador (fev–jun/2026) usava Pro; o rebaixamento pra Flash (jun→3.5, ago→3.7)
+// empobreceu os prompts e a fidelidade ao rosto. Flash fica só como reserva.
+const DEFAULT_TEXT_MODEL = 'gemini-3.1-pro-preview';
 
 // Fallbacks de IMAGEM (ordem de prioridade)
 // 🍌🍌 Nano Banana 2 = gemini-3.1-flash-image — rápido, alto volume
@@ -219,9 +221,9 @@ const IMAGE_MODEL_FALLBACKS: string[] = [
 
 // Fallbacks de TEXTO (ordem de prioridade) — só geração atual, sem modelos antigos
 const TEXT_MODEL_FALLBACKS: string[] = [
-    'gemini-3.7-flash',         // 🥇 Principal — Flash stable mais recente
-    'gemini-3.6-flash',         // 🥈 Flash geração anterior (stable)
-    'gemini-3.1-pro-preview',   // 🥉 Gemini 3.1 Pro (Preview) — máxima inteligência
+    'gemini-3.1-pro-preview',   // 🥇 Principal — Pro: prompts ricos e fiéis ao template
+    'gemini-3.7-flash',         // 🥈 Reserva — Flash stable mais recente
+    'gemini-3.6-flash',         // 🥉 Reserva — Flash geração anterior
 ];
 
 const SDK_VERSION = '@google/genai@^2.18.0';
@@ -605,24 +607,30 @@ export function useGeminiImageGeneration() {
             const DEPRECATED_IMAGE_MODELS: Record<string, string> = {
                 'gemini-3-pro-image-preview':           'gemini-3-pro-image',
                 'gemini-3.1-flash-image-preview':       'gemini-3.1-flash-image',
-                'gemini-3-pro-preview':                 'gemini-3.5-flash',
-                'gemini-3.1-pro-preview-old':           'gemini-3.5-flash',
                 'gemini-2.0-flash-preview-image-generation': 'gemini-3.1-flash-image',
                 'gemini-2.5-flash-image':               'gemini-3.1-flash-image',
             };
             const DEPRECATED_TEXT_MODELS: Record<string, string> = {
-                'gemini-3-pro-preview':                 'gemini-3.7-flash',
-                'gemini-3.1-pro-preview-old':           'gemini-3.7-flash',
-                'gemini-1.5-pro':                       'gemini-3.7-flash',
-                'gemini-1.5-flash':                     'gemini-3.7-flash',
-                // Modelos antigos salvos no banco → migra pro stable atual (menos 503)
-                'gemini-3.5-flash':                     'gemini-3.7-flash',
-                'gemini-3-flash-preview':               'gemini-3.7-flash',
-                'gemini-2.5-flash':                     'gemini-3.7-flash',
+                'gemini-3-pro-preview':                 'gemini-3.1-pro-preview',
+                'gemini-3.1-pro-preview-old':           'gemini-3.1-pro-preview',
+                'gemini-1.5-pro':                       'gemini-3.1-pro-preview',
+                'gemini-1.5-flash':                     'gemini-3.1-pro-preview',
+                'gemini-3.5-flash':                     'gemini-3.1-pro-preview',
+                'gemini-3-flash-preview':               'gemini-3.1-pro-preview',
+                'gemini-2.5-flash':                     'gemini-3.1-pro-preview',
             };
 
+            // 🔒 REGRA DE QUALIDADE: o modelo PRINCIPAL de imagem é sempre Pro.
+            // Flash/lite gravados no banco (o painel tinha flash como padrão) são ignorados
+            // como principal — só entram como reserva quando o fallback está permitido.
             const rawImageModel = data.model_name || DEFAULT_IMAGE_MODEL;
-            imageModel = DEPRECATED_IMAGE_MODELS[rawImageModel] ?? rawImageModel;
+            const sanitizedImageModel = DEPRECATED_IMAGE_MODELS[rawImageModel] ?? rawImageModel;
+            if (sanitizedImageModel.includes('pro-image')) {
+                imageModel = sanitizedImageModel;
+            } else {
+                console.warn(`[getProviderData] ⚠️ model_name "${rawImageModel}" no banco não é Pro — usando ${DEFAULT_IMAGE_MODEL} como principal.`);
+                imageModel = DEFAULT_IMAGE_MODEL;
+            }
 
             // Key principal
             if (data.api_key_encrypted) {
@@ -635,7 +643,14 @@ export function useGeminiImageGeneration() {
                     const meta = JSON.parse(data.system_prompt);
                     if (meta.model_text) {
                         const rawText = meta.model_text;
-                        textModel = DEPRECATED_TEXT_MODELS[rawText] ?? rawText;
+                        const sanitizedText = DEPRECATED_TEXT_MODELS[rawText] ?? rawText;
+                        // 🔒 Escritor do prompt é sempre Pro; flash gravado no banco vira reserva
+                        if (sanitizedText.includes('pro')) {
+                            textModel = sanitizedText;
+                        } else {
+                            console.warn(`[getProviderData] ⚠️ model_text "${rawText}" no banco não é Pro — usando ${DEFAULT_TEXT_MODEL} como principal.`);
+                            textModel = DEFAULT_TEXT_MODEL;
+                        }
                     }
                     // Pool de keys ativas
                     if (Array.isArray(meta.api_keys)) {

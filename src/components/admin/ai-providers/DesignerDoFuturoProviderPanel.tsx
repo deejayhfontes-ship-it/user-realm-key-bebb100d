@@ -83,7 +83,7 @@ export function DesignerDoFuturoProviderPanel() {
     const [keyEntries, setKeyEntries] = useState<KeyEntry[]>([]);
     const [newExtraKey, setNewExtraKey] = useState('');
     const [modelImage, setModelImage] = useState(DEFAULT_CONFIG.model_name);
-    const [modelText, setModelText] = useState('gemini-3.7-flash'); // Gemini 3.7 Flash (Stable mais recente)
+    const [modelText, setModelText] = useState('gemini-3.1-pro-preview'); // Pro escreve o prompt final (era boa do gerador)
     const [hasChanges, setHasChanges] = useState(false);
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [showPool, setShowPool] = useState(true); // Pool aberto por padrão
@@ -727,7 +727,7 @@ export function DesignerDoFuturoProviderPanel() {
                                         className="rounded-xl font-mono text-xs h-9"
                                     />
                                     <p className="text-xs text-muted-foreground">
-                                        Escreve o prompt final em inglês. Padrão: <code className="bg-muted px-1 rounded">gemini-3.7-flash</code>. Para prompts mais fiéis, teste <code className="bg-muted px-1 rounded">gemini-3.1-pro-preview</code> (era o modelo da versão original do gerador).
+                                        Escreve o prompt final em inglês. Padrão: <code className="bg-muted px-1 rounded">gemini-3.1-pro-preview</code> (Pro — prompts ricos, fiéis ao rosto). Modelos <code className="bg-muted px-1 rounded">flash</code> aqui são ignorados como principal e usados só como reserva.
                                     </p>
                                 </div>
                             </div>
