@@ -42,8 +42,8 @@ const DEFAULT_CONFIG = {
     name: 'Designer do Futuro — Gemini',
     slug: DESIGNER_SLUG,
     api_type: 'google' as const,
-    endpoint_url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent',
-    model_name: 'gemini-3.1-flash-image',
+    endpoint_url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image:generateContent',
+    model_name: 'gemini-3-pro-image',
     category: 'vision' as const,
     supports_images: true,
     is_active: true,
@@ -713,7 +713,7 @@ export function DesignerDoFuturoProviderPanel() {
                                         className="rounded-xl font-mono text-xs h-9"
                                     />
                                      <p className="text-xs text-muted-foreground">
-                                         Gera as imagens. Padrão: <code className="bg-muted px-1 rounded">gemini-3.1-flash-image</code> (Nano Banana 2)
+                                         Gera as imagens. Padrão: <code className="bg-muted px-1 rounded">gemini-3-pro-image</code> (Nano Banana Pro — máxima fidelidade ao rosto). Evite <code className="bg-muted px-1 rounded">flash-image</code>/<code className="bg-muted px-1 rounded">lite</code> como principal.
                                      </p>
                                 </div>
                                 <div className="space-y-2">
@@ -727,7 +727,7 @@ export function DesignerDoFuturoProviderPanel() {
                                         className="rounded-xl font-mono text-xs h-9"
                                     />
                                     <p className="text-xs text-muted-foreground">
-                                        Refina os prompts. Padrão: <code className="bg-muted px-1 rounded">gemini-2.5-flash-preview-05-20</code>
+                                        Escreve o prompt final em inglês. Padrão: <code className="bg-muted px-1 rounded">gemini-3.7-flash</code>. Para prompts mais fiéis, teste <code className="bg-muted px-1 rounded">gemini-3.1-pro-preview</code> (era o modelo da versão original do gerador).
                                     </p>
                                 </div>
                             </div>
