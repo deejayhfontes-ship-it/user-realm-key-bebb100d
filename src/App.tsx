@@ -34,6 +34,7 @@ import NotFound from "@/pages/NotFound";
 import Platform from "@/pages/Platform";
 import AdminGeneratorPreview from "@/pages/admin/AdminGeneratorPreview";
 import PromptGenerator from "@/pages/PromptGenerator";
+import AdminGeradoresTestar2026 from "@/pages/admin/GeradoresTestar2026";
 import ArcanoHub from "@/pages/admin/ArcanoHub";
 import ArcanoCloner from "@/pages/admin/ArcanoCloner";
 import ArcanoUpscaler from "@/pages/admin/arcano/ArcanoUpscaler";
@@ -216,6 +217,7 @@ const App = () => (
                 <Route path="settings" element={<AdminSettings />} />
                 <Route path="arcano" element={<ArcanoHub />} />
                 <Route path="arcano/cloner" element={<ArcanoCloner />} />
+                <Route path="geradores-testar-2026" element={<AdminGeradoresTestar2026 />} />
                 <Route path="arcano/upscaler" element={<ArcanoUpscaler />} />
                 <Route path="arcano/pose-changer" element={<ArcanoPoseChanger />} />
                 <Route path="arcano/veste-ai" element={<ArcanoVesteAI />} />

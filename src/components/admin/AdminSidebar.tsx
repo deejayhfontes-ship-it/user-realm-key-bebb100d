@@ -56,6 +56,11 @@ const navItems = [
     icon: Wand2
   },
   {
+    title: 'GERADORES TESTAR 2026',
+    href: '/admin/geradores-testar-2026',
+    icon: Sparkles
+  },
+  {
     title: 'Carrossel Studio',
     href: '/admin/carrossel',
     icon: GalleryHorizontalEnd
