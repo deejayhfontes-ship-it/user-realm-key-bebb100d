@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Sparkles, Upload, Download, Eye, Loader2, X, ImageOff } from 'lucide-react';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { Button } from '@/components/ui/button';
@@ -416,6 +416,51 @@ function OrionProGenerator() {
   );
 }
 
+// ── Réplica DesignBuilder (HTML puro em public/geradores-testar-2026) dentro de um iframe.
+//    O iframe pede a geração por postMessage; aqui chamamos a edge function com a sessão logada
+//    e devolvemos a imagem. A chave Google nunca vai pro browser.
+function ReplicaDesignBuilder() {
+  const ref = useRef<HTMLIFrameElement>(null);
+
+  useEffect(() => {
+    const onMsg = async (ev: MessageEvent) => {
+      const win = ref.current?.contentWindow;
+      if (!win || ev.source !== win || ev.origin !== window.location.origin) return;
+      const d = ev.data || {};
+      if (d.type !== 'GERAR_IMAGEM') return;
+      try {
+        const { data, error } = await supabase.functions.invoke('gerar-imagem-teste', {
+          body: { prompt: d.prompt, imagens: d.imagens || [], dimensions: d.dimensions },
+        });
+        if (error) throw new Error(error.message);
+        if (data?.error) throw new Error(data.error);
+        if (!data?.image_base64) throw new Error('Resposta sem imagem.');
+        win.postMessage(
+          { type: 'GERAR_IMAGEM_RESULT', image_base64: data.image_base64, mime: data.mime },
+          window.location.origin,
+        );
+      } catch (e) {
+        win.postMessage(
+          { type: 'GERAR_IMAGEM_RESULT', error: e instanceof Error ? e.message : 'Erro desconhecido' },
+          window.location.origin,
+        );
+      }
+    };
+    window.addEventListener('message', onMsg);
+    return () => window.removeEventListener('message', onMsg);
+  }, []);
+
+  return (
+    <iframe
+      ref={ref}
+      src="/geradores-testar-2026/index.html"
+      title="DesignBuilder Réplica"
+      className="w-full rounded-xl border bg-[#0a0714]"
+      style={{ height: 'calc(100vh - 170px)', minHeight: 720 }}
+    />
+  );
+}
+
 export default function GeradoresTestar2026() {
   return (
     <div className="flex flex-col h-full">
@@ -424,10 +469,14 @@ export default function GeradoresTestar2026() {
         subtitle="Gerador de imagens por IA para testes — reusa a chave Google já configurada"
       />
       <div className="flex-1 p-8">
-        <Tabs defaultValue="orion-pro">
+        <Tabs defaultValue="designbuilder">
           <TabsList>
+            <TabsTrigger value="designbuilder">DesignBuilder</TabsTrigger>
             <TabsTrigger value="orion-pro">Órion Pro</TabsTrigger>
           </TabsList>
+          <TabsContent value="designbuilder" className="mt-4">
+            <ReplicaDesignBuilder />
+          </TabsContent>
           <TabsContent value="orion-pro" className="mt-6">
             <OrionProGenerator />
           </TabsContent>

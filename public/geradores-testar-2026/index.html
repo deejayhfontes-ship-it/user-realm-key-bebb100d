@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Design Builder 1.2 — Clone Independente</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- 1. SLIM VERTICAL ICON DOCK -->
+  <aside class="icon-dock">
+    <div class="avatar-badge-wrap" id="btn-agents-menu" title="Alternar entre os 12 Geradores">
+      <div class="user-avatar">MV</div>
+      <div class="credits-badge">✨ 4</div>
+    </div>
+
+    <div class="dock-icons">
+      <button class="dock-btn active" id="dock-home" title="Gerador Ativo">🏠</button>
+      <button class="dock-btn" id="dock-projects" title="Projetos">💼</button>
+      <button class="dock-btn" id="dock-gallery" title="Galeria">🖼️</button>
+      <button class="dock-btn" id="dock-community" title="Comunidade">🌐</button>
+      <button class="dock-btn" id="dock-notifications" title="Notificações">🔔</button>
+      <button class="dock-btn" id="dock-api-key" title="Configurações de API" style="display:none">⚙️</button>
+      <button class="dock-btn" id="dock-more" title="Mais Opções">⋯</button>
+    </div>
+  </aside>
+
+  <!-- 2. FORM CONFIGURATION PANEL -->
+  <section class="config-panel">
+    <div class="config-scrollable" id="form-scrollable">
+      <!-- Inserido dinamicamente via JS com fidelidade pixel-perfect -->
+    </div>
+
+    <!-- Floating Action Bar Fixa no Rodapé -->
+    <div class="bottom-floating-bar">
+      <button class="btn-construir" id="btn-construir">
+        <span>Construir</span>
+        <span class="btn-construir-credit">1 crédito</span>
+      </button>
+      <div class="sub-actions">
+        <button class="sub-action-btn" id="btn-duplicar">📋 Duplicar</button>
+        <span>·</span>
+        <button class="sub-action-btn" id="btn-resetar">🔄 Resetar</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. MAIN CANVAS & TABS STAGE -->
+  <main class="main-stage">
+    <!-- Top Bar com as Abas Oficiais -->
+    <header class="stage-top-bar">
+      <div class="tab-aba">ABA 1</div>
+
+      <nav class="stage-nav-pills">
+        <button class="stage-pill active" data-tab="builder">BUILDER</button>
+        <button class="stage-pill" data-tab="pinterest">PINTEREST</button>
+        <button class="stage-pill" data-tab="comunidade">COMUNIDADE</button>
+        <button class="stage-pill" data-tab="galeria">GALERIA</button>
+        <button class="stage-pill" data-tab="guia">📖 GUIA</button>
+      </nav>
+
+      <div style="width: 50px;"></div>
+    </header>
+
+    <!-- VIEW 1: BUILDER CANVAS -->
+    <div class="canvas-viewport" id="view-builder">
+      <div class="canvas-aspect-label" id="canvas-aspect-label">4:5</div>
+      <div class="canvas-frame" id="canvas-frame" style="width: 480px; height: 600px;">
+        <!-- Ícone oficial da paleta em estado vazio -->
+        <svg class="canvas-placeholder-icon" id="canvas-placeholder" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10c1.66 0 3-1.34 3-3 0-.78-.29-1.48-.78-2.01-.48-.53-.78-1.23-.78-1.99 0-1.66 1.34-3 3-3h1.56c3.04 0 5.44-2.4 5.44-5.44C23.44 6.18 18.32 2 12 2zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 8 6.5 8 8 8.67 8 9.5 7.33 11 6.5 11zm3-4c-.83 0-1.5-.67-1.5-1.5S8.67 4 9.5 4s1.5.67 1.5 1.5S10.33 7 9.5 7zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 4 14.5 4s1.5.67 1.5 1.5S15.33 7 14.5 7zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 8 17.5 8s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
+        </svg>
+        <img id="rendered-art" style="display: none;" alt="Arte Gerada">
+      </div>
+    </div>
+
+    <!-- VIEW 2: PINTEREST INSPIRAÇÕES -->
+    <div class="masonry-view" id="view-pinterest">
+      <div style="margin-bottom: 20px; display: flex; gap: 10px;">
+        <input type="text" class="dark-input" id="pinterest-search" placeholder="🔍 Buscar referências no Pinterest..." value="Social Media Lançamento" style="max-width: 400px;">
+      </div>
+      <div class="masonry-grid" id="pinterest-grid"></div>
+    </div>
+
+    <!-- VIEW 3: COMUNIDADE (256 ARTES OFICIAIS) -->
+    <div class="masonry-view" id="view-comunidade">
+      <div class="masonry-filters">
+        <button class="filter-chip active" id="btn-filter-app">ESSE APP</button>
+        <button class="filter-chip" id="btn-filter-todos">TODOS</button>
+      </div>
+      <div class="masonry-grid" id="community-grid"></div>
+    </div>
+
+    <!-- VIEW 4: GALERIA DO USUÁRIO -->
+    <div class="masonry-view" id="view-galeria">
+      <div class="masonry-filters">
+        <button class="filter-chip active">TODOS</button>
+        <button class="filter-chip">FAVS</button>
+      </div>
+      <div class="masonry-grid" id="user-gallery-grid"></div>
+    </div>
+
+    <!-- VIEW 5: GUIA -->
+    <div class="masonry-view" id="view-guia">
+      <div style="max-width: 700px; line-height: 1.7; color: #cbd5e1;">
+        <h2 style="color: #fff; margin-bottom: 12px;">📖 Guia do Design Builder Independente</h2>
+        <p>Esta é a sua cópia 100% autônoma do DesignBuilder. Ela não depende de assinaturas ou servidores de terceiros.</p>
+        <p>Os formulários compilam as regras cinematográficas diretamente para a API do Google Gemini ou OpenRouter.</p>
+      </div>
+    </div>
+
+    <!-- Floating Bubble: Abre Drawer do Prompt Mágico -->
+    <button class="floating-chat-btn" id="btn-toggle-forensic" title="Ver Montagem do Prompt Mágico">💬</button>
+
+    <!-- Forensic Drawer: Prompt Mágico e Diagnóstico do Servidor -->
+    <aside class="forensic-drawer" id="forensic-drawer">
+      <div class="drawer-header">
+        <div class="drawer-title">
+          <span>⚡</span> Prompt Mágico (Montagem ao Vivo)
+        </div>
+        <button id="btn-close-forensic" style="background:none; border:none; color:#94a3b8; font-size:18px; cursor:pointer;">&times;</button>
+      </div>
+
+      <p style="font-size: 11px; color: var(--text-dim);">
+        Este é o texto exato que o servidor Python do DesignBuilder envia para o Gemini. Você tem controle total sobre ele.
+      </p>
+
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 12px; font-weight: 700; color: #cbd5e1;">Prompt Enriquecido (Inglês)</span>
+          <button id="btn-copy-prompt" style="background: rgba(124, 58, 237, 0.2); border: 1px solid #7c3aed; color: #c084fc; border-radius: 6px; padding: 4px 8px; font-size: 11px; cursor: pointer; font-weight: 600;">
+            📋 Copiar
+          </button>
+        </div>
+        <textarea id="live-prompt-box" class="dark-textarea" style="flex: 1; font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.5; color: #e2e8f0;"></textarea>
+      </div>
+    </aside>
+  </main>
+
+  <!-- Modal Alternar Agente -->
+  <div id="agents-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); backdrop-filter:blur(8px); z-index:200; align-items:center; justify-content:center;">
+    <div style="background:#0f0c1e; border:1px solid #2e2350; border-radius:16px; width:460px; max-height:80vh; overflow-y:auto; padding:24px; display:flex; flex-direction:column; gap:12px;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h3 style="font-size:16px; font-weight:700;">Selecione o Gerador</h3>
+        <button id="btn-close-agents-modal" style="background:none; border:none; color:#94a3b8; font-size:20px; cursor:pointer;">&times;</button>
+      </div>
+      <div id="modal-agent-list" style="display:flex; flex-direction:column; gap:6px;"></div>
+    </div>
+  </div>
+
+  <!-- Modal Configurações de API -->
+  <div id="api-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); backdrop-filter:blur(8px); z-index:200; align-items:center; justify-content:center;">
+    <div style="background:#0f0c1e; border:1px solid #2e2350; border-radius:16px; width:440px; padding:24px; display:flex; flex-direction:column; gap:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h3 style="font-size:16px; font-weight:700;">⚙️ Configuração de API de IA</h3>
+        <button id="btn-close-api" style="background:none; border:none; color:#94a3b8; font-size:20px; cursor:pointer;">&times;</button>
+      </div>
+      <p style="font-size:12px; color:#94a3b8;">
+        Insira sua chave Google Gemini (grátis/barata) ou OpenRouter para que o botão 'Construir' gere imagens reais diretamente do seu navegador.
+      </p>
+      <input type="password" id="input-api-key" class="dark-input" placeholder="AIzaSy... ou sk-or-v1-...">
+      <button id="btn-save-key" class="btn-construir" style="height:42px;">Salvar Chave</button>
+    </div>
+  </div>
+
+  <script src="data_store.js"></script>
+  <script src="prompt_engine.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
