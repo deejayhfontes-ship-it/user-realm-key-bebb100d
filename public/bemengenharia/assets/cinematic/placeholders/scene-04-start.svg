@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" preserveAspectRatio="xMidYMid slice">
+<defs><pattern id="g" width="80" height="80" patternUnits="userSpaceOnUse"><path d="M80 0H0V80" fill="none" stroke="#f4f2ec" stroke-width="1"/></pattern>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0c202b"/><stop offset="1" stop-color="#2a2620"/></linearGradient>
+    <radialGradient id="vig" cx=".5" cy=".6" r=".8"><stop offset=".55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".55"/></radialGradient>
+    <radialGradient id="earth" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#6b4a33" stop-opacity=".55"/><stop offset="1" stop-color="#6b4a33" stop-opacity="0"/></radialGradient></defs>
+<rect width="1600" height="900" fill="url(#bg)"/>
+<rect width="1600" height="900" fill="url(#g)" opacity=".10"/>
+
+
+    <ellipse cx="420" cy="760" rx="520" ry="220" fill="url(#earth)"/>
+    <ellipse cx="1180" cy="840" rx="620" ry="200" fill="url(#earth)"/>
+    <ellipse cx="820" cy="700" rx="260" ry="90" fill="#8a6a45" opacity=".18"/>
+
+<g><path d="M-120 170 C120 38 338 38 548 150 S980 310 1210 176 S1550 22 1750 160" fill="none" stroke="#f4f2ec" stroke-width="1" opacity="0.10"/>
+<path d="M-130 220 C95 88 342 86 560 196 S980 354 1228 220 S1560 72 1755 206" fill="none" stroke="#f4f2ec" stroke-width="1" opacity="0.18"/>
+<path d="M-136 275 C88 148 350 134 580 244 S1000 405 1240 276 S1570 126 1765 260" fill="none" stroke="#f4f2ec" stroke-width="1" opacity="0.26"/>
+<path d="M-145 340 C72 222 350 198 600 300 S1018 468 1262 344 S1582 192 1770 320" fill="none" stroke="#f4f2ec" stroke-width="1" opacity="0.10"/>
+<path d="M-154 414 C58 306 360 270 622 364 S1045 535 1280 416 S1590 272 1778 398" fill="none" stroke="#f4f2ec" stroke-width="1" opacity="0.18"/>
+<path d="M-165 500 C60 388 370 350 640 438 S1062 615 1304 506 S1604 350 1790 482" fill="none" stroke="#f4f2ec" stroke-width="1" opacity="0.26"/>
+<path d="M-180 600 C48 492 380 430 660 520 S1080 700 1326 590 S1615 450 1800 574" fill="none" stroke="#f4f2ec" stroke-width="1" opacity="0.10"/>
+<path d="M-195 710 C35 602 390 520 682 610 S1100 794 1348 686 S1630 560 1810 670" fill="none" stroke="#f4f2ec" stroke-width="1" opacity="0.18"/>
+<path d="M-210 828 C24 722 400 630 700 712 S1120 900 1370 796 S1640 682 1820 786" fill="none" stroke="#f4f2ec" stroke-width="1" opacity="0.26"/></g>
+<g transform="translate(1100 560) scale(0.9)" fill="#f4f2ec" opacity="0.55">
+    <rect x="-26" y="-118" width="52" height="64" rx="6"/>
+    <rect x="-40" y="-92" width="80" height="18" rx="4"/>
+    <circle cx="0" cy="-86" r="9" fill="#0c202b"/>
+    <rect x="-18" y="-54" width="36" height="16" rx="3"/>
+    <rect x="-46" y="-40" width="92" height="8" rx="2"/>
+    <path d="M-38 -32 L-118 190 L-104 190 L-30 -32 Z"/>
+    <path d="M38 -32 L118 190 L104 190 L30 -32 Z"/>
+    <path d="M-6 -32 L-6 190 L6 190 L6 -32 Z"/>
+  </g>
+<rect width="1600" height="900" fill="url(#vig)"/>
+<g font-family="Arial, Helvetica, sans-serif" fill="#f4f2ec" fill-opacity=".55" font-size="16" letter-spacing="3">
+  <text x="56" y="838" font-weight="700">PLACEHOLDER · SCENE 04 · START FRAME</text>
+  <text x="56" y="864" font-size="13" fill-opacity=".4">CAMPO / SERVIÇOS — substitua por assets/cinematic/scene-04-start.webp (e scene-04.mp4)</text>
+  <text x="1544" y="838" text-anchor="end" fill="#f28a00" fill-opacity=".8" font-size="13">BEM / SEQ 04</text>
+</g>
+</svg>

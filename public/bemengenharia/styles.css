@@ -600,7 +600,7 @@ p {
 .measure-point b { font-size: 9px; color: rgba(255,255,255,.75); }
 .measure-point small { grid-column: 2; font-size: 8px; color: rgba(255,255,255,.4); }
 .point-a { left: 70%; top: 27%; }
-.point-b { right: 36%; bottom: 44%; }
+.point-b { right: 31%; bottom: 46%; }
 .point-c { left: 48%; bottom: 28%; }
 
 .cursor-target {
@@ -1661,4 +1661,238 @@ p {
   [data-reveal] { opacity: 1; transform: none; clip-path: none; }
   .contour-map { transform: none; }
   .technical-grid { opacity: .18; }
+}
+
+/* =====================================================================
+   CAMADA CINEMATOGRÁFICA (v2) — cenas scroll-driven, placeholders,
+   grid 12 (desktop) / 8 (tablet) / 4 (mobile)
+   ===================================================================== */
+:root { --scene-p: 0; --header-h: 88px; }
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+
+/* --- mídia da cena (injetada por cinematic.js) --- */
+.scene { position: absolute; inset: 0; overflow: hidden; background: var(--navy-ink); }
+.scene-frame {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; transform-origin: 50% 60%;
+  will-change: transform, opacity; backface-visibility: hidden;
+}
+.scene-frame--end { opacity: 0; }
+.scene-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; pointer-events: none; }
+.scene.has-video .scene-video { opacity: 1; }
+.scene-shade {
+  position: absolute; inset: 0; pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(12,32,43,.74) 0%, rgba(12,32,43,.38) 48%, rgba(12,32,43,.14) 100%),
+    linear-gradient(180deg, rgba(12,32,43,.28) 0%, rgba(12,32,43,0) 32%, rgba(12,32,43,.62) 100%);
+}
+.scene-shade--soft {
+  background:
+    linear-gradient(90deg, rgba(12,32,43,.55) 0%, rgba(12,32,43,.22) 50%, rgba(12,32,43,.1) 100%),
+    linear-gradient(180deg, rgba(12,32,43,.2) 0%, rgba(12,32,43,0) 30%, rgba(12,32,43,.6) 100%);
+}
+
+/* --- hero fixado (SEQ 01) --- */
+.hero { display: block; min-height: 190svh; }
+.hero-stage { position: sticky; top: 0; height: 100svh; display: flex; align-items: stretch; overflow: hidden; }
+.hero-scene { z-index: 0; }
+.hero-scene::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, rgba(16,43,58,.84) 0%, rgba(16,43,58,.58) 48%, rgba(16,43,58,.26) 100%);
+}
+.topographic-field { z-index: 1; }
+.hero-content { z-index: 2; }
+
+/* --- seções de cena fixadas (SEQ 02 e 03) --- */
+.scene-section { position: relative; height: 220svh; background: var(--navy-ink); color: var(--white); }
+.scene-stage { position: sticky; top: 0; height: 100svh; overflow: hidden; }
+.scene-ui {
+  position: relative; z-index: 3; height: 100%;
+  display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--gutter);
+  align-content: end; padding-top: 120px; padding-bottom: clamp(48px, 8vh, 96px);
+}
+.scene-tag {
+  grid-column: 1 / span 3; align-self: start; display: flex; gap: 18px;
+  font-size: 10px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase;
+  color: rgba(255,255,255,.62);
+}
+.scene-tag span:first-child { color: var(--orange); }
+.scene-title {
+  grid-column: 4 / span 7; margin: 0; color: var(--white);
+  font-size: clamp(44px, 5.2vw, 88px); line-height: .9; letter-spacing: -.05em; text-transform: uppercase;
+}
+.scene-title em { color: var(--orange); font-style: normal; }
+.scene-title > span { display: inline-block; }
+.scene-microdata {
+  grid-column: 10 / -1; align-self: end; margin: 0; display: grid; gap: 10px;
+  border-top: 1px solid var(--line-light); padding-top: 14px; font-variant-numeric: tabular-nums;
+}
+.scene-microdata > div { display: flex; justify-content: space-between; gap: 16px; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: rgba(255,255,255,.55); }
+.scene-microdata dt, .scene-microdata dd { margin: 0; }
+.scene-microdata dd { color: var(--white); font-weight: 700; }
+[data-scene-reveal] { opacity: 0; transform: translateY(14px); transition: opacity 520ms cubic-bezier(.2,.7,.2,1), transform 520ms cubic-bezier(.2,.7,.2,1); }
+[data-scene-reveal].is-on { opacity: 1; transform: none; }
+
+/* retículo (SEQ 02) */
+.scene-reticle { position: absolute; z-index: 2; left: 50%; top: 50%; width: 320px; height: 320px; transform: translate(-50%, -50%); pointer-events: none; opacity: calc(.15 + var(--scene-p) * .6); }
+.scene-reticle i { position: absolute; background: rgba(255,255,255,.35); }
+.scene-reticle i:first-child { left: 50%; top: -12%; bottom: -12%; width: 1px; }
+.scene-reticle i:nth-child(2) { top: 50%; left: -12%; right: -12%; height: 1px; }
+.scene-reticle span { position: absolute; inset: 0; border: 1px solid rgba(255,255,255,.22); border-radius: 50%; }
+.scene-reticle span::after { content: ""; position: absolute; width: 7px; height: 7px; border-radius: 50%; left: calc(50% - 3.5px); top: calc(50% - 3.5px); background: var(--orange); }
+
+/* overlay SVG (SEQ 03) */
+.scene-overlay { position: absolute; inset: 0; z-index: 2; width: 100%; height: 100%; pointer-events: none; }
+.scene-overlay .ov-grid { opacity: calc(var(--scene-p) * .45); }
+.scene-overlay path[data-draw] { fill: none; stroke: rgba(255,255,255,.72); stroke-width: 1.25; stroke-dasharray: 1000; stroke-dashoffset: 1000; }
+.scene-overlay .ov-axis { stroke: rgba(242,138,0,.55); stroke-width: 1; opacity: calc(var(--scene-p) * var(--scene-p)); }
+.scene-overlay circle[data-scene-reveal] { fill: var(--orange); transform: none; transition: opacity 400ms ease; }
+
+/* --- serviços com painel de cena fixo (SEQ 04) --- */
+.services-layout { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--gutter); align-items: start; }
+.services-media {
+  grid-column: 1 / span 4; position: sticky; top: calc(var(--header-h) + 24px);
+  height: calc(100svh - var(--header-h) - 48px); min-height: 420px; overflow: hidden; background: var(--navy-ink);
+}
+.services-media .scene::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(12,32,43,.1) 0%, rgba(12,32,43,.55) 100%); }
+.services-media-ui { position: absolute; left: 20px; bottom: 18px; z-index: 2; display: flex; gap: 16px; color: rgba(255,255,255,.7); font-size: 10px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+.services-media-ui span:first-child { color: var(--orange); }
+.services-editorial { grid-column: 6 / -1; min-width: 0; }
+.services-editorial .section-label { margin-bottom: 28px; }
+.services-editorial h2 { font-size: clamp(48px, 4.8vw, 86px); color: var(--navy); }
+.services-editorial .provisional-note { margin-top: 20px; max-width: 460px; }
+.services-editorial .services-list { margin-top: 56px; }
+.services-editorial .service-row button { grid-template-columns: 56px minmax(0, 1fr) 40px; }
+.services-editorial .service-number { grid-column: 1; }
+.services-editorial .service-title { grid-column: 2; font-size: clamp(22px, 1.9vw, 34px); }
+.services-editorial .service-action { grid-column: 3; }
+.services-editorial .service-detail { grid-template-columns: 56px minmax(0, 1fr) 200px; }
+.services-editorial .service-detail p { grid-column: 2; }
+.services-editorial .service-detail svg { grid-column: 3; }
+
+/* --- processo: fundo estático opcional --- */
+.process-section { position: relative; }
+.process-section > .container { position: relative; z-index: 1; }
+.static-slot { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.static-slot img { width: 100%; height: 100%; object-fit: cover; opacity: .16; }
+
+/* --- impacto com cena de fundo (SEQ 05) --- */
+.impact-section .scene { z-index: 0; }
+.impact-section .scene::after { content: ""; position: absolute; inset: 0; background: rgba(12,32,43,.64); }
+.impact-target { z-index: 1; }
+.impact-content { z-index: 2; }
+.impact-micro { display: block; margin-top: 22px; }
+.impact-content h2 { margin-top: 18px; }
+
+/* --- atendimento: figura estática opcional --- */
+.contact-figure { margin: 56px 0 0; width: min(420px, 100%); }
+.contact-figure img { display: block; width: 100%; aspect-ratio: 4 / 5; object-fit: cover; }
+.contact-figure figcaption { display: flex; justify-content: space-between; gap: 16px; margin-top: 12px; font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: rgba(255,255,255,.45); }
+
+/* --- CTA final (SEQ 06) --- */
+.cta-final { position: relative; min-height: 100svh; display: flex; align-items: center; overflow: hidden; background: var(--navy-ink); color: var(--white); border-top: 1px solid var(--line-light); }
+.cta-final .scene { z-index: 0; }
+.cta-final .scene::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, rgba(12,32,43,.8) 0%, rgba(12,32,43,.5) 50%, rgba(12,32,43,.2) 100%), linear-gradient(180deg, rgba(12,32,43,.3), rgba(12,32,43,0) 40%, rgba(12,32,43,.5) 100%);
+}
+.cta-final > .container { position: relative; z-index: 2; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--gutter); padding-block: 160px 96px; }
+.cta-final .section-label { grid-column: 1 / span 3; align-self: start; }
+.cta-final h2 { grid-column: 4 / span 8; color: var(--white); font-size: clamp(56px, 7vw, 124px); line-height: .86; letter-spacing: -.06em; }
+.cta-final p { grid-column: 4 / span 5; margin-top: 28px; color: rgba(255,255,255,.7); font-size: 18px; }
+.cta-actions { grid-column: 4 / span 8; display: flex; flex-wrap: wrap; gap: 16px; margin-top: 36px; }
+.cta-microdata { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 28px; margin-top: 96px; padding-top: 16px; border-top: 1px solid var(--line-light); font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: rgba(255,255,255,.4); font-variant-numeric: tabular-nums; }
+
+/* =====================  TABLET · 8 COLUNAS  ===================== */
+@media (max-width: 1100px) {
+  .header-grid, .hero-grid-layout, .manifesto-grid, .services-layout, .precision-heading, .process-heading,
+  .projects-heading, .project-grid, .about-grid, .contact-layout, .footer-grid, .scene-ui, .cta-final > .container {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+  }
+  .brand-link { grid-column: 1 / span 2; }
+  .header-cta { grid-column: 6 / span 2; }
+  .menu-toggle { grid-column: 8; }
+  .hero-copy { grid-column: 1 / span 6; }
+  .hero-data { grid-column: 7 / -1; }
+  .point-b { right: 4%; top: 58%; bottom: auto; }
+  .manifesto .section-label { grid-column: 1 / -1; }
+  .manifesto h2 { grid-column: 1 / span 7; }
+  .manifesto-copy { grid-column: 3 / span 6; }
+  .services-media { grid-column: 1 / span 3; }
+  .services-editorial { grid-column: 4 / -1; }
+  .precision-heading .section-label, .process-heading .section-label, .projects-heading .section-label, .cta-final .section-label { grid-column: 1 / span 2; }
+  .precision-heading h2, .process-heading h2, .projects-heading h2, .projects-heading > p { grid-column: 3 / -1; }
+  .project-1 { grid-column: 1 / span 5; }
+  .project-2 { grid-column: 6 / -1; }
+  .project-3 { grid-column: 1 / span 5; }
+  .about-copy { grid-column: 1 / span 4; }
+  .brand-application { grid-column: 5 / -1; }
+  .contact-copy { grid-column: 1 / span 4; }
+  .contact-form { grid-column: 5 / -1; }
+  .footer-brand { grid-column: 1 / span 3; }
+  .site-footer nav { grid-column: 5 / span 2; }
+  .footer-tech { grid-column: 7 / -1; }
+  .scene-tag { grid-column: 1 / span 2; }
+  .scene-title { grid-column: 3 / -1; }
+  .scene-microdata { grid-column: 3 / span 3; margin-top: 32px; }
+  .cta-final h2, .cta-final p, .cta-actions { grid-column: 3 / -1; }
+}
+
+/* =====================  MOBILE · 4 COLUNAS  ===================== */
+@media (max-width: 760px) {
+  .header-grid, .hero-grid-layout, .manifesto-grid, .services-layout, .precision-heading, .process-heading,
+  .projects-heading, .project-grid, .about-grid, .contact-layout, .footer-grid, .scene-ui, .cta-final > .container {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .brand-link { grid-column: 1 / span 2; }
+  .menu-toggle { grid-column: 4; }
+  .hero { min-height: 100svh; }
+  .hero-stage { position: relative; height: auto; min-height: 100svh; }
+  .hero-copy { grid-column: 1 / -1; }
+  .manifesto .section-label, .manifesto h2, .manifesto-copy,
+  .precision-heading .section-label, .precision-heading h2,
+  .process-heading .section-label, .process-heading h2,
+  .projects-heading .section-label, .projects-heading h2, .projects-heading > p,
+  .project-1, .project-2, .project-3, .about-copy, .brand-application, .contact-copy, .contact-form,
+  .footer-brand, .site-footer nav, .footer-tech,
+  .services-media, .services-editorial,
+  .scene-tag, .scene-title, .scene-microdata,
+  .cta-final .section-label, .cta-final h2, .cta-final p, .cta-actions { grid-column: 1 / -1; }
+  .scene-section { height: auto; }
+  .scene-stage { position: relative; height: 78svh; min-height: 540px; }
+  .scene-ui { padding-top: 96px; padding-bottom: 40px; }
+  .scene-title { font-size: clamp(38px, 11.5vw, 60px); margin-top: 18px; }
+  .scene-microdata { grid-template-columns: 1fr 1fr; margin-top: 26px; }
+  .scene-reticle { width: 220px; height: 220px; }
+  .services-media { position: relative; top: auto; height: auto; min-height: 0; aspect-ratio: 4 / 3; margin-bottom: 40px; }
+  .services-editorial h2 { font-size: clamp(40px, 12vw, 60px); }
+  .services-editorial .service-row button { grid-template-columns: 40px minmax(0, 1fr) 32px; }
+  .services-editorial .service-title { font-size: 18px; }
+  .services-editorial .service-detail { grid-template-columns: 40px minmax(0, 1fr); }
+  .services-editorial .service-detail p { grid-column: 2; }
+  .services-editorial .service-detail svg { grid-column: 2; height: 72px; }
+  .contact-figure { display: none; }
+  .cta-final { min-height: 0; }
+  .cta-final > .container { padding-block: 120px 64px; }
+  .cta-final h2 { font-size: clamp(44px, 13vw, 72px); }
+  .cta-final p { font-size: 15px; }
+  .cta-actions { flex-direction: column; }
+  .cta-actions .button { width: 100%; }
+  .cta-microdata { margin-top: 56px; gap: 16px; }
+}
+
+/* =====================  MOVIMENTO REDUZIDO  ===================== */
+@media (prefers-reduced-motion: reduce) {
+  .hero { min-height: 100svh; }
+  .hero-stage { position: relative; height: auto; min-height: 100svh; }
+  .scene-section { height: auto; }
+  .scene-stage { position: relative; height: 80svh; }
+  .scene-frame { transform: none !important; }
+  .scene-frame--end { opacity: 1 !important; }
+  .scene-video { display: none; }
+  [data-scene-reveal] { opacity: 1; transform: none; transition: none; }
+  .scene-overlay path[data-draw] { stroke-dashoffset: 0 !important; }
+  .scene-overlay .ov-grid, .scene-overlay .ov-axis { opacity: .5; }
+  .scene-reticle { opacity: .7; }
 }
