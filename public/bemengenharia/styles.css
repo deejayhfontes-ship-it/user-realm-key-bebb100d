@@ -1488,7 +1488,7 @@ p {
     align-items: start;
   }
   .hero-copy { grid-column: 1 / -1; }
-  .hero h1 { font-size: clamp(48px, 15.3vw, 74px); line-height: .86; }
+  .hero h1 { font-size: clamp(40px, 12.4vw, 74px); line-height: .86; }
   .hero-copy > p { margin-top: 30px; font-size: 15px; max-width: 420px; }
   .hero-actions { align-items: stretch; flex-direction: column; gap: 14px; margin-top: 28px; }
   .hero-actions .button { width: 100%; }
@@ -1547,7 +1547,7 @@ p {
     min-height: 90px;
   }
   .service-number { grid-column: 1; }
-  .service-title { grid-column: 2 / span 2; font-size: 20px; }
+  .service-title { grid-column: 2 / span 2; font-size: 18px; }
   .service-action { grid-column: 4; }
   .service-detail { grid-template-columns: repeat(4, 1fr); }
   .service-detail p { grid-column: 2 / -1; font-size: 14px; }
