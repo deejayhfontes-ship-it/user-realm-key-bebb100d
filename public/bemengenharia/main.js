@@ -5,6 +5,7 @@
   var processSection = document.querySelector('[data-process]');
   var field = document.querySelector('.topographic-field');
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var WHATSAPP_URL = 'https://wa.me/553598920557';
   var raf = 0;
 
   function clamp(value, min, max) {
@@ -126,16 +127,15 @@
         form.reportValidity();
         return;
       }
-      status.textContent = 'Formulário pronto. Configure o e-mail oficial em src/content.ts ou main.js para ativar o envio.';
-    });
-  }
-
-  var whatsapp = document.querySelector('.js-whatsapp');
-  if (whatsapp && status) {
-    whatsapp.addEventListener('click', function (event) {
-      event.preventDefault();
-      status.textContent = 'WhatsApp ainda não informado. Substitua [WHATSAPP] na configuração do projeto.';
-      document.querySelector('.contact-form').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'center' });
+      var data = new FormData(form);
+      var texto = 'Olá, vim pelo site da BEM e quero solicitar um orçamento.\n\n' +
+        'Nome: ' + data.get('nome') + '\n' +
+        'Telefone: ' + data.get('telefone') + '\n' +
+        'E-mail: ' + data.get('email') + '\n' +
+        'Serviço: ' + data.get('servico') + '\n\n' +
+        data.get('mensagem');
+      window.open(WHATSAPP_URL + '?text=' + encodeURIComponent(texto), '_blank', 'noopener');
+      status.textContent = 'Abrindo o WhatsApp com sua mensagem preenchida.';
     });
   }
 
