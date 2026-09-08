@@ -211,8 +211,9 @@ p {
 
 .brand-link {
   grid-column: 1 / span 2;
-  width: 174px;
+  width: 118px;
   max-width: 100%;
+  align-self: center;
 }
 
 .brand-link img {
@@ -1476,7 +1477,7 @@ p {
   body::after { display: none; }
   .header-grid { min-height: 72px; grid-template-columns: repeat(4, 1fr); }
   :root[data-scrolled='true'] .header-grid { min-height: 64px; }
-  .brand-link { grid-column: 1 / span 2; width: 145px; }
+  .brand-link { grid-column: 1 / span 2; width: 96px; }
   .header-cta { display: none; }
   .menu-toggle { grid-column: 4; }
   .mobile-menu { padding-top: 72px; }
@@ -1895,4 +1896,16 @@ html.lenis, html.lenis body { height: auto; }
   .scene-overlay path[data-draw] { stroke-dashoffset: 0 !important; }
   .scene-overlay .ov-grid, .scene-overlay .ov-axis { opacity: .5; }
   .scene-reticle { opacity: .7; }
+}
+
+/* --- menu mobile fora do header (backdrop-filter do header virava containing block do fixed) --- */
+.mobile-menu { z-index: 95; }
+.site-header { z-index: 100; }
+@media (max-width: 1100px) {
+  .brand-link { width: 104px; }
+  .mobile-menu { visibility: hidden; transition: transform 340ms cubic-bezier(.2,.75,.2,1), visibility 0s linear 340ms; }
+  .mobile-menu.is-open { visibility: visible; transition: transform 340ms cubic-bezier(.2,.75,.2,1), visibility 0s; }
+}
+@media (max-width: 760px) {
+  .brand-link { width: 96px; }
 }
