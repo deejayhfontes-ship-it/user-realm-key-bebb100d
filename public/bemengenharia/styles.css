@@ -1694,7 +1694,7 @@ html.lenis, html.lenis body { height: auto; }
 }
 
 /* --- hero fixado (SEQ 01) --- */
-.hero { display: block; min-height: 190svh; }
+.hero { display: block; min-height: 190svh; overflow: visible; } /* overflow:hidden no pai mata o sticky */
 .hero-stage { position: sticky; top: 0; height: 100svh; display: flex; align-items: stretch; overflow: hidden; }
 .hero-scene { z-index: 0; }
 .hero-scene::after {
