@@ -153,7 +153,7 @@
         var s = scenes.filter(function (x) { return x.root === entry.target; })[0];
         if (s) { attachVideo(s); near.unobserve(entry.target); }
       });
-    }, { rootMargin: '150% 0px 150% 0px' });
+    }, { rootMargin: '250% 0px 250% 0px' });
     scenes.slice(1).forEach(function (s) { near.observe(s.root); });
   } else if (!reduced && !mobile) {
     scenes.slice(1).forEach(attachVideo);
