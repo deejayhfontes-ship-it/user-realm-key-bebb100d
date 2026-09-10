@@ -77,45 +77,87 @@
     el.appendChild(start);
     el.appendChild(end);
 
-    var video = null;
-    if (!reduced && !mobile) {
-      video = document.createElement('video');
-      video.className = 'scene-video';
-      video.muted = true;
-      video.playsInline = true;
-      video.preload = 'auto';
-      video.setAttribute('muted', '');
-      video.setAttribute('playsinline', '');
-      video.setAttribute('aria-hidden', 'true');
-      var source = document.createElement('source');
-      source.src = ASSET_DIR + 'scene-' + id + '.mp4';
-      source.type = 'video/mp4';
-      source.addEventListener('error', function () {
-        if (video) { video.remove(); video = null; }
-        el.classList.remove('has-video');
-      });
-      video.addEventListener('loadeddata', function () {
-        el.classList.add('has-video');
-        try { video.pause(); } catch (e) {}
-      });
-      video.appendChild(source);
-      el.appendChild(video);
-    }
-
-    scenes.push({
+    var scene = {
       id: id,
       mode: mode,
       el: el,
       root: rootEl,
       start: start,
       end: end,
-      get video() { return video; },
+      video: null,
+      seeking: false,
+      pendingT: -1,
       reveals: rootEl.querySelectorAll('[data-scene-reveal]'),
       draws: rootEl.querySelectorAll('[data-draw]'),
       p: -1,
       lastT: -1
-    });
+    };
+    scenes.push(scene);
   });
+
+  /* Cria o <video> de uma cena. Chamado na hora para a primeira cena e,
+     para as demais, so quando a secao se aproxima do viewport (economiza banda). */
+  function attachVideo(s) {
+    if (s.video || s.videoTried || reduced || mobile) return;
+    s.videoTried = true;
+    var video = document.createElement('video');
+    video.className = 'scene-video';
+    video.muted = true;
+    video.playsInline = true;
+    video.preload = 'auto';
+    video.setAttribute('muted', '');
+    video.setAttribute('playsinline', '');
+    video.setAttribute('aria-hidden', 'true');
+    var source = document.createElement('source');
+    source.src = ASSET_DIR + 'scene-' + s.id + '.mp4';
+    source.type = 'video/mp4';
+    source.addEventListener('error', function () {
+      video.remove();
+      s.video = null;
+      s.el.classList.remove('has-video');
+    });
+    video.addEventListener('loadeddata', function () {
+      s.el.classList.add('has-video');
+      try { video.pause(); } catch (e) {}
+      // sincroniza com o progresso atual
+      s.lastT = -1;
+      seekTo(s, clamp01(s.p < 0 ? 0 : s.p) * (video.duration || 0));
+    });
+    // fila de seek: um por vez; o ultimo pedido vence
+    video.addEventListener('seeked', function () {
+      s.seeking = false;
+      if (s.pendingT >= 0) { var t = s.pendingT; s.pendingT = -1; seekTo(s, t); }
+    });
+    video.appendChild(source);
+    s.el.appendChild(video);
+    s.video = video;
+  }
+
+  function seekTo(s, t) {
+    var v = s.video;
+    if (!v || !v.duration) return;
+    if (t > v.duration - 0.04) t = v.duration - 0.04;
+    if (t < 0) t = 0;
+    if (s.seeking) { s.pendingT = t; return; }
+    if (Math.abs(t - s.lastT) < 0.02) return;
+    s.lastT = t;
+    s.seeking = true;
+    try { v.currentTime = t; } catch (err) { s.seeking = false; }
+  }
+
+  if (scenes.length) attachVideo(scenes[0]);
+  if (!reduced && !mobile && scenes.length > 1 && 'IntersectionObserver' in window) {
+    var near = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        var s = scenes.filter(function (x) { return x.root === entry.target; })[0];
+        if (s) { attachVideo(s); near.unobserve(entry.target); }
+      });
+    }, { rootMargin: '150% 0px 150% 0px' });
+    scenes.slice(1).forEach(function (s) { near.observe(s.root); });
+  } else if (!reduced && !mobile) {
+    scenes.slice(1).forEach(attachVideo);
+  }
 
   /* ---------- aplicar progresso ---------- */
   function apply(s, p) {
@@ -132,13 +174,8 @@
     s.start.style.transform = 'scale(' + (1 + 0.06 * p).toFixed(4) + ')';
     s.end.style.transform = 'scale(' + (1.06 - 0.06 * p).toFixed(4) + ')';
 
-    var v = s.video;
-    if (v && s.el.classList.contains('has-video') && v.duration) {
-      var t = p * v.duration;
-      if (Math.abs(t - s.lastT) > 0.033) {
-        s.lastT = t;
-        try { v.currentTime = t; } catch (err) {}
-      }
+    if (s.video && s.el.classList.contains('has-video')) {
+      seekTo(s, p * s.video.duration);
     }
 
     for (var i = 0; i < s.reveals.length; i++) {

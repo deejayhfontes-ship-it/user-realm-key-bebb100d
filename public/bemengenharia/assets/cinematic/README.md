@@ -24,12 +24,12 @@ abaixo. Nenhum código precisa ser editado.
 
 - **Frames (`start` / `end`):** WEBP, 2560×1440 (16:9), qualidade 82, sRGB. Peso alvo ≤ 450 KB.
 - **Mobile (`-mobile`):** WEBP, 1080×1920 (9:16), qualidade 82. Peso alvo ≤ 250 KB.
-- **Vídeo (`.mp4`):** H.264 High, 1920×1080, 24 fps, 5–10 s, **sem áudio**, `-movflags +faststart`,
-  keyframe a cada 12 frames (`-g 12`) para o scrub por scroll ficar fluido. Peso alvo ≤ 4 MB.
+- **Vídeo (`.mp4`):** H.264 High, 1280×720 ou 1920×1080, 24 fps, 5–10 s, **sem áudio**, `-movflags +faststart`,
+  **todo frame keyframe** (`-g 1 -bf 0`) para o scrub por scroll não travar. Peso ~6–8 MB por cena em 720p.
   Exemplo ffmpeg:
 
   ```
-  ffmpeg -i scene-01-raw.mp4 -an -c:v libx264 -profile:v high -preset slow -crf 20 -g 12 -keyint_min 12 -pix_fmt yuv420p -movflags +faststart -vf "scale=1920:1080" scene-01.mp4
+  ffmpeg -i scene-01-raw.mp4 -an -c:v libx264 -profile:v high -preset medium -crf 21 -g 1 -keyint_min 1 -bf 0 -sc_threshold 0 -tune fastdecode -pix_fmt yuv420p -movflags +faststart scene-01.mp4
   ```
 
 - **Primeiro frame do mp4 = `start.webp`; último frame = `end.webp`.** O crossfade dos frames e o vídeo têm de bater.
