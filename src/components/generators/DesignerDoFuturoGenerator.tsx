@@ -802,7 +802,7 @@ export function DesignerDoFuturoGenerator() {
     };
 
     return (
-        <div className="relative isolate flex flex-col lg:flex-row h-[calc(100vh-100px)] gap-0 bg-[#08080a] p-0 rounded-2xl overflow-hidden font-sans">
+        <div className="relative isolate flex flex-col lg:flex-row min-h-[calc(100vh-100px)] lg:h-[calc(100vh-100px)] gap-0 bg-[#08080a] p-0 rounded-2xl overflow-visible lg:overflow-hidden font-sans">
 
             {/* ── AMBIENT GLOW (fundo do liquid glass) ── */}
             <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
