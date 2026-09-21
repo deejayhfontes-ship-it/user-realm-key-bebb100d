@@ -64,7 +64,6 @@ const PASSOS: Passo[] = [
     ] },
     { id: 'series', tipo: 'multipla', bloco: 2, pergunta: 'Quais séries precisam encher?', ajuda: 'Pode marcar mais de uma — mas se marcar todas, a campanha fica genérica.', chips: ['Infantil', 'Fund. I', 'Fund. II', '1º ano EM', '2º ano EM', '3º ano EM', 'Pré-vestibular'] },
     { id: 'meta', tipo: 'texto', bloco: 2, pergunta: 'Quantas matrículas novas vocês querem?', ajuda: 'Um número, mesmo que seja chute. Serve de régua depois.', placeholder: 'Ex.: 80' },
-    { id: 'vagas', tipo: 'texto', bloco: 2, pergunta: 'E quantas vagas existem no total?', placeholder: 'Ex.: 120' },
     { id: 'lancamento', tipo: 'texto', bloco: 2, pergunta: 'Quando a campanha precisa estar na rua?', placeholder: 'Ex.: 15 de outubro', obrigatorio: true },
     { id: 'canais', tipo: 'multipla', bloco: 2, pergunta: 'Onde ela vai circular?', chips: ['Instagram', 'Outdoor', 'Fachada da escola', 'WhatsApp', 'Panfletagem', 'Rádio', 'Carro de som', 'Site', 'Feiras e eventos'] },
 
@@ -84,12 +83,6 @@ const PASSOS: Passo[] = [
         { valor: 'O próprio aluno', titulo: 'O próprio aluno', nota: 'Quer pertencer, quer orgulho' },
         { valor: 'Decisão conjunta', titulo: 'Os dois juntos', nota: 'Conversa em família' },
     ] },
-    { id: 'renda', tipo: 'escolha', bloco: 4, pergunta: 'Qual o perfil das famílias?', opcoes: [
-        { valor: 'Classe média', titulo: 'Classe média' },
-        { valor: 'Classe média alta', titulo: 'Classe média alta' },
-        { valor: 'Misto', titulo: 'Bem misto' },
-        { valor: 'Prefiro não informar', titulo: 'Prefiro não informar' },
-    ] },
     { id: 'objecoes', tipo: 'tres', bloco: 4, pergunta: 'Quando a matrícula não fecha, qual é a desculpa?', ajuda: 'Pensa em quem atende o telefone. Pode ser duro — quanto mais sincero, mais certeira fica a campanha.', campos: [
         'Ex.: é mais caro que o colégio do lado',
         'Ex.: fica longe de casa',
@@ -105,55 +98,36 @@ const PASSOS: Passo[] = [
         { valor: 'Não', titulo: 'Não — criem para nós', nota: 'Essa parte fica comigo' },
     ] },
     { id: 'diferenciais', tipo: 'multipla', bloco: 5, pergunta: 'O que a escola tem de melhor?', ajuda: 'Marca tudo que for verdade. Depois eu escolho o que cabe na peça.', chips: ['Sistema Bernoulli', 'Parceria com a FASB', 'Simulados oficiais', 'Carga horária ampliada', 'Aulas aos sábados', 'Plantão de dúvidas', 'Material digital', 'Professores especialistas', 'Acompanhamento individual'] },
-    { id: 'top3', tipo: 'tres', bloco: 5, pergunta: 'Desses, quais são os três mais fortes?', ajuda: 'Outdoor é lido em 4 segundos, a 60 km/h. Três é o teto — e só um vira manchete.', campos: ['O mais forte de todos', 'O segundo', 'O terceiro'] },
     { id: 'numeros', tipo: 'tres', bloco: 5, pergunta: 'Me dá três números de que vocês se orgulham.', ajuda: 'Número específico convence mais que adjetivo. "142 aprovações" vale mais que "excelência comprovada".', campos: [
         'Ex.: 142 aprovações em 2026',
         'Ex.: 28 anos de história',
         'Ex.: 70% acima da média no ENEM',
     ] },
     { id: 'tom', tipo: 'escala', bloco: 5, pergunta: 'Que tom a campanha deve ter?', extremos: ['Sóbrio, institucional', 'Jovem, energético'] },
-    { id: 'tratamento', tipo: 'escolha', bloco: 5, pergunta: 'Como falar com quem lê?', opcoes: [
-        { valor: 'Você', titulo: '"Você"', nota: 'Próximo, direto' },
-        { valor: 'Vocês', titulo: '"Vocês"', nota: 'Fala com a família' },
-        { valor: 'Impessoal', titulo: 'Impessoal', nota: 'Mais institucional' },
-    ] },
     { id: 'naopode', tipo: 'longo', bloco: 5, pergunta: 'Tem algo que não pode aparecer?', placeholder: 'Ex.: não citar nome de universidade, não comparar com outra escola' },
 
     // 6 — Visual
-    { id: 'coresok', tipo: 'escolha', bloco: 6, pergunta: 'As cores de hoje ainda servem?', opcoes: [
-        { valor: 'Manter', titulo: 'Servem, mantém' },
-        { valor: 'Ajustar', titulo: 'Servem, mas quero ajustar o tom' },
-        { valor: 'Trocar', titulo: 'Quero trocar' },
-    ] },
     { id: 'cores', tipo: 'cores', bloco: 6, pergunta: 'Mexe nas cores até parecer com 2027.', ajuda: 'Essas são as cores de 2026. Arrasta, troca, testa — o outdoor muda junto.' },
     { id: 'frase', tipo: 'frase', bloco: 6, pergunta: 'E se vocês pudessem dizer uma frase só?', ajuda: 'Escreve e olha ela aparecer no outdoor. Se não tiver ideia, deixa em branco — essa parte é comigo.' },
     { id: 'sensacao', tipo: 'multipla', bloco: 6, pergunta: 'O que essas cores precisam transmitir?', chips: ['Seriedade', 'Energia', 'Tradição', 'Inovação', 'Acolhimento', 'Exclusividade', 'Proximidade'] },
     { id: 'referencias', tipo: 'links', bloco: 6, pergunta: 'Me mostra coisas que vocês acham bonitas.', ajuda: 'Cola links do Pinterest, Instagram, site de outra escola — o que for.' },
-    { id: 'porquegosta', tipo: 'longo', bloco: 6, pergunta: 'O que te agrada nessas referências?', ajuda: 'Referência sem comentário engana: vocês podem ter gostado da tipografia e eu copiar a cor.', placeholder: 'Ex.: gostei das fotos grandes e do texto curto' },
     { id: 'naogosta', tipo: 'longo', bloco: 6, pergunta: 'E alguma que vocês detestam?', ajuda: 'Elimina um caminho inteiro antes de eu gastar uma rodada nele.', placeholder: 'Link ou descrição, e o motivo' },
 
     // 7 — Fotos e arquivos
     { id: 'fotos', tipo: 'upload', bloco: 7, pergunta: 'Onde estão as fotos dos alunos?', ajuda: 'Cola o link da pasta — Drive, WeTransfer, Dropbox. É o melhor caminho: a foto chega no tamanho original, sem perder qualidade.', obrigatorio: true },
-    { id: 'quantosalunos', tipo: 'texto', bloco: 7, pergunta: 'Quantos alunos aparecem nas fotos?', placeholder: 'Ex.: 6' },
-    { id: 'seriesfoto', tipo: 'multipla', bloco: 7, pergunta: 'De quais séries eles são?', chips: ['Infantil', 'Fund. I', 'Fund. II', '1º ano EM', '2º ano EM', '3º ano EM', 'Pré-vestibular'] },
     { id: 'autorizacao', tipo: 'escolha', bloco: 7, pergunta: 'As autorizações de uso de imagem estão assinadas?', ajuda: 'A maioria dos alunos é menor de idade. Sem autorização do responsável, a peça não pode circular.', opcoes: [
         { valor: 'Todas', titulo: 'Sim, de todos os alunos' },
         { valor: 'Parcial', titulo: 'De alguns' },
         { valor: 'Ainda não', titulo: 'Ainda não temos', nota: 'Sigo com as peças que não dependem de foto' },
     ] },
-    { id: 'aprovados', tipo: 'longo', bloco: 7, pergunta: 'Tem aprovados para virar prova social?', ajuda: 'Nome, curso e universidade. Se tiver foto, inclui no link da pasta.', placeholder: 'Ex.: Ana Beatriz — Medicina, UFBA' },
-    { id: 'marca', tipo: 'links', bloco: 7, pergunta: 'E os arquivos da marca?', ajuda: 'Logo vetorizado, manual de marca e logos dos parceiros (Bernoulli, FASB). Link de pasta ou site.' },
 
     // 8 — Produção
-    { id: 'pecas', tipo: 'multipla', bloco: 8, pergunta: 'Confirma as peças do orçamento?', ajuda: 'Já vem marcado o que foi contratado. Desmarca o que não quiser.', chips: ['Identidade visual', 'Instagram Feed', 'Instagram Stories', 'Capa de agenda', 'Cabeçalho de ofício', 'Pasta institucional', 'Outdoor (2 versões)', 'Folder', 'Guia acadêmico (capa + template)'] },
     { id: 'outdoor', tipo: 'tres', bloco: 8, pergunta: 'Sobre o outdoor:', ajuda: 'Cada gráfica pede sangria e resolução diferentes. Com esses dados eu entrego no padrão certo.', campos: ['Quantos pontos?', 'Medidas em metros', 'Qual gráfica e até quando ela precisa do arquivo'] },
     { id: 'guia', tipo: 'tres', bloco: 8, pergunta: 'Sobre o guia acadêmico:', ajuda: 'O contratado é capa e template do miolo. O conteúdo página a página é de vocês.', campos: ['Formato final', 'Quantas páginas', 'Quem entrega o conteúdo'] },
-    { id: 'graficas', tipo: 'longo', bloco: 8, pergunta: 'Outras medidas de gráfica?', placeholder: 'Pasta, folder e agenda: formato fechado, papel, acabamento' },
     { id: 'fixos', tipo: 'longo', bloco: 8, pergunta: 'O que precisa estar em todas as peças?', placeholder: 'Endereço, telefone, CNPJ, selos obrigatórios' },
     { id: 'matriculas', tipo: 'tres', bloco: 8, pergunta: 'Informações de matrícula para as peças:', campos: ['Período de matrículas', 'Descontos que podem ser divulgados', 'WhatsApp e @ do Instagram'] },
 
     // 9 — Fechamento
-    { id: 'entrega', tipo: 'texto', bloco: 9, pergunta: 'Qual a data limite de entrega?', placeholder: 'Ex.: 5 de outubro', obrigatorio: true },
     { id: 'livre', tipo: 'longo', bloco: 9, pergunta: 'Mais alguma coisa que eu precise saber?', placeholder: 'Fica à vontade' },
 
     { id: 'fim', tipo: 'fim', bloco: 9, pergunta: 'É isso. O briefing já está comigo.' },
@@ -358,9 +332,6 @@ export default function BriefingCampanha() {
     const [resp, setResp] = useState<Record<string, any>>({
         instituicao: 'Colégio Universitário',
         cidade: 'Teixeira de Freitas - BA',
-        pecas: ['Identidade visual', 'Instagram Feed', 'Instagram Stories', 'Capa de agenda',
-            'Cabeçalho de ofício', 'Pasta institucional', 'Outdoor (2 versões)', 'Folder',
-            'Guia acadêmico (capa + template)'],
     });
     const [arquivos, setArquivos] = useState<File[]>([]);
     const [enviando, setEnviando] = useState(false);
@@ -713,7 +684,7 @@ export default function BriefingCampanha() {
                                                         &nbsp; <span className="bc-sw" style={{ background: c2 }} />{c2.toUpperCase()}
                                                     </dd></div>
                                                     <div className="row"><dt>Frase</dt><dd>{resp.frase || 'a criar'}</dd></div>
-                                                    <div className="row"><dt>Entrega</dt><dd>{resp.entrega || '—'}</dd></div>
+                                                    <div className="row"><dt>Na rua em</dt><dd>{resp.lancamento || '—'}</dd></div>
                                                 </dl>
                                             </div>
                                             {erro && <div className="bc-err">{erro}</div>}
