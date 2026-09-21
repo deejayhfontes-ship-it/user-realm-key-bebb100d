@@ -30,14 +30,14 @@ const BLOCOS = [
     'Boas-vindas',
     'Quem pede',
     'O projeto',
-    'As peças',
+    'Informações fixas',
     'O visual',
     'Arquivos',
     'Fechamento',
 ];
 
 const PASSOS: Passo[] = [
-    { id: 'intro', tipo: 'intro', bloco: 0, pergunta: 'Vamos montar sua campanha.', ajuda: 'São 19 perguntas curtas e a maioria é só tocar. Leva uns 8 minutos.' },
+    { id: 'intro', tipo: 'intro', bloco: 0, pergunta: 'Vamos montar sua campanha.', ajuda: 'São 23 perguntas curtas e a maioria é só tocar. Leva uns 8 minutos.' },
 
     // 1 — Quem pede
     { id: 'nome', tipo: 'texto', bloco: 1, pergunta: 'Como você se chama?', placeholder: 'Seu nome', obrigatorio: true },
@@ -53,18 +53,34 @@ const PASSOS: Passo[] = [
 
     // 2 — O projeto
     { id: 'projeto', tipo: 'longo', bloco: 2, pergunta: 'Me conta sobre o projeto.', ajuda: 'Do seu jeito, sem formalidade. O que é, por que estão fazendo agora, o que precisa acontecer.', placeholder: 'Ex.: campanha de matrículas 2027, queremos mostrar as aprovações e encher o Ensino Médio', obrigatorio: true },
+    { id: 'nomecampanha', tipo: 'texto', bloco: 2, pergunta: 'A campanha já tem nome?', ajuda: 'Como vocês chamam ela internamente. Se ainda não tiver, deixa em branco.', placeholder: 'Ex.: Matrículas 2027' },
     { id: 'tipo', tipo: 'escolha', bloco: 2, pergunta: 'Que tipo de campanha é?', opcoes: [
         { valor: 'Matrículas', titulo: 'Matrículas' },
         { valor: 'Evento', titulo: 'Evento ou data comemorativa' },
         { valor: 'Institucional', titulo: 'Institucional' },
         { valor: 'Outro', titulo: 'Outra coisa' },
     ] },
-    { id: 'publico', tipo: 'texto', bloco: 2, pergunta: 'Quem vai ver essas peças?', ajuda: 'Muda bastante a arte: pai de aluno pequeno e aluno de Ensino Médio não olham a mesma coisa.', placeholder: 'Ex.: pais e alunos do Ensino Médio' },
+    { id: 'publico', tipo: 'texto', bloco: 2, pergunta: 'Qual o público-alvo?', ajuda: 'Muda bastante a arte: pai de aluno pequeno e aluno de Ensino Médio não olham a mesma coisa.', placeholder: 'Ex.: pais e alunos do Ensino Médio' },
     { id: 'tom', tipo: 'escala', bloco: 2, pergunta: 'Que tom a arte deve ter?', extremos: ['Sóbrio, institucional', 'Jovem, energético'] },
 
-    // 3 — As peças
+    // 3 — Informações fixas
+    { id: 'inscricoes', tipo: 'escolha', bloco: 3, pergunta: 'Vai ter período de inscrição ou matrícula?', opcoes: [
+        { valor: 'Sim', titulo: 'Sim, com data marcada' },
+        { valor: 'Ainda não definido', titulo: 'Vai ter, mas a data não está fechada' },
+        { valor: 'Não', titulo: 'Não tem período' },
+    ] },
+    { id: 'periodo', tipo: 'tres', bloco: 3, pergunta: 'De quando até quando?', ajuda: 'Essa data vai impressa na peça, então confere direitinho antes.', campos: [
+        'Começa em — ex.: 1º de outubro',
+        'Termina em — ex.: 30 de novembro',
+        'Alguma observação sobre o prazo',
+    ] },
+    { id: 'contatos', tipo: 'tres', bloco: 3, pergunta: 'Endereço e contatos atualizados.', ajuda: 'Confere agora: telefone antigo impresso em outdoor é prejuízo na certa.', campos: [
+        'Endereço completo',
+        'Telefones — fixo e WhatsApp',
+        'Site e @ do Instagram',
+    ] },
     { id: 'medidas', tipo: 'longo', bloco: 3, pergunta: 'Alguma medida ou exigência da gráfica?', ajuda: 'Se já souberem, adianta muito. Se não souberem, deixa em branco que eu pergunto depois.', placeholder: 'Ex.: outdoor 9x3m, folder A4 dobrado em 3, pasta com bolso' },
-    { id: 'textos', tipo: 'longo', bloco: 3, pergunta: 'O que precisa estar escrito nas peças?', ajuda: 'Endereço, telefone, datas, descontos, selos, logos de parceiros — tudo que for obrigatório.', placeholder: 'Ex.: Rua X, 123 · (73) 9 9999-9999 · @colegio · matrículas até 30/10' },
+    { id: 'textos', tipo: 'longo', bloco: 3, pergunta: 'Mais algum texto obrigatório?', ajuda: 'Descontos, selos, chamadas, avisos legais — o que mais precisa estar impresso.', placeholder: 'Ex.: 10% de desconto até 30/10 · vagas limitadas' },
 
     // 4 — O visual
     { id: 'cores', tipo: 'cores', bloco: 4, pergunta: 'Que cores você imagina?', ajuda: 'Arrasta, troca, testa — a arte ao lado muda junto.' },
