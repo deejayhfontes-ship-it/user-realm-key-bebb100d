@@ -63,7 +63,6 @@ const PASSOS: Passo[] = [
     { id: 'tom', tipo: 'escala', bloco: 2, pergunta: 'Que tom a arte deve ter?', extremos: ['Sóbrio, institucional', 'Jovem, energético'] },
 
     // 3 — As peças
-    { id: 'pecas', tipo: 'multipla', bloco: 3, pergunta: 'Quais peças você precisa?', ajuda: 'Marca tudo que for entrar nessa campanha.', chips: ['Identidade visual', 'Instagram Feed', 'Instagram Stories', 'Outdoor', 'Busdoor', 'Folder', 'Pasta institucional', 'Capa de agenda', 'Cabeçalho de ofício', 'Guia acadêmico', 'Banner', 'Cartaz'] },
     { id: 'medidas', tipo: 'longo', bloco: 3, pergunta: 'Alguma medida ou exigência da gráfica?', ajuda: 'Se já souberem, adianta muito. Se não souberem, deixa em branco que eu pergunto depois.', placeholder: 'Ex.: outdoor 9x3m, folder A4 dobrado em 3, pasta com bolso' },
     { id: 'textos', tipo: 'longo', bloco: 3, pergunta: 'O que precisa estar escrito nas peças?', ajuda: 'Endereço, telefone, datas, descontos, selos, logos de parceiros — tudo que for obrigatório.', placeholder: 'Ex.: Rua X, 123 · (73) 9 9999-9999 · @colegio · matrículas até 30/10' },
 
@@ -630,7 +629,7 @@ export default function BriefingCampanha() {
                                                 <dl>
                                                     <div className="row"><dt>Quem respondeu</dt><dd>{resp.nome || '—'}{resp.cargo ? ` · ${resp.cargo}` : ''}</dd></div>
                                                     <div className="row"><dt>Tipo</dt><dd>{resp.tipo || '—'}</dd></div>
-                                                    <div className="row"><dt>Peças</dt><dd>{(resp.pecas || []).join(', ') || '—'}</dd></div>
+                                                    <div className="row"><dt>Quem vai ver</dt><dd>{resp.publico || '—'}</dd></div>
                                                     <div className="row"><dt>Cores</dt><dd>
                                                         <span className="bc-sw" style={{ background: c1 }} />{c1.toUpperCase()}
                                                         &nbsp; <span className="bc-sw" style={{ background: c2 }} />{c2.toUpperCase()}

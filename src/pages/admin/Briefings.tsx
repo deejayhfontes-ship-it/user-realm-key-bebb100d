@@ -30,7 +30,7 @@ const SECTIONS = [
 const CAMPANHA_LABELS: Record<string, string> = {
   nome: 'Quem pediu', cargo: 'Cargo', whatsapp: 'WhatsApp', email: 'E-mail',
   projeto: 'Sobre o projeto', tipo: 'Tipo de campanha', publico: 'Quem vai ver',
-  tom: 'Tom da arte', pecas: 'Peças pedidas', medidas: 'Medidas e gráfica',
+  tom: 'Tom da arte', medidas: 'Medidas e gráfica',
   textos: 'Textos obrigatórios nas peças', frase: 'Frase da campanha',
   estilo: 'Clima da arte', referencias: 'Referências', naogosta: 'O que não quer',
   fotos: 'Link das fotos', links_arquivos: 'Links enviados', marca: 'Arquivos da marca',
@@ -40,7 +40,7 @@ const CAMPANHA_LABELS: Record<string, string> = {
 const CAMPANHA_SECOES: { t: string; campos: string[] }[] = [
   { t: '01 · Quem pediu', campos: ['nome', 'cargo', 'whatsapp', 'email'] },
   { t: '02 · O projeto', campos: ['projeto', 'tipo', 'publico', 'tom'] },
-  { t: '03 · As peças', campos: ['pecas', 'medidas', 'textos'] },
+  { t: '03 · As peças', campos: ['medidas', 'textos'] },
   { t: '04 · O visual', campos: ['frase', 'estilo', 'referencias', 'naogosta'] },
   { t: '05 · Arquivos', campos: ['fotos', 'links_arquivos', 'marca'] },
   { t: '06 · Fechamento', campos: ['prazo', 'livre'] },
@@ -52,7 +52,7 @@ const CAMPANHA_ESCALAS: Record<string, [string, string]> = {
 
 function isCampanha(r: any): boolean {
   if (!r) return false;
-  return ['projeto', 'pecas', 'instituicao', 'objetivo', 'anexos'].some((k) => r[k] !== undefined);
+  return ['projeto', 'instituicao', 'objetivo', 'anexos'].some((k) => r[k] !== undefined);
 }
 
 function CampoCampanha({ k, v }: { k: string; v: any }) {
