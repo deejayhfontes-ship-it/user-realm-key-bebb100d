@@ -28,109 +28,61 @@ interface Passo {
 
 const BLOCOS = [
     'Boas-vindas',
-    'Quem é você',
-    'O norte da campanha',
-    'O que 2026 ensinou',
-    'Quem convencer',
-    'A mensagem',
+    'Quem pede',
+    'O projeto',
+    'As peças',
     'O visual',
-    'Fotos e arquivos',
-    'Produção',
+    'Arquivos',
     'Fechamento',
 ];
 
 const PASSOS: Passo[] = [
-    { id: 'intro', tipo: 'intro', bloco: 0, pergunta: 'Vamos montar a campanha juntos.', ajuda: 'Sem formulário chato. São perguntas rápidas, a maioria é só tocar — e no meio do caminho você vê a campanha tomando forma na tela.' },
+    { id: 'intro', tipo: 'intro', bloco: 0, pergunta: 'Vamos montar sua campanha.', ajuda: 'Umas 20 perguntas rápidas, a maioria é só tocar. No meio do caminho você vai ver a arte tomando forma na tela.' },
 
-    // 1 — Quem é você
+    // 1 — Quem pede
     { id: 'nome', tipo: 'texto', bloco: 1, pergunta: 'Como você se chama?', placeholder: 'Seu nome', obrigatorio: true },
-    { id: 'cargo', tipo: 'escolha', bloco: 1, pergunta: 'E o que você faz na escola?', opcoes: [
+    { id: 'cargo', tipo: 'escolha', bloco: 1, pergunta: 'E o que você faz na instituição?', opcoes: [
         { valor: 'Direção', titulo: 'Direção' },
-        { valor: 'Coordenação pedagógica', titulo: 'Coordenação pedagógica' },
+        { valor: 'Coordenação', titulo: 'Coordenação' },
         { valor: 'Marketing e Comunicação', titulo: 'Marketing e Comunicação' },
         { valor: 'Secretaria', titulo: 'Secretaria' },
         { valor: 'Outro', titulo: 'Outra função' },
     ] },
     { id: 'whatsapp', tipo: 'texto', bloco: 1, pergunta: 'Qual WhatsApp eu chamo se precisar?', placeholder: '(73) 9 9999-9999', obrigatorio: true },
-    { id: 'email', tipo: 'texto', bloco: 1, pergunta: 'E o seu e-mail?', placeholder: 'voce@colegio.com.br', obrigatorio: true },
-    { id: 'aprovador', tipo: 'texto', bloco: 1, pergunta: 'Quem dá a palavra final na arte?', ajuda: 'Uma pessoa só. Aprovação por comitê é o que mais atrasa campanha.', placeholder: 'Nome e cargo — ou "sou eu mesmo"' },
+    { id: 'email', tipo: 'texto', bloco: 1, pergunta: 'E o seu e-mail?', placeholder: 'voce@instituicao.com.br', obrigatorio: true },
 
-    // 2 — Objetivo
-    { id: 'objetivo', tipo: 'escolha', bloco: 2, pergunta: 'Se a campanha acertasse em uma só coisa, qual seria?', ajuda: 'Escolhe uma. É ela que vai mandar em tudo depois.', opcoes: [
-        { valor: 'Trazer alunos novos', titulo: 'Trazer alunos novos', nota: 'Quem ainda não conhece a escola' },
-        { valor: 'Segurar a rematrícula', titulo: 'Segurar quem já está aqui', nota: 'Rematrícula em primeiro lugar' },
-        { valor: 'Fortalecer a marca', titulo: 'Fortalecer o nome da escola', nota: 'Ser a referência da cidade' },
-        { valor: 'Mostrar as aprovações', titulo: 'Mostrar as aprovações', nota: 'Deixar o resultado falar' },
+    // 2 — O projeto
+    { id: 'projeto', tipo: 'longo', bloco: 2, pergunta: 'Me conta sobre o projeto.', ajuda: 'Do seu jeito, sem formalidade. O que é, por que estão fazendo agora, o que precisa acontecer.', placeholder: 'Ex.: campanha de matrículas 2027, queremos mostrar as aprovações e encher o Ensino Médio', obrigatorio: true },
+    { id: 'tipo', tipo: 'escolha', bloco: 2, pergunta: 'Que tipo de campanha é?', opcoes: [
+        { valor: 'Matrículas', titulo: 'Matrículas' },
+        { valor: 'Evento', titulo: 'Evento ou data comemorativa' },
+        { valor: 'Institucional', titulo: 'Institucional' },
+        { valor: 'Outro', titulo: 'Outra coisa' },
     ] },
-    { id: 'series', tipo: 'multipla', bloco: 2, pergunta: 'Quais séries precisam encher?', ajuda: 'Pode marcar mais de uma — mas se marcar todas, a campanha fica genérica.', chips: ['Infantil', 'Fund. I', 'Fund. II', '1º ano EM', '2º ano EM', '3º ano EM', 'Pré-vestibular'] },
-    { id: 'meta', tipo: 'texto', bloco: 2, pergunta: 'Quantas matrículas novas vocês querem?', ajuda: 'Um número, mesmo que seja chute. Serve de régua depois.', placeholder: 'Ex.: 80' },
-    { id: 'lancamento', tipo: 'texto', bloco: 2, pergunta: 'Quando a campanha precisa estar na rua?', placeholder: 'Ex.: 15 de outubro', obrigatorio: true },
-    { id: 'canais', tipo: 'multipla', bloco: 2, pergunta: 'Onde ela vai circular?', chips: ['Instagram', 'Outdoor', 'Fachada da escola', 'WhatsApp', 'Panfletagem', 'Rádio', 'Carro de som', 'Site', 'Feiras e eventos'] },
+    { id: 'publico', tipo: 'texto', bloco: 2, pergunta: 'Quem vai ver essas peças?', ajuda: 'Muda bastante a arte: pai de aluno pequeno e aluno de Ensino Médio não olham a mesma coisa.', placeholder: 'Ex.: pais e alunos do Ensino Médio' },
+    { id: 'tom', tipo: 'escala', bloco: 2, pergunta: 'Que tom a arte deve ter?', extremos: ['Sóbrio, institucional', 'Jovem, energético'] },
 
-    // 3 — 2026
-    { id: 'nota2026', tipo: 'escala', bloco: 3, pergunta: 'Como foi a campanha "Resultado não é sorte"?', extremos: ['Ficou devendo', 'Superou'] },
-    { id: 'funcionou', tipo: 'longo', bloco: 3, pergunta: 'O que mais funcionou nela?', placeholder: 'Ex.: o outdoor na entrada da cidade gerou ligação direta na secretaria' },
-    { id: 'naorepetir', tipo: 'longo', bloco: 3, pergunta: 'E o que não dá para repetir?', placeholder: 'Ex.: o folder tinha texto demais, ninguém leu' },
-    { id: 'direcao', tipo: 'escolha', bloco: 3, pergunta: 'Para 2027, a linha visual…', opcoes: [
-        { valor: 'Manter', titulo: 'Mantém como está', nota: 'Azul e verde, peças geométricas' },
-        { valor: 'Evoluir', titulo: 'Evolui, mas guarda as cores', nota: 'Mesma família, cara nova' },
-        { valor: 'Recomeçar', titulo: 'Começa do zero', nota: 'Algo mudou de verdade na escola' },
-    ] },
+    // 3 — As peças
+    { id: 'pecas', tipo: 'multipla', bloco: 3, pergunta: 'Quais peças você precisa?', ajuda: 'Marca tudo que for entrar nessa campanha.', chips: ['Identidade visual', 'Instagram Feed', 'Instagram Stories', 'Outdoor', 'Busdoor', 'Folder', 'Pasta institucional', 'Capa de agenda', 'Cabeçalho de ofício', 'Guia acadêmico', 'Banner', 'Cartaz'] },
+    { id: 'medidas', tipo: 'longo', bloco: 3, pergunta: 'Alguma medida ou exigência da gráfica?', ajuda: 'Se já souberem, adianta muito. Se não souberem, deixa em branco que eu pergunto depois.', placeholder: 'Ex.: outdoor 9x3m, folder A4 dobrado em 3, pasta com bolso' },
+    { id: 'textos', tipo: 'longo', bloco: 3, pergunta: 'O que precisa estar escrito nas peças?', ajuda: 'Endereço, telefone, datas, descontos, selos, logos de parceiros — tudo que for obrigatório.', placeholder: 'Ex.: Rua X, 123 · (73) 9 9999-9999 · @colegio · matrículas até 30/10' },
 
-    // 4 — Público
-    { id: 'decisor', tipo: 'escolha', bloco: 4, pergunta: 'Quem decide a matrícula?', opcoes: [
-        { valor: 'Mãe ou pai', titulo: 'Mãe ou pai', nota: 'Querem segurança e resultado' },
-        { valor: 'O próprio aluno', titulo: 'O próprio aluno', nota: 'Quer pertencer, quer orgulho' },
-        { valor: 'Decisão conjunta', titulo: 'Os dois juntos', nota: 'Conversa em família' },
-    ] },
-    { id: 'objecoes', tipo: 'tres', bloco: 4, pergunta: 'Quando a matrícula não fecha, qual é a desculpa?', ajuda: 'Pensa em quem atende o telefone. Pode ser duro — quanto mais sincero, mais certeira fica a campanha.', campos: [
-        'Ex.: é mais caro que o colégio do lado',
-        'Ex.: fica longe de casa',
-        'Ex.: não conheço os resultados de vocês',
-    ] },
-    { id: 'concorrentes', tipo: 'longo', bloco: 4, pergunta: 'Quem são os concorrentes e o que eles prometem?', placeholder: 'Ex.: Colégio X — fala muito em aprovação na federal' },
-    { id: 'porque', tipo: 'longo', bloco: 4, pergunta: 'Por que um aluno escolhe vocês e não eles?', ajuda: 'Se a resposta também serve para o concorrente, não é diferencial. Aí eu volto com uma proposta antes de desenhar.', obrigatorio: true },
+    // 4 — O visual
+    { id: 'cores', tipo: 'cores', bloco: 4, pergunta: 'Que cores você imagina?', ajuda: 'Arrasta, troca, testa — a arte ao lado muda junto.' },
+    { id: 'frase', tipo: 'frase', bloco: 4, pergunta: 'Tem alguma frase para a campanha?', ajuda: 'Escreve e olha ela aparecer na arte. Se não tiver ideia, deixa em branco — essa parte é comigo.' },
+    { id: 'estilo', tipo: 'multipla', bloco: 4, pergunta: 'Que clima a arte precisa ter?', chips: ['Sofisticado', 'Moderno', 'Clássico', 'Jovem', 'Acolhedor', 'Impactante', 'Minimalista', 'Colorido', 'Sério'] },
+    { id: 'referencias', tipo: 'links', bloco: 4, pergunta: 'Me mostra referências que você gosta.', ajuda: 'Cola links do Pinterest, Instagram, site — ou de qualquer arte que te agrade.' },
+    { id: 'naogosta', tipo: 'longo', bloco: 4, pergunta: 'E alguma coisa que você não quer de jeito nenhum?', ajuda: 'Elimina um caminho inteiro antes de eu gastar uma rodada nele.', placeholder: 'Ex.: nada de fundo escuro, sem foto de banco de imagem' },
 
-    // 5 — Mensagem
-    { id: 'temfrase', tipo: 'escolha', bloco: 5, pergunta: 'Vocês já têm a frase da campanha?', opcoes: [
-        { valor: 'Sim', titulo: 'Sim, já está definida' },
-        { valor: 'Ideias', titulo: 'Temos ideias soltas' },
-        { valor: 'Não', titulo: 'Não — criem para nós', nota: 'Essa parte fica comigo' },
-    ] },
-    { id: 'diferenciais', tipo: 'multipla', bloco: 5, pergunta: 'O que a escola tem de melhor?', ajuda: 'Marca tudo que for verdade. Depois eu escolho o que cabe na peça.', chips: ['Sistema Bernoulli', 'Parceria com a FASB', 'Simulados oficiais', 'Carga horária ampliada', 'Aulas aos sábados', 'Plantão de dúvidas', 'Material digital', 'Professores especialistas', 'Acompanhamento individual'] },
-    { id: 'numeros', tipo: 'tres', bloco: 5, pergunta: 'Me dá três números de que vocês se orgulham.', ajuda: 'Número específico convence mais que adjetivo. "142 aprovações" vale mais que "excelência comprovada".', campos: [
-        'Ex.: 142 aprovações em 2026',
-        'Ex.: 28 anos de história',
-        'Ex.: 70% acima da média no ENEM',
-    ] },
-    { id: 'tom', tipo: 'escala', bloco: 5, pergunta: 'Que tom a campanha deve ter?', extremos: ['Sóbrio, institucional', 'Jovem, energético'] },
-    { id: 'naopode', tipo: 'longo', bloco: 5, pergunta: 'Tem algo que não pode aparecer?', placeholder: 'Ex.: não citar nome de universidade, não comparar com outra escola' },
+    // 5 — Arquivos
+    { id: 'fotos', tipo: 'upload', bloco: 5, pergunta: 'Onde estão as fotos?', ajuda: 'Cola o link da pasta — Drive, WeTransfer, Dropbox. É o melhor caminho: a foto chega no tamanho original, sem perder qualidade.', obrigatorio: true },
+    { id: 'marca', tipo: 'links', bloco: 5, pergunta: 'E os arquivos da marca?', ajuda: 'Logo em vetor, manual de marca e logos de parceiros. Link da pasta ou do site.' },
 
-    // 6 — Visual
-    { id: 'cores', tipo: 'cores', bloco: 6, pergunta: 'Mexe nas cores até parecer com 2027.', ajuda: 'Essas são as cores de 2026. Arrasta, troca, testa — o outdoor muda junto.' },
-    { id: 'frase', tipo: 'frase', bloco: 6, pergunta: 'E se vocês pudessem dizer uma frase só?', ajuda: 'Escreve e olha ela aparecer no outdoor. Se não tiver ideia, deixa em branco — essa parte é comigo.' },
-    { id: 'sensacao', tipo: 'multipla', bloco: 6, pergunta: 'O que essas cores precisam transmitir?', chips: ['Seriedade', 'Energia', 'Tradição', 'Inovação', 'Acolhimento', 'Exclusividade', 'Proximidade'] },
-    { id: 'referencias', tipo: 'links', bloco: 6, pergunta: 'Me mostra coisas que vocês acham bonitas.', ajuda: 'Cola links do Pinterest, Instagram, site de outra escola — o que for.' },
-    { id: 'naogosta', tipo: 'longo', bloco: 6, pergunta: 'E alguma que vocês detestam?', ajuda: 'Elimina um caminho inteiro antes de eu gastar uma rodada nele.', placeholder: 'Link ou descrição, e o motivo' },
+    // 6 — Fechamento
+    { id: 'prazo', tipo: 'texto', bloco: 6, pergunta: 'Para quando você precisa?', placeholder: 'Ex.: 15 de outubro', obrigatorio: true },
+    { id: 'livre', tipo: 'longo', bloco: 6, pergunta: 'Mais alguma coisa que eu precise saber?', placeholder: 'Fica à vontade' },
 
-    // 7 — Fotos e arquivos
-    { id: 'fotos', tipo: 'upload', bloco: 7, pergunta: 'Onde estão as fotos dos alunos?', ajuda: 'Cola o link da pasta — Drive, WeTransfer, Dropbox. É o melhor caminho: a foto chega no tamanho original, sem perder qualidade.', obrigatorio: true },
-    { id: 'autorizacao', tipo: 'escolha', bloco: 7, pergunta: 'As autorizações de uso de imagem estão assinadas?', ajuda: 'A maioria dos alunos é menor de idade. Sem autorização do responsável, a peça não pode circular.', opcoes: [
-        { valor: 'Todas', titulo: 'Sim, de todos os alunos' },
-        { valor: 'Parcial', titulo: 'De alguns' },
-        { valor: 'Ainda não', titulo: 'Ainda não temos', nota: 'Sigo com as peças que não dependem de foto' },
-    ] },
-
-    // 8 — Produção
-    { id: 'outdoor', tipo: 'tres', bloco: 8, pergunta: 'Sobre o outdoor:', ajuda: 'Cada gráfica pede sangria e resolução diferentes. Com esses dados eu entrego no padrão certo.', campos: ['Quantos pontos?', 'Medidas em metros', 'Qual gráfica e até quando ela precisa do arquivo'] },
-    { id: 'guia', tipo: 'tres', bloco: 8, pergunta: 'Sobre o guia acadêmico:', ajuda: 'O contratado é capa e template do miolo. O conteúdo página a página é de vocês.', campos: ['Formato final', 'Quantas páginas', 'Quem entrega o conteúdo'] },
-    { id: 'fixos', tipo: 'longo', bloco: 8, pergunta: 'O que precisa estar em todas as peças?', placeholder: 'Endereço, telefone, CNPJ, selos obrigatórios' },
-    { id: 'matriculas', tipo: 'tres', bloco: 8, pergunta: 'Informações de matrícula para as peças:', campos: ['Período de matrículas', 'Descontos que podem ser divulgados', 'WhatsApp e @ do Instagram'] },
-
-    // 9 — Fechamento
-    { id: 'livre', tipo: 'longo', bloco: 9, pergunta: 'Mais alguma coisa que eu precise saber?', placeholder: 'Fica à vontade' },
-
-    { id: 'fim', tipo: 'fim', bloco: 9, pergunta: 'É isso. O briefing já está comigo.' },
+    { id: 'fim', tipo: 'fim', bloco: 6, pergunta: 'É isso. O briefing já está comigo.' },
 ];
 
 const PADRAO = { c1: '#12336E', c2: '#3DD6A3' };
@@ -677,14 +629,14 @@ export default function BriefingCampanha() {
                                             <div className="bc-done">
                                                 <dl>
                                                     <div className="row"><dt>Quem respondeu</dt><dd>{resp.nome || '—'}{resp.cargo ? ` · ${resp.cargo}` : ''}</dd></div>
-                                                    <div className="row"><dt>Objetivo</dt><dd>{resp.objetivo || '—'}</dd></div>
-                                                    <div className="row"><dt>Séries</dt><dd>{(resp.series || []).join(', ') || '—'}</dd></div>
+                                                    <div className="row"><dt>Tipo</dt><dd>{resp.tipo || '—'}</dd></div>
+                                                    <div className="row"><dt>Peças</dt><dd>{(resp.pecas || []).join(', ') || '—'}</dd></div>
                                                     <div className="row"><dt>Cores</dt><dd>
                                                         <span className="bc-sw" style={{ background: c1 }} />{c1.toUpperCase()}
                                                         &nbsp; <span className="bc-sw" style={{ background: c2 }} />{c2.toUpperCase()}
                                                     </dd></div>
                                                     <div className="row"><dt>Frase</dt><dd>{resp.frase || 'a criar'}</dd></div>
-                                                    <div className="row"><dt>Na rua em</dt><dd>{resp.lancamento || '—'}</dd></div>
+                                                    <div className="row"><dt>Prazo</dt><dd>{resp.prazo || '—'}</dd></div>
                                                 </dl>
                                             </div>
                                             {erro && <div className="bc-err">{erro}</div>}

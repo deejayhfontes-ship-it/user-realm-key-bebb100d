@@ -28,38 +28,31 @@ const SECTIONS = [
 // Formato diferente do briefing estratégico: respostas são chave/valor livres.
 // Renderiza em seções, com escalas visuais, amostras de cor e tags.
 const CAMPANHA_LABELS: Record<string, string> = {
-  nome: 'Quem respondeu', cargo: 'Cargo', whatsapp: 'WhatsApp', email: 'E-mail',
-  aprovador: 'Quem aprova a arte', objetivo: 'Objetivo principal', series: 'Séries prioritárias',
-  meta: 'Meta de matrículas', lancamento: 'Data de lançamento', canais: 'Onde vai circular',
-  nota2026: 'Nota da campanha 2026', funcionou: 'O que funcionou', naorepetir: 'O que não repetir',
-  direcao: 'Direção visual 2027', decisor: 'Quem decide a matrícula',
-  objecoes: 'Objeções mais ouvidas', concorrentes: 'Concorrentes', porque: 'Por que escolhem vocês',
-  temfrase: 'Já tem frase?', frase: 'Frase da campanha', diferenciais: 'Diferenciais',
-  numeros: 'Números de orgulho', tom: 'Tom de voz', naopode: 'O que não pode aparecer',
-  sensacao: 'Sensação das cores', referencias: 'Referências (links)',
-  naogosta: 'Referência que não gosta', fotos: 'Link das fotos',
-  autorizacao: 'Autorização de uso de imagem', outdoor: 'Outdoor', guia: 'Guia acadêmico',
-  fixos: 'Textos fixos nas peças', matriculas: 'Informações de matrícula', livre: 'Observações',
+  nome: 'Quem pediu', cargo: 'Cargo', whatsapp: 'WhatsApp', email: 'E-mail',
+  projeto: 'Sobre o projeto', tipo: 'Tipo de campanha', publico: 'Quem vai ver',
+  tom: 'Tom da arte', pecas: 'Peças pedidas', medidas: 'Medidas e gráfica',
+  textos: 'Textos obrigatórios nas peças', frase: 'Frase da campanha',
+  estilo: 'Clima da arte', referencias: 'Referências', naogosta: 'O que não quer',
+  fotos: 'Link das fotos', links_arquivos: 'Links enviados', marca: 'Arquivos da marca',
+  prazo: 'Prazo', livre: 'Observações',
 };
 
 const CAMPANHA_SECOES: { t: string; campos: string[] }[] = [
-  { t: '01 · Contato', campos: ['nome', 'cargo', 'whatsapp', 'email', 'aprovador'] },
-  { t: '02 · Objetivo da campanha', campos: ['objetivo', 'series', 'meta', 'lancamento', 'canais'] },
-  { t: '03 · O que 2026 ensinou', campos: ['nota2026', 'funcionou', 'naorepetir', 'direcao'] },
-  { t: '04 · Público e concorrência', campos: ['decisor', 'objecoes', 'concorrentes', 'porque'] },
-  { t: '05 · Mensagem', campos: ['temfrase', 'frase', 'diferenciais', 'numeros', 'tom', 'naopode'] },
-  { t: '06 · Identidade visual', campos: ['sensacao', 'referencias', 'naogosta'] },
-  { t: '07 · Fotos e produção', campos: ['fotos', 'autorizacao', 'outdoor', 'guia', 'fixos', 'matriculas'] },
-  { t: '08 · Observações', campos: ['livre'] },
+  { t: '01 · Quem pediu', campos: ['nome', 'cargo', 'whatsapp', 'email'] },
+  { t: '02 · O projeto', campos: ['projeto', 'tipo', 'publico', 'tom'] },
+  { t: '03 · As peças', campos: ['pecas', 'medidas', 'textos'] },
+  { t: '04 · O visual', campos: ['frase', 'estilo', 'referencias', 'naogosta'] },
+  { t: '05 · Arquivos', campos: ['fotos', 'links_arquivos', 'marca'] },
+  { t: '06 · Fechamento', campos: ['prazo', 'livre'] },
 ];
 
 const CAMPANHA_ESCALAS: Record<string, [string, string]> = {
-  nota2026: ['Ficou devendo', 'Superou'],
   tom: ['Sóbrio, institucional', 'Jovem, energético'],
 };
 
 function isCampanha(r: any): boolean {
-  return !!r && (r.objetivo !== undefined || r.instituicao !== undefined || Array.isArray(r.anexos));
+  if (!r) return false;
+  return ['projeto', 'pecas', 'instituicao', 'objetivo', 'anexos'].some((k) => r[k] !== undefined);
 }
 
 function CampoCampanha({ k, v }: { k: string; v: any }) {
@@ -116,7 +109,7 @@ function BriefingCampanhaView({ respostas }: { respostas: any }) {
           const v = respostas?.[k];
           return Array.isArray(v) ? v.filter(Boolean).length > 0 : v !== undefined && v !== null && v !== '';
         });
-        const temCor = sec.t.indexOf('Identidade') !== -1 && (c1 || c2);
+        const temCor = sec.t.indexOf('visual') !== -1 && (c1 || c2);
         if (!campos.length && !temCor) return null;
         return (
           <div className="sec" key={sec.t}>
