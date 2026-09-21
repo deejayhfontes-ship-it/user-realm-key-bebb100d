@@ -3,8 +3,9 @@ import { supabase } from '@/integrations/supabase/client';
 
 // ============================================================
 // Briefing de campanha — formulário público conversado.
-// Uma pergunta por tela, a maioria em clique. Anexos vão para
-// uma pasta no Google Drive criada pela edge function.
+// Uma pergunta por tela, a maioria em clique. Os anexos vão para o
+// Storage do Supabase pela edge function briefing-campanha e aparecem
+// no painel junto com as respostas.
 // ============================================================
 
 type Tipo = 'intro' | 'texto' | 'escolha' | 'multipla' | 'tres' | 'longo' | 'cores' | 'frase' | 'upload' | 'links' | 'escala' | 'fim';
@@ -320,7 +321,7 @@ export default function BriefingCampanha() {
                 try {
                     const base64 = await toBase64(f);
                     const up = await supabase.functions.invoke('briefing-campanha', {
-                        body: { action: 'UPLOAD', folder_id: data.folder_id, name: f.name, mime: f.type, base64 },
+                        body: { action: 'UPLOAD', briefing_id: data.briefing_id, name: f.name, mime: f.type, base64 },
                     });
                     if (!up.error && !up.data?.error) enviados++;
                 } catch {

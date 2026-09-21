@@ -130,19 +130,64 @@ Deno.serve(async (req) => {
         const sa: ServiceAccountKey = JSON.parse(saJson)
 
         // ── UPLOAD: um arquivo por requisição (evita estourar o limite de body) ──
+        //
+        // Os arquivos vão para o Storage do Supabase, não para o Drive: uma service
+        // account do Google não tem cota de armazenamento própria, então ela cria
+        // pastas mas não consegue subir arquivos numa conta Gmail comum
+        // ("Service Accounts do not have storage quota"). Isso só mudaria com
+        // Google Workspace (Drive compartilhado) ou com OAuth da conta do usuário.
         if (action === 'UPLOAD') {
-            const { folder_id, name, mime, base64 } = body
-            if (!folder_id || !name || !base64) {
+            const { briefing_id, name, mime, base64 } = body
+            if (!briefing_id || !name || !base64) {
                 return new Response(
-                    JSON.stringify({ error: 'folder_id, name e base64 são obrigatórios' }),
+                    JSON.stringify({ error: 'briefing_id, name e base64 são obrigatórios' }),
                     { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
                 )
             }
-            const token = await getAccessToken(sa)
-            const file = await uploadFile(token, folder_id, name, mime, base64)
-            console.log(`📎 upload ok: ${name} → ${file.id}`)
+
+            const supabaseAdmin = createClient(
+                Deno.env.get('SUPABASE_URL') ?? '',
+                Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+            )
+
+            // Garante o bucket (privado) na primeira execução
+            const { data: buckets } = await supabaseAdmin.storage.listBuckets()
+            if (!buckets?.some((b) => b.name === 'briefings')) {
+                await supabaseAdmin.storage.createBucket('briefings', { public: false })
+                console.log('🪣 bucket "briefings" criado')
+            }
+
+            const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0))
+            const limpo = name.replace(/[^\w.\-]+/g, '_')
+            const path = `${briefing_id}/${Date.now()}_${limpo}`
+
+            const { error: upErr } = await supabaseAdmin.storage
+                .from('briefings')
+                .upload(path, bytes, { contentType: mime || 'application/octet-stream', upsert: false })
+            if (upErr) throw new Error(`Storage: ${upErr.message}`)
+
+            // Link temporário de 1 ano para abrir direto do painel
+            const { data: signed } = await supabaseAdmin.storage
+                .from('briefings')
+                .createSignedUrl(path, 60 * 60 * 24 * 365)
+
+            // Anexa o arquivo à lista de anexos do briefing
+            const { data: atual } = await supabaseAdmin
+                .from('briefings')
+                .select('respostas')
+                .eq('id', briefing_id)
+                .single()
+            const respostasAtuais = (atual?.respostas as Record<string, unknown>) || {}
+            const anexos = Array.isArray(respostasAtuais.anexos) ? respostasAtuais.anexos : []
+            anexos.push({ nome: name, tamanho: bytes.length, path, url: signed?.signedUrl ?? null })
+            await supabaseAdmin
+                .from('briefings')
+                .update({ respostas: { ...respostasAtuais, anexos } })
+                .eq('id', briefing_id)
+
+            console.log(`📎 upload ok: ${name} (${bytes.length} bytes) → ${path}`)
             return new Response(
-                JSON.stringify({ success: true, file: { id: file.id, name: file.name, link: file.webViewLink } }),
+                JSON.stringify({ success: true, file: { nome: name, path, url: signed?.signedUrl ?? null } }),
                 { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             )
         }
