@@ -366,17 +366,39 @@ export default function BriefingCampanha() {
         setErro(null);
         try {
             setProgresso('Enviando suas respostas...');
-            const { data, error } = await supabase.functions.invoke('briefing-campanha', {
-                body: {
-                    action: 'SUBMIT',
-                    nome: resp.nome || 'Sem nome',
-                    cidade: resp.cidade,
-                    cargo: resp.cargo || null,
-                    respostas: resp,
-                },
-            });
-            if (error) throw new Error(error.message);
-            if (data?.error) throw new Error(data.error);
+            const base = {
+                nome: resp.nome || 'Sem nome',
+                cidade: resp.cidade,
+                cargo: resp.cargo || null,
+                respostas: resp,
+            };
+
+            // Caminho normal: a edge function grava e cria a pasta no Drive.
+            let data: any = null;
+            let falha = '';
+            try {
+                const r = await supabase.functions.invoke('briefing-campanha', {
+                    body: { action: 'SUBMIT', ...base },
+                });
+                if (r.error) throw new Error(r.error.message);
+                if (r.data?.error) throw new Error(r.data.error);
+                data = r.data;
+            } catch (e) {
+                falha = e instanceof Error ? e.message : String(e);
+            }
+
+            // Rede de segurança: se a function falhar, grava direto na tabela.
+            // Sem isso, uma instábilidade do servidor apagaria 23 respostas do cliente.
+            if (!data?.briefing_id) {
+                setProgresso('Tentando de novo por outro caminho...');
+                const alt = await supabase
+                    .from('briefings')
+                    .insert({ ...base, respostas: { ...resp, envio_alternativo: true, falha_function: falha } })
+                    .select('id')
+                    .single();
+                if (alt.error) throw new Error(falha || alt.error.message);
+                data = { briefing_id: (alt.data as any)?.id };
+            }
 
             let enviados = 0;
             for (let k = 0; k < arquivos.length; k++) {
