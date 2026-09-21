@@ -37,7 +37,7 @@ const BLOCOS = [
 ];
 
 const PASSOS: Passo[] = [
-    { id: 'intro', tipo: 'intro', bloco: 0, pergunta: 'Vamos montar sua campanha.', ajuda: 'Umas 20 perguntas rápidas, a maioria é só tocar. No meio do caminho você vai ver a arte tomando forma na tela.' },
+    { id: 'intro', tipo: 'intro', bloco: 0, pergunta: 'Vamos montar sua campanha.', ajuda: 'São 19 perguntas curtas e a maioria é só tocar. Leva uns 8 minutos.' },
 
     // 1 — Quem pede
     { id: 'nome', tipo: 'texto', bloco: 1, pergunta: 'Como você se chama?', placeholder: 'Seu nome', obrigatorio: true },
@@ -85,6 +85,14 @@ const PASSOS: Passo[] = [
 ];
 
 const PADRAO = { c1: '#12336E', c2: '#3DD6A3' };
+const RASCUNHO = 'briefing-campanha-rascunho';
+
+function lerRascunho(): { resp?: Record<string, any>; i?: number } {
+    try {
+        const cru = localStorage.getItem(RASCUNHO);
+        return cru ? JSON.parse(cru) : {};
+    } catch { return {}; }
+}
 
 const CSS = `
 .bc-root{
@@ -279,8 +287,9 @@ function Outdoor({ c1, c2, frase }: { c1: string; c2: string; frase: string }) {
 }
 
 export default function BriefingCampanha() {
-    const [i, setI] = useState(0);
-    const [resp, setResp] = useState<Record<string, any>>({
+    const salvo = lerRascunho();
+    const [i, setI] = useState(salvo.i ?? 0);
+    const [resp, setResp] = useState<Record<string, any>>(salvo.resp ?? {
         instituicao: 'Colégio Universitário',
         cidade: 'Teixeira de Freitas - BA',
     });
@@ -294,7 +303,7 @@ export default function BriefingCampanha() {
     const passo = PASSOS[i];
     const total = PASSOS.length - 1;
     const pct = Math.round((i / total) * 100);
-    const mins = Math.max(1, Math.round(10 - (i / total) * 9));
+    const mins = Math.max(1, Math.round(8 - (i / total) * 7));
 
     const set = (id: string, v: any) => setResp((p) => ({ ...p, [id]: v }));
 
@@ -310,6 +319,13 @@ export default function BriefingCampanha() {
         const t = setTimeout(() => inputRef.current?.focus(), 340);
         return () => clearTimeout(t);
     }, [i]);
+
+    // Guarda o rascunho no aparelho para a pessoa poder parar no meio.
+    // Arquivos anexados não cabem aqui — precisam ser escolhidos de novo.
+    useEffect(() => {
+        if (resultado) return;
+        try { localStorage.setItem(RASCUNHO, JSON.stringify({ resp, i })); } catch { /* modo privado */ }
+    }, [resp, i, resultado]);
 
     useEffect(() => {
         const h = (e: KeyboardEvent) => {
@@ -360,6 +376,7 @@ export default function BriefingCampanha() {
             }
 
             setResultado({ enviados });
+            try { localStorage.removeItem(RASCUNHO); } catch { /* noop */ }
             setProgresso('');
             setI(total);
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -426,7 +443,7 @@ export default function BriefingCampanha() {
                             {passo.tipo === 'intro' && (
                                 <>
                                     <button className="bc-go" onClick={avancar}>Começar &nbsp;→</button>
-                                    <p className="bc-hint">Cerca de 10 minutos. Pode parar e voltar depois.</p>
+                                    <p className="bc-hint">Suas respostas ficam salvas neste aparelho, então dá para parar e voltar depois.</p>
                                 </>
                             )}
 
