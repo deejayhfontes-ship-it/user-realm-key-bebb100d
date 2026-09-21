@@ -37,7 +37,7 @@ const CAMPANHA_LABELS: Record<string, string> = {
   tom: 'Tom de voz (1-5)', naopode: 'O que nao pode aparecer', c1: 'Cor principal',
   c2: 'Cor de destaque', frase: 'Frase da campanha', sensacao: 'Sensacao das cores',
   referencias: 'Referencias (links)', naogosta: 'Referencia que nao gosta',
-  autorizacao: 'Autorizacao de uso de imagem', outdoor: 'Outdoor', guia: 'Guia academico',
+  fotos: 'Link das fotos', links_arquivos: 'Links enviados', autorizacao: 'Autorizacao de uso de imagem', outdoor: 'Outdoor', guia: 'Guia academico',
   fixos: 'Textos fixos nas pecas', matriculas: 'Informacoes de matricula', livre: 'Observacoes',
 };
 const CAMPANHA_ORDEM = Object.keys(CAMPANHA_LABELS);

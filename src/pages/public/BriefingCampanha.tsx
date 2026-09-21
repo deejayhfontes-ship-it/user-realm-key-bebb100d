@@ -90,10 +90,10 @@ const PASSOS: Passo[] = [
     { id: 'frase', tipo: 'frase', pergunta: 'E se vocês pudessem dizer uma frase só?', ajuda: 'Escreve e olha ela aparecer no outdoor. Se não tiver ideia, deixa em branco — essa parte é comigo.' },
     { id: 'sensacao', tipo: 'multipla', pergunta: 'O que essas cores precisam transmitir?', chips: ['Seriedade', 'Energia', 'Tradição', 'Inovação', 'Acolhimento', 'Exclusividade', 'Proximidade'] },
 
-    { id: 'referencias', tipo: 'links', kicker: 'Referências', pergunta: 'Me mostra coisas que vocês acham bonitas.', ajuda: 'Cola links do Pinterest, Instagram, site — o que for. Anexo também pode, no próximo passo.' },
+    { id: 'referencias', tipo: 'links', kicker: 'Referências', pergunta: 'Me mostra coisas que vocês acham bonitas.', ajuda: 'Cola links do Pinterest, Instagram, site — o que for.' },
     { id: 'naogosta', tipo: 'longo', pergunta: 'E alguma que vocês detestam?', ajuda: 'Elimina um caminho inteiro antes de eu gastar uma rodada nele.', placeholder: 'Link ou descrição, e o motivo' },
 
-    { id: 'fotos', tipo: 'upload', kicker: 'Quase lá', pergunta: 'Manda as fotos dos alunos.', ajuda: 'Sempre no tamanho original — foto que passou por WhatsApp fica pixelada no outdoor. Pode mandar logo, manual de marca e referências aqui também.' },
+    { id: 'fotos', tipo: 'upload', kicker: 'Quase lá', pergunta: 'Onde estão as fotos dos alunos?', ajuda: 'Cola o link da pasta — Drive, WeTransfer, Dropbox, o que vocês usam. É o melhor caminho: foto de outdoor é pesada e por link ela chega no tamanho original, sem perder qualidade.', obrigatorio: true },
     { id: 'autorizacao', tipo: 'escolha', pergunta: 'As autorizações de uso de imagem estão assinadas?', ajuda: 'A maioria dos alunos é menor de idade. Sem autorização do responsável, a peça não pode circular.', opcoes: [
         { valor: 'Todas', titulo: 'Sim, de todos os alunos' },
         { valor: 'Parcial', titulo: 'De alguns' },
@@ -520,12 +520,26 @@ export default function BriefingCampanha() {
                         </>
                     )}
 
-                    {/* UPLOAD */}
+                    {/* UPLOAD — link primeiro, anexo como alternativa */}
                     {passo.tipo === 'upload' && (
                         <>
-                            <label className="bc-drop" htmlFor="bc-files">
-                                <b>Solta os arquivos aqui</b>
-                                <small>ou clique para escolher · fotos, logo, PDF, o que precisar</small>
+                            <div className="bc-stack">
+                                {[0, 1].map((n) => (
+                                    <input key={n} ref={n === 0 ? (inputRef as any) : undefined}
+                                        placeholder={n === 0 ? 'Cole aqui o link da pasta de fotos' : 'Outro link — logo, manual de marca, referências (opcional)'}
+                                        value={(resp.links_arquivos || [])[n] || ''}
+                                        onChange={(e) => {
+                                            const arr = [...(resp.links_arquivos || ['', ''])];
+                                            arr[n] = e.target.value;
+                                            set('links_arquivos', arr);
+                                            set('fotos', arr.filter(Boolean).join(' · '));
+                                        }} />
+                                ))}
+                            </div>
+                            <p className="bc-hint" style={{ marginTop: 22 }}>Não tem link? Pode anexar por aqui:</p>
+                            <label className="bc-drop" style={{ marginTop: 8, padding: '22px 24px' }} htmlFor="bc-files">
+                                <b>Anexar arquivos</b>
+                                <small>melhor para coisas leves, como o logo ou um PDF</small>
                             </label>
                             <input id="bc-files" type="file" multiple hidden
                                 onChange={(e) => {
