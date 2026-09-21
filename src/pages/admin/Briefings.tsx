@@ -23,61 +23,121 @@ const SECTIONS = [
 ];
 
 
+
 // ── Briefing de campanha (/briefing-campanha) ──
-// Formato diferente do briefing estrategico: aqui as respostas sao chave/valor
-// livres, entao renderizamos com rotulos amigaveis e os anexos ao final.
+// Formato diferente do briefing estratégico: respostas são chave/valor livres.
+// Renderiza em seções, com escalas visuais, amostras de cor e tags.
 const CAMPANHA_LABELS: Record<string, string> = {
   nome: 'Quem respondeu', cargo: 'Cargo', whatsapp: 'WhatsApp', email: 'E-mail',
-  aprovador: 'Quem aprova a arte', objetivo: 'Objetivo principal', series: 'Series prioritarias',
-  meta: 'Meta de matriculas', lancamento: 'Data de lancamento', canais: 'Onde vai circular',
-  nota2026: 'Nota da campanha 2026 (1-5)', funcionou: 'O que funcionou em 2026',
-  naorepetir: 'O que nao repetir', direcao: 'Direcao visual 2027', decisor: 'Quem decide a matricula',
-  objecoes: 'Objecoes mais ouvidas', concorrentes: 'Concorrentes', porque: 'Por que escolhem voces',
-  temfrase: 'Ja tem frase?', diferenciais: 'Diferenciais', numeros: 'Numeros de orgulho',
-  tom: 'Tom de voz (1-5)', naopode: 'O que nao pode aparecer', c1: 'Cor principal',
-  c2: 'Cor de destaque', frase: 'Frase da campanha', sensacao: 'Sensacao das cores',
-  referencias: 'Referencias (links)', naogosta: 'Referencia que nao gosta',
-  fotos: 'Link das fotos', links_arquivos: 'Links enviados', autorizacao: 'Autorizacao de uso de imagem', outdoor: 'Outdoor', guia: 'Guia academico',
-  fixos: 'Textos fixos nas pecas', matriculas: 'Informacoes de matricula', livre: 'Observacoes',
+  aprovador: 'Quem aprova a arte', objetivo: 'Objetivo principal', series: 'Séries prioritárias',
+  meta: 'Meta de matrículas', lancamento: 'Data de lançamento', canais: 'Onde vai circular',
+  nota2026: 'Nota da campanha 2026', funcionou: 'O que funcionou', naorepetir: 'O que não repetir',
+  direcao: 'Direção visual 2027', decisor: 'Quem decide a matrícula',
+  objecoes: 'Objeções mais ouvidas', concorrentes: 'Concorrentes', porque: 'Por que escolhem vocês',
+  temfrase: 'Já tem frase?', frase: 'Frase da campanha', diferenciais: 'Diferenciais',
+  numeros: 'Números de orgulho', tom: 'Tom de voz', naopode: 'O que não pode aparecer',
+  sensacao: 'Sensação das cores', referencias: 'Referências (links)',
+  naogosta: 'Referência que não gosta', fotos: 'Link das fotos',
+  autorizacao: 'Autorização de uso de imagem', outdoor: 'Outdoor', guia: 'Guia acadêmico',
+  fixos: 'Textos fixos nas peças', matriculas: 'Informações de matrícula', livre: 'Observações',
 };
-const CAMPANHA_ORDEM = Object.keys(CAMPANHA_LABELS);
+
+const CAMPANHA_SECOES: { t: string; campos: string[] }[] = [
+  { t: '01 · Contato', campos: ['nome', 'cargo', 'whatsapp', 'email', 'aprovador'] },
+  { t: '02 · Objetivo da campanha', campos: ['objetivo', 'series', 'meta', 'lancamento', 'canais'] },
+  { t: '03 · O que 2026 ensinou', campos: ['nota2026', 'funcionou', 'naorepetir', 'direcao'] },
+  { t: '04 · Público e concorrência', campos: ['decisor', 'objecoes', 'concorrentes', 'porque'] },
+  { t: '05 · Mensagem', campos: ['temfrase', 'frase', 'diferenciais', 'numeros', 'tom', 'naopode'] },
+  { t: '06 · Identidade visual', campos: ['sensacao', 'referencias', 'naogosta'] },
+  { t: '07 · Fotos e produção', campos: ['fotos', 'autorizacao', 'outdoor', 'guia', 'fixos', 'matriculas'] },
+  { t: '08 · Observações', campos: ['livre'] },
+];
+
+const CAMPANHA_ESCALAS: Record<string, [string, string]> = {
+  nota2026: ['Ficou devendo', 'Superou'],
+  tom: ['Sóbrio, institucional', 'Jovem, energético'],
+};
 
 function isCampanha(r: any): boolean {
   return !!r && (r.objetivo !== undefined || r.instituicao !== undefined || Array.isArray(r.anexos));
 }
 
-function valorLegivel(v: any): string {
-  if (v === null || v === undefined || v === '') return '';
-  if (Array.isArray(v)) return v.filter(Boolean).join(' · ');
-  return String(v);
+function CampoCampanha({ k, v }: { k: string; v: any }) {
+  const rotulo = CAMPANHA_LABELS[k] || k;
+
+  // escala 1–5 com os extremos nomeados
+  if (CAMPANHA_ESCALAS[k]) {
+    const n = parseInt(String(v), 10) || 0;
+    const [ini, fim] = CAMPANHA_ESCALAS[k];
+    return (
+      <div className="qa">
+        <div className="q">{rotulo}</div>
+        <div className="scalerow">
+          <span>{ini}</span>
+          <span className="scaleval">
+            {[1, 2, 3, 4, 5].map((i) => <i key={i} className={i === n ? 'on' : ''} />)}
+          </span>
+          <span>{fim}</span>
+        </div>
+      </div>
+    );
+  }
+
+  // listas viram tags
+  if (Array.isArray(v)) {
+    const itens = v.filter(Boolean);
+    if (!itens.length) return null;
+    return (
+      <div className="qa">
+        <div className="q">{rotulo}</div>
+        <div className="tags">{itens.map((x: any, i: number) => <span key={i}>{String(x)}</span>)}</div>
+      </div>
+    );
+  }
+
+  if (v === null || v === undefined || v === '') return null;
+  return (
+    <div className="qa">
+      <div className="q">{rotulo}</div>
+      <div className="a">{String(v)}</div>
+    </div>
+  );
 }
 
 function BriefingCampanhaView({ respostas }: { respostas: any }) {
   const anexos: any[] = Array.isArray(respostas?.anexos) ? respostas.anexos : [];
+  const c1 = respostas?.c1;
+  const c2 = respostas?.c2;
+
   return (
     <>
-      <div className="sec">
-        <h3>Respostas</h3>
-        {CAMPANHA_ORDEM.map((k) => {
-          const txt = valorLegivel(respostas?.[k]);
-          if (!txt) return null;
-          const cor = (k === 'c1' || k === 'c2') ? txt : null;
-          return (
-            <div className="qa" key={k}>
-              <div className="q">{CAMPANHA_LABELS[k]}</div>
-              <div className="a">
-                {cor ? (
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ width: 16, height: 16, borderRadius: 4, background: cor,
-                                   border: '1px solid rgba(0,0,0,.15)', display: 'inline-block' }} />
-                    {txt}
-                  </span>
-                ) : txt}
+      {CAMPANHA_SECOES.map((sec) => {
+        const campos = sec.campos.filter((k) => {
+          const v = respostas?.[k];
+          return Array.isArray(v) ? v.filter(Boolean).length > 0 : v !== undefined && v !== null && v !== '';
+        });
+        const temCor = sec.t.indexOf('Identidade') !== -1 && (c1 || c2);
+        if (!campos.length && !temCor) return null;
+        return (
+          <div className="sec" key={sec.t}>
+            <h3>{sec.t}</h3>
+            {temCor && (
+              <div className="swatch-admin-grid">
+                {[{ c: c1, n: 'Cor principal' }, { c: c2, n: 'Cor de destaque' }].filter(x => x.c).map((x) => (
+                  <div className="swatch-admin-item" key={x.n}>
+                    <div className="swatch-admin-head">
+                      <span className="swatch-admin-circle" style={{ background: x.c }} />
+                      {x.n}
+                    </div>
+                    <p className="swatch-admin-desc" style={{ fontFamily: 'monospace' }}>{String(x.c).toUpperCase()}</p>
+                  </div>
+                ))}
               </div>
-            </div>
-          );
-        })}
-      </div>
+            )}
+            {campos.map((k) => <CampoCampanha key={k} k={k} v={respostas[k]} />)}
+          </div>
+        );
+      })}
 
       <div className="sec">
         <h3>Anexos ({anexos.length})</h3>
@@ -89,7 +149,7 @@ function BriefingCampanhaView({ respostas }: { respostas: any }) {
               <div className="q">{a.nome}</div>
               <div className="a">
                 {a.url ? <a href={a.url} target="_blank" rel="noreferrer">Abrir / baixar</a> : 'sem link'}
-                {a.tamanho ? ` · ${(a.tamanho / 1024 / 1024).toFixed(2)} MB` : ''}
+                {a.tamanho ? ' · ' + (a.tamanho / 1024 / 1024).toFixed(2) + ' MB' : ''}
               </div>
             </div>
           ))
@@ -269,7 +329,7 @@ export default function AdminBriefings() {
             ) : (
               <>
                 <div className="d-head">
-                  <h2>{activeBriefing.respostas?.nome || '(sem nome)'}</h2>
+                  <h2>{activeBriefing.respostas?.nome || activeBriefing.nome || '(sem nome)'}</h2>
                   <p className="meta">
                     {activeBriefing.cargo || ''} · {activeBriefing.cidade || ''} · recebido em {format(new Date(activeBriefing.created_at), 'dd/MM/yyyy HH:mm')}
                   </p>
@@ -317,6 +377,7 @@ export default function AdminBriefings() {
                   </div>
                 ))}
 
+                {!isCampanha(activeBriefing.respostas) && (
                 <div className="sec">
                   <h3>04 · Personalidade da marca</h3>
                   {SCALES.map((s, i) => {
@@ -352,7 +413,9 @@ export default function AdminBriefings() {
                     <div className="a">{activeBriefing.respostas?.q4_1 || ''}</div>
                   </div>
                 </div>
+                )}
 
+                {!isCampanha(activeBriefing.respostas) && (
                 <div className="sec">
                   <h3>Seleções rápidas</h3>
                   <div className="qa">
@@ -380,6 +443,7 @@ export default function AdminBriefings() {
                     </div>
                   </div>
                 </div>
+                )}
               </>
             )}
           </main>

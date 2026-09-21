@@ -3,17 +3,19 @@ import { supabase } from '@/integrations/supabase/client';
 
 // ============================================================
 // Briefing de campanha — formulário público conversado.
-// Uma pergunta por tela, a maioria em clique. Os anexos vão para o
-// Storage do Supabase pela edge function briefing-campanha e aparecem
-// no painel junto com as respostas.
+// Uma pergunta por tela, a maioria em clique. Botão visível em toda
+// etapa (no celular não existe Enter). Os anexos vão para o Storage
+// do Supabase pela edge function briefing-campanha.
 // ============================================================
 
-type Tipo = 'intro' | 'texto' | 'escolha' | 'multipla' | 'tres' | 'longo' | 'cores' | 'frase' | 'upload' | 'links' | 'escala' | 'fim';
+type Tipo =
+    | 'intro' | 'texto' | 'escolha' | 'multipla' | 'tres' | 'longo'
+    | 'cores' | 'frase' | 'upload' | 'links' | 'escala' | 'fim';
 
 interface Passo {
     id: string;
     tipo: Tipo;
-    kicker?: string;
+    bloco: number;
     pergunta: string;
     ajuda?: string;
     placeholder?: string;
@@ -24,208 +26,317 @@ interface Passo {
     extremos?: [string, string];
 }
 
-const PASSOS: Passo[] = [
-    { id: 'intro', tipo: 'intro', pergunta: 'Vamos montar a campanha juntos.', ajuda: 'Sem formulário chato. São perguntas rápidas, a maioria é só clicar — e no meio do caminho você vê a campanha tomando forma na tela.' },
+const BLOCOS = [
+    'Boas-vindas',
+    'Quem é você',
+    'O norte da campanha',
+    'O que 2026 ensinou',
+    'Quem convencer',
+    'A mensagem',
+    'O visual',
+    'Fotos e arquivos',
+    'Produção',
+    'Fechamento',
+];
 
-    { id: 'nome', tipo: 'texto', kicker: 'Para começar', pergunta: 'Como você se chama?', placeholder: 'Seu nome', obrigatorio: true },
-    { id: 'cargo', tipo: 'escolha', pergunta: 'E o que você faz na escola?', opcoes: [
+const PASSOS: Passo[] = [
+    { id: 'intro', tipo: 'intro', bloco: 0, pergunta: 'Vamos montar a campanha juntos.', ajuda: 'Sem formulário chato. São perguntas rápidas, a maioria é só tocar — e no meio do caminho você vê a campanha tomando forma na tela.' },
+
+    // 1 — Quem é você
+    { id: 'nome', tipo: 'texto', bloco: 1, pergunta: 'Como você se chama?', placeholder: 'Seu nome', obrigatorio: true },
+    { id: 'cargo', tipo: 'escolha', bloco: 1, pergunta: 'E o que você faz na escola?', opcoes: [
         { valor: 'Direção', titulo: 'Direção' },
         { valor: 'Coordenação pedagógica', titulo: 'Coordenação pedagógica' },
         { valor: 'Marketing e Comunicação', titulo: 'Marketing e Comunicação' },
         { valor: 'Secretaria', titulo: 'Secretaria' },
         { valor: 'Outro', titulo: 'Outra função' },
     ] },
-    { id: 'whatsapp', tipo: 'texto', pergunta: 'Qual WhatsApp eu chamo se precisar?', placeholder: '(73) 9 9999-9999', obrigatorio: true },
-    { id: 'email', tipo: 'texto', pergunta: 'E o seu e-mail?', placeholder: 'voce@colegio.com.br', obrigatorio: true },
-    { id: 'aprovador', tipo: 'texto', pergunta: 'Quem dá a palavra final na arte?', ajuda: 'Uma pessoa só. Aprovação por comitê é o que mais atrasa campanha.', placeholder: 'Nome e cargo — ou "sou eu mesmo"' },
+    { id: 'whatsapp', tipo: 'texto', bloco: 1, pergunta: 'Qual WhatsApp eu chamo se precisar?', placeholder: '(73) 9 9999-9999', obrigatorio: true },
+    { id: 'email', tipo: 'texto', bloco: 1, pergunta: 'E o seu e-mail?', placeholder: 'voce@colegio.com.br', obrigatorio: true },
+    { id: 'aprovador', tipo: 'texto', bloco: 1, pergunta: 'Quem dá a palavra final na arte?', ajuda: 'Uma pessoa só. Aprovação por comitê é o que mais atrasa campanha.', placeholder: 'Nome e cargo — ou "sou eu mesmo"' },
 
-    { id: 'objetivo', tipo: 'escolha', kicker: 'O norte da campanha', pergunta: 'Se a campanha acertasse em uma só coisa, qual seria?', ajuda: 'Escolhe uma. É ela que vai mandar em tudo depois.', opcoes: [
+    // 2 — Objetivo
+    { id: 'objetivo', tipo: 'escolha', bloco: 2, pergunta: 'Se a campanha acertasse em uma só coisa, qual seria?', ajuda: 'Escolhe uma. É ela que vai mandar em tudo depois.', opcoes: [
         { valor: 'Trazer alunos novos', titulo: 'Trazer alunos novos', nota: 'Quem ainda não conhece a escola' },
         { valor: 'Segurar a rematrícula', titulo: 'Segurar quem já está aqui', nota: 'Rematrícula em primeiro lugar' },
         { valor: 'Fortalecer a marca', titulo: 'Fortalecer o nome da escola', nota: 'Ser a referência da cidade' },
         { valor: 'Mostrar as aprovações', titulo: 'Mostrar as aprovações', nota: 'Deixar o resultado falar' },
     ] },
-    { id: 'series', tipo: 'multipla', pergunta: 'Quais séries precisam encher?', ajuda: 'Pode marcar mais de uma — mas se marcar todas, a campanha fica genérica.', chips: ['Infantil', 'Fund. I', 'Fund. II', '1º ano EM', '2º ano EM', '3º ano EM', 'Pré-vestibular'] },
-    { id: 'meta', tipo: 'texto', pergunta: 'Quantas matrículas novas vocês querem?', ajuda: 'Um número, mesmo que seja chute. Serve de régua depois.', placeholder: 'Ex.: 80' },
-    { id: 'lancamento', tipo: 'texto', pergunta: 'Quando a campanha precisa estar na rua?', placeholder: 'Ex.: 15 de outubro', obrigatorio: true },
-    { id: 'canais', tipo: 'multipla', pergunta: 'Onde ela vai circular?', chips: ['Instagram', 'Outdoor', 'Fachada da escola', 'WhatsApp', 'Panfletagem', 'Rádio', 'Carro de som', 'Site', 'Feiras e eventos'] },
+    { id: 'series', tipo: 'multipla', bloco: 2, pergunta: 'Quais séries precisam encher?', ajuda: 'Pode marcar mais de uma — mas se marcar todas, a campanha fica genérica.', chips: ['Infantil', 'Fund. I', 'Fund. II', '1º ano EM', '2º ano EM', '3º ano EM', 'Pré-vestibular'] },
+    { id: 'meta', tipo: 'texto', bloco: 2, pergunta: 'Quantas matrículas novas vocês querem?', ajuda: 'Um número, mesmo que seja chute. Serve de régua depois.', placeholder: 'Ex.: 80' },
+    { id: 'vagas', tipo: 'texto', bloco: 2, pergunta: 'E quantas vagas existem no total?', placeholder: 'Ex.: 120' },
+    { id: 'lancamento', tipo: 'texto', bloco: 2, pergunta: 'Quando a campanha precisa estar na rua?', placeholder: 'Ex.: 15 de outubro', obrigatorio: true },
+    { id: 'canais', tipo: 'multipla', bloco: 2, pergunta: 'Onde ela vai circular?', chips: ['Instagram', 'Outdoor', 'Fachada da escola', 'WhatsApp', 'Panfletagem', 'Rádio', 'Carro de som', 'Site', 'Feiras e eventos'] },
 
-    { id: 'nota2026', tipo: 'escala', kicker: 'O que 2026 ensinou', pergunta: 'Como foi a campanha "Resultado não é sorte"?', extremos: ['Ficou devendo', 'Superou'] },
-    { id: 'funcionou', tipo: 'longo', pergunta: 'O que mais funcionou nela?', placeholder: 'Ex.: o outdoor na entrada da cidade gerou ligação direta na secretaria' },
-    { id: 'naorepetir', tipo: 'longo', pergunta: 'E o que não dá para repetir?', placeholder: 'Ex.: o folder tinha texto demais, ninguém leu' },
-    { id: 'direcao', tipo: 'escolha', pergunta: 'Para 2027, a linha visual…', opcoes: [
+    // 3 — 2026
+    { id: 'nota2026', tipo: 'escala', bloco: 3, pergunta: 'Como foi a campanha "Resultado não é sorte"?', extremos: ['Ficou devendo', 'Superou'] },
+    { id: 'funcionou', tipo: 'longo', bloco: 3, pergunta: 'O que mais funcionou nela?', placeholder: 'Ex.: o outdoor na entrada da cidade gerou ligação direta na secretaria' },
+    { id: 'naorepetir', tipo: 'longo', bloco: 3, pergunta: 'E o que não dá para repetir?', placeholder: 'Ex.: o folder tinha texto demais, ninguém leu' },
+    { id: 'direcao', tipo: 'escolha', bloco: 3, pergunta: 'Para 2027, a linha visual…', opcoes: [
         { valor: 'Manter', titulo: 'Mantém como está', nota: 'Azul e verde, peças geométricas' },
         { valor: 'Evoluir', titulo: 'Evolui, mas guarda as cores', nota: 'Mesma família, cara nova' },
         { valor: 'Recomeçar', titulo: 'Começa do zero', nota: 'Algo mudou de verdade na escola' },
     ] },
 
-    { id: 'decisor', tipo: 'escolha', kicker: 'Quem você precisa convencer', pergunta: 'Quem decide a matrícula?', opcoes: [
+    // 4 — Público
+    { id: 'decisor', tipo: 'escolha', bloco: 4, pergunta: 'Quem decide a matrícula?', opcoes: [
         { valor: 'Mãe ou pai', titulo: 'Mãe ou pai', nota: 'Querem segurança e resultado' },
         { valor: 'O próprio aluno', titulo: 'O próprio aluno', nota: 'Quer pertencer, quer orgulho' },
         { valor: 'Decisão conjunta', titulo: 'Os dois juntos', nota: 'Conversa em família' },
     ] },
-    { id: 'objecoes', tipo: 'tres', pergunta: 'Quando a matrícula não fecha, qual é a desculpa?', ajuda: 'Pensa em quem atende o telefone. Pode ser duro — quanto mais sincero, mais certeira fica a campanha.', campos: [
+    { id: 'renda', tipo: 'escolha', bloco: 4, pergunta: 'Qual o perfil das famílias?', opcoes: [
+        { valor: 'Classe média', titulo: 'Classe média' },
+        { valor: 'Classe média alta', titulo: 'Classe média alta' },
+        { valor: 'Misto', titulo: 'Bem misto' },
+        { valor: 'Prefiro não informar', titulo: 'Prefiro não informar' },
+    ] },
+    { id: 'objecoes', tipo: 'tres', bloco: 4, pergunta: 'Quando a matrícula não fecha, qual é a desculpa?', ajuda: 'Pensa em quem atende o telefone. Pode ser duro — quanto mais sincero, mais certeira fica a campanha.', campos: [
         'Ex.: é mais caro que o colégio do lado',
         'Ex.: fica longe de casa',
         'Ex.: não conheço os resultados de vocês',
     ] },
-    { id: 'concorrentes', tipo: 'longo', pergunta: 'Quem são os concorrentes e o que eles prometem?', placeholder: 'Ex.: Colégio X — fala muito em aprovação na federal' },
-    { id: 'porque', tipo: 'longo', pergunta: 'Por que um aluno escolhe vocês e não eles?', ajuda: 'Se a resposta também serve para o concorrente, não é diferencial. Aí eu volto com uma proposta antes de desenhar.', obrigatorio: true },
+    { id: 'concorrentes', tipo: 'longo', bloco: 4, pergunta: 'Quem são os concorrentes e o que eles prometem?', placeholder: 'Ex.: Colégio X — fala muito em aprovação na federal' },
+    { id: 'porque', tipo: 'longo', bloco: 4, pergunta: 'Por que um aluno escolhe vocês e não eles?', ajuda: 'Se a resposta também serve para o concorrente, não é diferencial. Aí eu volto com uma proposta antes de desenhar.', obrigatorio: true },
 
-    { id: 'temfrase', tipo: 'escolha', kicker: 'A mensagem', pergunta: 'Vocês já têm a frase da campanha?', opcoes: [
+    // 5 — Mensagem
+    { id: 'temfrase', tipo: 'escolha', bloco: 5, pergunta: 'Vocês já têm a frase da campanha?', opcoes: [
         { valor: 'Sim', titulo: 'Sim, já está definida' },
         { valor: 'Ideias', titulo: 'Temos ideias soltas' },
         { valor: 'Não', titulo: 'Não — criem para nós', nota: 'Essa parte fica comigo' },
     ] },
-    { id: 'diferenciais', tipo: 'multipla', pergunta: 'O que a escola tem de melhor?', ajuda: 'Marca tudo que for verdade. Depois eu escolho o que cabe na peça.', chips: ['Sistema Bernoulli', 'Parceria com a FASB', 'Simulados oficiais', 'Carga horária ampliada', 'Aulas aos sábados', 'Plantão de dúvidas', 'Material digital', 'Professores especialistas', 'Acompanhamento individual'] },
-    { id: 'numeros', tipo: 'tres', pergunta: 'Me dá três números de que vocês se orgulham.', ajuda: 'Número específico convence mais que adjetivo. "142 aprovações" vale mais que "excelência comprovada".', campos: [
+    { id: 'diferenciais', tipo: 'multipla', bloco: 5, pergunta: 'O que a escola tem de melhor?', ajuda: 'Marca tudo que for verdade. Depois eu escolho o que cabe na peça.', chips: ['Sistema Bernoulli', 'Parceria com a FASB', 'Simulados oficiais', 'Carga horária ampliada', 'Aulas aos sábados', 'Plantão de dúvidas', 'Material digital', 'Professores especialistas', 'Acompanhamento individual'] },
+    { id: 'top3', tipo: 'tres', bloco: 5, pergunta: 'Desses, quais são os três mais fortes?', ajuda: 'Outdoor é lido em 4 segundos, a 60 km/h. Três é o teto — e só um vira manchete.', campos: ['O mais forte de todos', 'O segundo', 'O terceiro'] },
+    { id: 'numeros', tipo: 'tres', bloco: 5, pergunta: 'Me dá três números de que vocês se orgulham.', ajuda: 'Número específico convence mais que adjetivo. "142 aprovações" vale mais que "excelência comprovada".', campos: [
         'Ex.: 142 aprovações em 2026',
         'Ex.: 28 anos de história',
         'Ex.: 70% acima da média no ENEM',
     ] },
-    { id: 'tom', tipo: 'escala', pergunta: 'Que tom a campanha deve ter?', extremos: ['Sóbrio, institucional', 'Jovem, energético'] },
-    { id: 'naopode', tipo: 'longo', pergunta: 'Tem algo que não pode aparecer?', placeholder: 'Ex.: não citar nome de universidade, não comparar com outra escola' },
+    { id: 'tom', tipo: 'escala', bloco: 5, pergunta: 'Que tom a campanha deve ter?', extremos: ['Sóbrio, institucional', 'Jovem, energético'] },
+    { id: 'tratamento', tipo: 'escolha', bloco: 5, pergunta: 'Como falar com quem lê?', opcoes: [
+        { valor: 'Você', titulo: '"Você"', nota: 'Próximo, direto' },
+        { valor: 'Vocês', titulo: '"Vocês"', nota: 'Fala com a família' },
+        { valor: 'Impessoal', titulo: 'Impessoal', nota: 'Mais institucional' },
+    ] },
+    { id: 'naopode', tipo: 'longo', bloco: 5, pergunta: 'Tem algo que não pode aparecer?', placeholder: 'Ex.: não citar nome de universidade, não comparar com outra escola' },
 
-    { id: 'cores', tipo: 'cores', kicker: 'Agora fica divertido', pergunta: 'Mexe nas cores até parecer com 2027.', ajuda: 'Essas são as cores de 2026. Arrasta, troca, testa — o outdoor ao lado muda junto.' },
-    { id: 'frase', tipo: 'frase', pergunta: 'E se vocês pudessem dizer uma frase só?', ajuda: 'Escreve e olha ela aparecer no outdoor. Se não tiver ideia, deixa em branco — essa parte é comigo.' },
-    { id: 'sensacao', tipo: 'multipla', pergunta: 'O que essas cores precisam transmitir?', chips: ['Seriedade', 'Energia', 'Tradição', 'Inovação', 'Acolhimento', 'Exclusividade', 'Proximidade'] },
+    // 6 — Visual
+    { id: 'coresok', tipo: 'escolha', bloco: 6, pergunta: 'As cores de hoje ainda servem?', opcoes: [
+        { valor: 'Manter', titulo: 'Servem, mantém' },
+        { valor: 'Ajustar', titulo: 'Servem, mas quero ajustar o tom' },
+        { valor: 'Trocar', titulo: 'Quero trocar' },
+    ] },
+    { id: 'cores', tipo: 'cores', bloco: 6, pergunta: 'Mexe nas cores até parecer com 2027.', ajuda: 'Essas são as cores de 2026. Arrasta, troca, testa — o outdoor muda junto.' },
+    { id: 'frase', tipo: 'frase', bloco: 6, pergunta: 'E se vocês pudessem dizer uma frase só?', ajuda: 'Escreve e olha ela aparecer no outdoor. Se não tiver ideia, deixa em branco — essa parte é comigo.' },
+    { id: 'sensacao', tipo: 'multipla', bloco: 6, pergunta: 'O que essas cores precisam transmitir?', chips: ['Seriedade', 'Energia', 'Tradição', 'Inovação', 'Acolhimento', 'Exclusividade', 'Proximidade'] },
+    { id: 'referencias', tipo: 'links', bloco: 6, pergunta: 'Me mostra coisas que vocês acham bonitas.', ajuda: 'Cola links do Pinterest, Instagram, site de outra escola — o que for.' },
+    { id: 'porquegosta', tipo: 'longo', bloco: 6, pergunta: 'O que te agrada nessas referências?', ajuda: 'Referência sem comentário engana: vocês podem ter gostado da tipografia e eu copiar a cor.', placeholder: 'Ex.: gostei das fotos grandes e do texto curto' },
+    { id: 'naogosta', tipo: 'longo', bloco: 6, pergunta: 'E alguma que vocês detestam?', ajuda: 'Elimina um caminho inteiro antes de eu gastar uma rodada nele.', placeholder: 'Link ou descrição, e o motivo' },
 
-    { id: 'referencias', tipo: 'links', kicker: 'Referências', pergunta: 'Me mostra coisas que vocês acham bonitas.', ajuda: 'Cola links do Pinterest, Instagram, site — o que for.' },
-    { id: 'naogosta', tipo: 'longo', pergunta: 'E alguma que vocês detestam?', ajuda: 'Elimina um caminho inteiro antes de eu gastar uma rodada nele.', placeholder: 'Link ou descrição, e o motivo' },
-
-    { id: 'fotos', tipo: 'upload', kicker: 'Quase lá', pergunta: 'Onde estão as fotos dos alunos?', ajuda: 'Cola o link da pasta — Drive, WeTransfer, Dropbox, o que vocês usam. É o melhor caminho: foto de outdoor é pesada e por link ela chega no tamanho original, sem perder qualidade.', obrigatorio: true },
-    { id: 'autorizacao', tipo: 'escolha', pergunta: 'As autorizações de uso de imagem estão assinadas?', ajuda: 'A maioria dos alunos é menor de idade. Sem autorização do responsável, a peça não pode circular.', opcoes: [
+    // 7 — Fotos e arquivos
+    { id: 'fotos', tipo: 'upload', bloco: 7, pergunta: 'Onde estão as fotos dos alunos?', ajuda: 'Cola o link da pasta — Drive, WeTransfer, Dropbox. É o melhor caminho: a foto chega no tamanho original, sem perder qualidade.', obrigatorio: true },
+    { id: 'quantosalunos', tipo: 'texto', bloco: 7, pergunta: 'Quantos alunos aparecem nas fotos?', placeholder: 'Ex.: 6' },
+    { id: 'seriesfoto', tipo: 'multipla', bloco: 7, pergunta: 'De quais séries eles são?', chips: ['Infantil', 'Fund. I', 'Fund. II', '1º ano EM', '2º ano EM', '3º ano EM', 'Pré-vestibular'] },
+    { id: 'autorizacao', tipo: 'escolha', bloco: 7, pergunta: 'As autorizações de uso de imagem estão assinadas?', ajuda: 'A maioria dos alunos é menor de idade. Sem autorização do responsável, a peça não pode circular.', opcoes: [
         { valor: 'Todas', titulo: 'Sim, de todos os alunos' },
         { valor: 'Parcial', titulo: 'De alguns' },
         { valor: 'Ainda não', titulo: 'Ainda não temos', nota: 'Sigo com as peças que não dependem de foto' },
     ] },
+    { id: 'aprovados', tipo: 'longo', bloco: 7, pergunta: 'Tem aprovados para virar prova social?', ajuda: 'Nome, curso e universidade. Se tiver foto, inclui no link da pasta.', placeholder: 'Ex.: Ana Beatriz — Medicina, UFBA' },
+    { id: 'marca', tipo: 'links', bloco: 7, pergunta: 'E os arquivos da marca?', ajuda: 'Logo vetorizado, manual de marca e logos dos parceiros (Bernoulli, FASB). Link de pasta ou site.' },
 
-    { id: 'outdoor', tipo: 'tres', kicker: 'Produção', pergunta: 'Sobre o outdoor:', campos: ['Quantos pontos?', 'Medidas em metros', 'Qual gráfica e até quando ela precisa do arquivo'] },
-    { id: 'guia', tipo: 'tres', pergunta: 'Sobre o guia acadêmico:', ajuda: 'O contratado é capa e template do miolo. O conteúdo página a página é de vocês.', campos: ['Formato final', 'Quantas páginas', 'Quem entrega o conteúdo'] },
-    { id: 'fixos', tipo: 'longo', pergunta: 'O que precisa estar em todas as peças?', placeholder: 'Endereço, telefone, CNPJ, selos, logos de parceiros' },
-    { id: 'matriculas', tipo: 'tres', pergunta: 'Informações de matrícula para as peças:', campos: ['Período de matrículas', 'Descontos que podem ser divulgados', 'WhatsApp e @ do Instagram'] },
+    // 8 — Produção
+    { id: 'pecas', tipo: 'multipla', bloco: 8, pergunta: 'Confirma as peças do orçamento?', ajuda: 'Já vem marcado o que foi contratado. Desmarca o que não quiser.', chips: ['Identidade visual', 'Instagram Feed', 'Instagram Stories', 'Capa de agenda', 'Cabeçalho de ofício', 'Pasta institucional', 'Outdoor (2 versões)', 'Folder', 'Guia acadêmico (capa + template)'] },
+    { id: 'outdoor', tipo: 'tres', bloco: 8, pergunta: 'Sobre o outdoor:', ajuda: 'Cada gráfica pede sangria e resolução diferentes. Com esses dados eu entrego no padrão certo.', campos: ['Quantos pontos?', 'Medidas em metros', 'Qual gráfica e até quando ela precisa do arquivo'] },
+    { id: 'guia', tipo: 'tres', bloco: 8, pergunta: 'Sobre o guia acadêmico:', ajuda: 'O contratado é capa e template do miolo. O conteúdo página a página é de vocês.', campos: ['Formato final', 'Quantas páginas', 'Quem entrega o conteúdo'] },
+    { id: 'graficas', tipo: 'longo', bloco: 8, pergunta: 'Outras medidas de gráfica?', placeholder: 'Pasta, folder e agenda: formato fechado, papel, acabamento' },
+    { id: 'fixos', tipo: 'longo', bloco: 8, pergunta: 'O que precisa estar em todas as peças?', placeholder: 'Endereço, telefone, CNPJ, selos obrigatórios' },
+    { id: 'matriculas', tipo: 'tres', bloco: 8, pergunta: 'Informações de matrícula para as peças:', campos: ['Período de matrículas', 'Descontos que podem ser divulgados', 'WhatsApp e @ do Instagram'] },
 
-    { id: 'livre', tipo: 'longo', kicker: 'Última', pergunta: 'Mais alguma coisa que eu precise saber?', placeholder: 'Fica à vontade' },
+    // 9 — Fechamento
+    { id: 'entrega', tipo: 'texto', bloco: 9, pergunta: 'Qual a data limite de entrega?', placeholder: 'Ex.: 5 de outubro', obrigatorio: true },
+    { id: 'livre', tipo: 'longo', bloco: 9, pergunta: 'Mais alguma coisa que eu precise saber?', placeholder: 'Fica à vontade' },
 
-    { id: 'fim', tipo: 'fim', pergunta: 'É isso. O briefing já está comigo.' },
+    { id: 'fim', tipo: 'fim', bloco: 9, pergunta: 'É isso. O briefing já está comigo.' },
 ];
 
+const PADRAO = { c1: '#12336E', c2: '#3DD6A3' };
+
 const CSS = `
-.bc-root { --paper:#F3F2EF; --card:#FFF; --ink:#1A2230; --ink-soft:#5A6678; --ink-mute:#8C97A6;
-  --line:#DFDDD7; --go:#0F9B6C; --go-soft:#E4F4ED; --warm:#D9603B;
-  background:var(--paper); color:var(--ink); min-height:100vh;
-  font-family:"Hanken Grotesk",system-ui,-apple-system,sans-serif; font-size:16px; line-height:1.5; }
+.bc-root{
+  --paper:#FAF9F7; --card:#FFF; --ink:#101A2B; --ink-soft:#54627A; --ink-mute:#8A96A8;
+  --line:#E3E0DA; --navy:#12336E; --mint:#0E8C68; --mint-soft:#E8F5EF; --warm:#C2542F;
+  min-height:100vh; background:var(--paper); color:var(--ink);
+  font-family:"Hanken Grotesk",system-ui,-apple-system,sans-serif; font-size:16px; line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
 .bc-root *{box-sizing:border-box}
-.bc-top{position:sticky;top:0;z-index:20;background:var(--paper);border-bottom:1px solid var(--line)}
-.bc-bar{height:3px;background:var(--line)}
-.bc-bar span{display:block;height:100%;background:var(--go);transition:width .5s cubic-bezier(.4,0,.2,1)}
-.bc-topin{max-width:1000px;margin:0 auto;padding:10px 20px;display:flex;justify-content:space-between;
-  align-items:center;font-size:12.5px;color:var(--ink-mute)}
-.bc-stage{max-width:1000px;margin:0 auto;padding:48px 20px 90px}
-.bc-step{animation:bcrise .45s cubic-bezier(.2,.7,.3,1) both}
-@keyframes bcrise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.bc-shell{display:grid; grid-template-columns:270px 1fr; min-height:100vh}
+
+.bc-rail{background:var(--navy); color:#fff; padding:34px 28px;
+  display:flex; flex-direction:column; gap:30px; position:sticky; top:0; height:100vh}
+.bc-brand{font-family:Fraunces,Georgia,serif; font-weight:700; font-size:20px; line-height:1.15; letter-spacing:-.01em}
+.bc-brand small{display:block; font-family:"Hanken Grotesk",sans-serif; font-weight:500; font-size:11.5px;
+  letter-spacing:.14em; text-transform:uppercase; opacity:.62; margin-bottom:9px}
+.bc-blocos{list-style:none; margin:0; padding:0; display:grid; gap:1px; flex:1}
+.bc-blocos li{display:flex; align-items:center; gap:11px; font-size:13.5px; padding:7px 0;
+  color:rgba(255,255,255,.42); transition:color .3s}
+.bc-blocos li .n{width:20px; height:20px; border-radius:50%; border:1.5px solid currentColor;
+  display:grid; place-items:center; font-size:10.5px; font-weight:700; flex:none}
+.bc-blocos li.feito{color:rgba(255,255,255,.7)}
+.bc-blocos li.feito .n{background:var(--mint); border-color:var(--mint); color:var(--navy)}
+.bc-blocos li.ativo{color:#fff; font-weight:600}
+.bc-blocos li.ativo .n{border-color:var(--mint); color:var(--mint)}
+.bc-railfoot{font-size:12px; opacity:.5; line-height:1.45}
+
+.bc-mob{display:none}
+
+.bc-main{display:flex; flex-direction:column; min-height:100vh}
+.bc-prog{height:3px; background:var(--line)}
+.bc-prog span{display:block; height:100%; background:var(--mint); transition:width .55s cubic-bezier(.4,0,.2,1)}
+.bc-stage{flex:1; padding:64px 56px 96px; max-width:920px}
+.bc-step{animation:bcrise .5s cubic-bezier(.2,.7,.3,1) both}
+@keyframes bcrise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.bc-step{animation:none}}
-.bc-kicker{font-size:12.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--go);margin:0 0 14px}
-.bc-q{font-family:Fraunces,Georgia,serif;font-weight:600;font-size:clamp(27px,4.6vw,40px);line-height:1.16;
-  letter-spacing:-.015em;margin:0;text-wrap:balance;max-width:19ch}
-.bc-help{color:var(--ink-soft);margin:14px 0 0;max-width:46ch;font-size:15.5px}
-.bc-cards{display:grid;gap:10px;margin-top:30px;max-width:520px}
-.bc-opt{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:var(--card);
-  border:1.5px solid var(--line);border-radius:12px;padding:16px 18px;font:inherit;color:var(--ink);
-  cursor:pointer;transition:border-color .15s,transform .15s}
-.bc-opt:hover{border-color:var(--go);transform:translateX(3px)}
-.bc-opt:focus-visible{outline:2px solid var(--go);outline-offset:2px}
-.bc-key{font-size:12px;font-weight:700;color:var(--ink-mute);border:1.5px solid var(--line);border-radius:6px;
-  width:26px;height:26px;display:grid;place-items:center;flex:none}
-.bc-opt:hover .bc-key{border-color:var(--go);color:var(--go)}
-.bc-opt strong{font-weight:600;display:block}
-.bc-opt small{color:var(--ink-mute);font-size:13px}
-.bc-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:28px;max-width:600px}
-.bc-chip{background:var(--card);border:1.5px solid var(--line);border-radius:999px;padding:9px 16px;
-  font:inherit;font-size:15px;color:var(--ink);cursor:pointer;transition:all .15s}
-.bc-chip[aria-pressed="true"]{background:var(--go);border-color:var(--go);color:#fff}
-.bc-line{width:100%;max-width:520px;margin-top:28px;background:transparent;border:0;
-  border-bottom:2px solid var(--line);padding:8px 2px;font-family:Fraunces,Georgia,serif;
-  font-size:clamp(21px,3.2vw,28px);color:var(--ink);outline:none;transition:border-color .2s}
-.bc-line::placeholder{color:var(--ink-mute);opacity:.5}
-.bc-line:focus{border-color:var(--go)}
-.bc-stack{display:grid;gap:12px;margin-top:26px;max-width:520px}
-.bc-stack input,.bc-area{background:var(--card);border:1.5px solid var(--line);border-radius:10px;
-  padding:14px 16px;font:inherit;font-size:15.5px;color:var(--ink);outline:none;width:100%}
-.bc-stack input:focus,.bc-area:focus{border-color:var(--go)}
-.bc-area{margin-top:26px;max-width:560px;min-height:130px;resize:vertical;line-height:1.55}
-.bc-go{margin-top:32px;display:inline-flex;align-items:center;gap:10px;background:var(--ink);color:#fff;
-  border:0;border-radius:10px;padding:14px 24px;font:inherit;font-weight:600;font-size:15.5px;cursor:pointer;
-  transition:background .15s,transform .15s}
-.bc-go:hover{background:var(--go);transform:translateY(-1px)}
-.bc-go:disabled{opacity:.5;cursor:not-allowed;transform:none}
-.bc-hint{margin-top:14px;font-size:13px;color:var(--ink-mute)}
-.bc-back{background:none;border:0;color:var(--ink-mute);font:inherit;font-size:14px;cursor:pointer;
-  text-decoration:underline;margin-top:20px;display:block}
-.bc-split{display:grid;grid-template-columns:1fr 1fr;gap:44px;align-items:start;margin-top:30px}
-@media(max-width:800px){.bc-split{grid-template-columns:1fr;gap:28px}}
-.bc-colorset{display:grid;gap:14px;max-width:340px}
-.bc-pick{display:flex;align-items:center;gap:14px;background:var(--card);border:1.5px solid var(--line);
-  border-radius:12px;padding:12px 14px;cursor:pointer}
-.bc-pick input{width:42px;height:42px;border:0;border-radius:8px;background:none;cursor:pointer;padding:0;flex:none}
-.bc-pick b{display:block;font-size:14.5px;font-weight:600}
-.bc-pick code{font-size:12.5px;color:var(--ink-mute);font-family:ui-monospace,monospace}
-.bc-plabel{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-mute);
-  margin:0 0 10px;font-weight:600}
-.bc-od{position:relative;aspect-ratio:16/9;border-radius:10px;overflow:hidden;
-  box-shadow:0 18px 40px -22px rgba(26,34,48,.55);transition:background .3s}
-.bc-od i{position:absolute;display:block;transition:background .3s}
+
+.bc-eyebrow{font-size:11.5px; font-weight:700; letter-spacing:.15em; text-transform:uppercase;
+  color:var(--mint); margin:0 0 16px; display:flex; align-items:center; gap:10px}
+.bc-eyebrow::after{content:""; flex:1; height:1px; background:var(--line); max-width:70px}
+.bc-q{font-family:Fraunces,Georgia,serif; font-weight:600; font-size:clamp(30px,4.4vw,44px);
+  line-height:1.12; letter-spacing:-.02em; margin:0; text-wrap:balance; max-width:17ch}
+.bc-help{color:var(--ink-soft); margin:16px 0 0; max-width:48ch; font-size:16px}
+
+.bc-cards{display:grid; gap:11px; margin-top:34px; max-width:540px}
+.bc-opt{display:flex; align-items:center; gap:16px; width:100%; text-align:left; background:var(--card);
+  border:1px solid var(--line); border-radius:14px; padding:18px 20px; font:inherit; color:var(--ink);
+  cursor:pointer; box-shadow:0 1px 2px rgba(16,26,43,.04);
+  transition:border-color .16s, transform .16s, box-shadow .16s}
+.bc-opt:hover{border-color:var(--navy); transform:translateY(-2px); box-shadow:0 8px 22px -12px rgba(16,26,43,.3)}
+.bc-opt:focus-visible{outline:2px solid var(--mint); outline-offset:3px}
+.bc-key{font-size:11.5px; font-weight:700; color:var(--ink-mute); border:1px solid var(--line);
+  border-radius:8px; width:28px; height:28px; display:grid; place-items:center; flex:none}
+.bc-opt:hover .bc-key{border-color:var(--navy); color:var(--navy)}
+.bc-opt strong{font-weight:600; display:block; font-size:16.5px}
+.bc-opt small{color:var(--ink-mute); font-size:13.5px}
+
+.bc-chips{display:flex; flex-wrap:wrap; gap:9px; margin-top:32px; max-width:640px}
+.bc-chip{background:var(--card); border:1px solid var(--line); border-radius:999px; padding:11px 19px;
+  font:inherit; font-size:15px; color:var(--ink); cursor:pointer; transition:all .16s}
+.bc-chip:hover{border-color:var(--navy)}
+.bc-chip[aria-pressed="true"]{background:var(--navy); border-color:var(--navy); color:#fff}
+.bc-chip:focus-visible{outline:2px solid var(--mint); outline-offset:3px}
+
+.bc-line{width:100%; max-width:560px; margin-top:32px; background:transparent; border:0;
+  border-bottom:2px solid var(--line); padding:10px 2px; font-family:Fraunces,Georgia,serif;
+  font-size:clamp(22px,3vw,30px); color:var(--ink); outline:none; transition:border-color .2s}
+.bc-line::placeholder{color:var(--ink-mute); opacity:.45}
+.bc-line:focus{border-color:var(--mint)}
+
+.bc-stack{display:grid; gap:12px; margin-top:30px; max-width:560px}
+.bc-stack input, .bc-area{background:var(--card); border:1px solid var(--line); border-radius:12px;
+  padding:16px 18px; font:inherit; font-size:16px; color:var(--ink); outline:none; width:100%;
+  box-shadow:0 1px 2px rgba(16,26,43,.04)}
+.bc-stack input:focus, .bc-area:focus{border-color:var(--mint)}
+.bc-area{margin-top:30px; max-width:600px; min-height:150px; resize:vertical; line-height:1.55}
+
+.bc-go{margin-top:36px; display:inline-flex; align-items:center; gap:10px; background:var(--navy);
+  color:#fff; border:0; border-radius:12px; padding:16px 30px; font:inherit; font-weight:600;
+  font-size:16px; cursor:pointer; box-shadow:0 8px 20px -12px rgba(18,51,110,.8);
+  transition:background .16s, transform .16s}
+.bc-go:hover{background:var(--mint); transform:translateY(-2px)}
+.bc-go:disabled{opacity:.4; cursor:not-allowed; transform:none; box-shadow:none}
+.bc-go:focus-visible{outline:2px solid var(--mint); outline-offset:3px}
+.bc-hint{margin-top:14px; font-size:13px; color:var(--ink-mute)}
+.bc-so-desktop{display:none}
+@media(hover:hover) and (pointer:fine){.bc-so-desktop{display:block}}
+.bc-back{background:none; border:0; color:var(--ink-mute); font:inherit; font-size:14px; cursor:pointer;
+  text-decoration:underline; margin-top:26px; display:block; padding:6px 0}
+
+.bc-split{display:grid; grid-template-columns:1fr 1fr; gap:48px; align-items:start; margin-top:34px}
+.bc-colorset{display:grid; gap:14px; max-width:340px}
+.bc-pick{display:flex; align-items:center; gap:15px; background:var(--card); border:1px solid var(--line);
+  border-radius:14px; padding:14px 16px; cursor:pointer; box-shadow:0 1px 2px rgba(16,26,43,.04)}
+.bc-pick input{width:46px; height:46px; border:0; border-radius:10px; background:none; cursor:pointer; padding:0; flex:none}
+.bc-pick b{display:block; font-size:15px; font-weight:600}
+.bc-pick code{font-size:13px; color:var(--ink-mute); font-family:ui-monospace,monospace}
+.bc-plabel{font-size:11.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-mute);
+  margin:0 0 12px; font-weight:700}
+
+.bc-od{position:relative; aspect-ratio:16/9; border-radius:12px; overflow:hidden;
+  box-shadow:0 24px 48px -26px rgba(16,26,43,.6); transition:background .35s}
+.bc-od i{position:absolute; display:block; transition:background .35s}
 .bc-od .s1{width:30%;height:12%;right:6%;top:16%;border-radius:3px}
 .bc-od .s2{width:12%;height:34%;right:24%;top:16%;border-radius:3px}
 .bc-od .s3{width:22%;height:11%;right:6%;top:47%;border-radius:3px;opacity:.55}
-.bc-person{position:absolute;right:8%;bottom:0;width:26%;height:72%;background:rgba(255,255,255,.14);
-  border-radius:46% 46% 0 0}
+.bc-person{position:absolute;right:8%;bottom:0;width:26%;height:72%;background:rgba(255,255,255,.14);border-radius:46% 46% 0 0}
 .bc-person::after{content:"";position:absolute;left:50%;top:-14%;transform:translateX(-50%);width:42%;
   aspect-ratio:1;border-radius:50%;background:rgba(255,255,255,.14)}
-.bc-odcopy{position:absolute;left:7%;bottom:13%;width:56%}
-.bc-odcopy h3{font-family:Fraunces,Georgia,serif;font-weight:700;color:#fff;font-size:clamp(15px,3.1vw,27px);
+.bc-odcopy{position:absolute;left:7%;bottom:13%;width:58%}
+.bc-odcopy h3{font-family:Fraunces,Georgia,serif;font-weight:700;color:#fff;font-size:clamp(15px,2.9vw,26px);
   line-height:1.04;margin:0;text-transform:uppercase;letter-spacing:-.01em;text-wrap:balance}
-.bc-odtag{position:absolute;left:7%;top:11%;color:#fff;font-size:clamp(8px,1.5vw,12px);font-weight:700;
-  letter-spacing:.14em;text-transform:uppercase;opacity:.82}
-.bc-odfoot{position:absolute;left:7%;bottom:5.5%;color:#fff;opacity:.6;font-size:clamp(7px,1.2vw,10px);
-  letter-spacing:.1em;text-transform:uppercase}
-.bc-drop{margin-top:28px;max-width:520px;border:2px dashed var(--line);border-radius:14px;background:var(--card);
-  padding:34px 24px;text-align:center;cursor:pointer;transition:all .15s;display:block}
-.bc-drop:hover{border-color:var(--go);background:var(--go-soft)}
-.bc-drop b{display:block;font-size:16px}
-.bc-drop small{color:var(--ink-mute);font-size:13.5px}
-.bc-files{display:grid;gap:6px;margin-top:14px;max-width:520px}
-.bc-file{display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--card);
-  border:1px solid var(--line);border-radius:8px;padding:9px 12px;font-size:14px}
-.bc-file small{color:var(--ink-mute);flex:none}
-.bc-file button{background:none;border:0;color:var(--warm);cursor:pointer;font:inherit;font-size:13px}
-.bc-react{display:inline-flex;align-items:center;gap:9px;background:var(--go-soft);color:var(--go);
-  border-radius:999px;padding:7px 15px;font-size:14px;font-weight:600;margin-bottom:20px}
-.bc-err{background:#FBEAE5;color:#9B3B20;border-radius:10px;padding:14px 16px;margin-top:20px;
-  max-width:520px;font-size:14.5px}
-.bc-scale{display:flex;gap:8px;margin-top:28px;max-width:420px}
-.bc-scale button{flex:1;background:var(--card);border:1.5px solid var(--line);border-radius:10px;
-  padding:16px 0;font:inherit;font-size:17px;font-weight:600;color:var(--ink);cursor:pointer;transition:all .15s}
-.bc-scale button:hover,.bc-scale button[aria-pressed="true"]{background:var(--go);border-color:var(--go);color:#fff}
-.bc-ends{display:flex;justify-content:space-between;max-width:420px;margin-top:8px;font-size:12.5px;color:var(--ink-mute)}
-.bc-done{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:28px;margin-top:28px;max-width:560px}
-`;
+.bc-odtag{position:absolute;left:7%;top:11%;color:#fff;font-size:clamp(8px,1.4vw,11px);font-weight:700;
+  letter-spacing:.16em;text-transform:uppercase;opacity:.8}
+.bc-odfoot{position:absolute;left:7%;bottom:5.5%;color:#fff;opacity:.55;font-size:clamp(7px,1.1vw,9.5px);
+  letter-spacing:.12em;text-transform:uppercase}
 
-const OUTDOOR_PADRAO = { c1: '#12336E', c2: '#3DD6A3' };
+.bc-drop{margin-top:14px; max-width:560px; border:1.5px dashed var(--line); border-radius:14px;
+  background:var(--card); padding:26px 24px; text-align:center; cursor:pointer; transition:all .16s; display:block}
+.bc-drop:hover{border-color:var(--mint); background:var(--mint-soft)}
+.bc-drop b{display:block; font-size:15.5px}
+.bc-drop small{color:var(--ink-mute); font-size:13.5px}
+.bc-files{display:grid; gap:7px; margin-top:14px; max-width:560px}
+.bc-file{display:flex; justify-content:space-between; align-items:center; gap:12px; background:var(--card);
+  border:1px solid var(--line); border-radius:10px; padding:11px 14px; font-size:14.5px}
+.bc-file small{color:var(--ink-mute); flex:none}
+.bc-file button{background:none; border:0; color:var(--warm); cursor:pointer; font:inherit; font-size:13px}
+
+.bc-react{display:inline-flex; align-items:center; gap:9px; background:var(--mint-soft); color:var(--mint);
+  border-radius:999px; padding:8px 17px; font-size:14.5px; font-weight:600; margin-bottom:22px}
+.bc-err{background:#FBEAE5; color:#9B3B20; border-radius:12px; padding:16px 18px; margin-top:22px;
+  max-width:560px; font-size:14.5px}
+.bc-scale{display:flex; gap:9px; margin-top:32px; max-width:460px}
+.bc-scale button{flex:1; background:var(--card); border:1px solid var(--line); border-radius:12px;
+  padding:20px 0; font:inherit; font-size:18px; font-weight:600; color:var(--ink); cursor:pointer;
+  box-shadow:0 1px 2px rgba(16,26,43,.04); transition:all .16s}
+.bc-scale button:hover, .bc-scale button[aria-pressed="true"]{background:var(--navy); border-color:var(--navy); color:#fff}
+.bc-ends{display:flex; justify-content:space-between; max-width:460px; margin-top:10px; font-size:12.5px; color:var(--ink-mute)}
+.bc-done{background:var(--card); border:1px solid var(--line); border-radius:18px; padding:30px;
+  margin-top:30px; max-width:600px; box-shadow:0 12px 32px -20px rgba(16,26,43,.4)}
+.bc-done dl{display:grid; gap:13px; margin:0}
+.bc-done .row{display:flex; gap:18px; justify-content:space-between; align-items:baseline;
+  border-bottom:1px solid var(--line); padding-bottom:11px}
+.bc-done .row:last-child{border-bottom:0; padding-bottom:0}
+.bc-done dt{color:var(--ink-mute); font-size:13.5px; flex:none}
+.bc-done dd{margin:0; font-weight:600; text-align:right}
+.bc-sw{display:inline-block;width:15px;height:15px;border-radius:4px;vertical-align:-2px;margin-right:5px;border:1px solid rgba(0,0,0,.12)}
+
+@media(max-width:900px){
+  .bc-shell{grid-template-columns:1fr}
+  .bc-rail{display:none}
+  .bc-mob{display:flex; align-items:center; justify-content:space-between; gap:12px;
+    background:var(--navy); color:#fff; padding:13px 18px; font-size:12.5px; position:sticky; top:0; z-index:5}
+  .bc-mob b{font-weight:600; font-size:13.5px}
+  .bc-mob span{opacity:.65}
+  .bc-stage{padding:38px 20px 72px}
+  .bc-q{font-size:28px; max-width:100%}
+  .bc-help{font-size:15.5px}
+  .bc-split{grid-template-columns:1fr; gap:26px}
+  .bc-go{width:100%; justify-content:center; padding:18px 24px; font-size:16.5px; margin-top:30px}
+  .bc-opt{padding:18px 16px}
+  .bc-chip{padding:12px 18px}
+  .bc-scale button{padding:22px 0}
+  .bc-key{display:none}
+  .bc-line{font-size:22px}
+}
+`;
 
 function Outdoor({ c1, c2, frase }: { c1: string; c2: string; frase: string }) {
     const t = frase.trim();
-    let linha1 = 'Resultado não é sorte,';
-    let linha2 = 'é preparação.';
+    let l1 = 'Resultado não é sorte,';
+    let l2 = 'é preparação.';
     if (t) {
-        const partes = t.split(/,|\./).filter((s) => s.trim());
-        if (partes.length > 1) {
-            linha1 = partes[0].trim() + ',';
-            linha2 = partes.slice(1).join(' ').trim();
-        } else {
-            linha1 = '';
-            linha2 = t;
-        }
+        const p = t.split(/,|\./).filter((x) => x.trim());
+        if (p.length > 1) { l1 = p[0].trim() + ','; l2 = p.slice(1).join(' ').trim(); }
+        else { l1 = ''; l2 = t; }
     }
     return (
         <div className="bc-od" style={{ background: c1 }}>
@@ -235,10 +346,7 @@ function Outdoor({ c1, c2, frase }: { c1: string; c2: string; frase: string }) {
             <div className="bc-person" />
             <span className="bc-odtag">Matrículas 2027</span>
             <div className="bc-odcopy">
-                <h3>
-                    {linha1 && <>{linha1}<br /></>}
-                    <span style={{ color: c2 }}>{linha2}</span>
-                </h3>
+                <h3>{l1 && <>{l1}<br /></>}<span style={{ color: c2 }}>{l2}</span></h3>
             </div>
             <span className="bc-odfoot">Colégio Universitário · Teixeira de Freitas</span>
         </div>
@@ -247,18 +355,24 @@ function Outdoor({ c1, c2, frase }: { c1: string; c2: string; frase: string }) {
 
 export default function BriefingCampanha() {
     const [i, setI] = useState(0);
-    const [resp, setResp] = useState<Record<string, any>>({ instituicao: 'Colégio Universitário', cidade: 'Teixeira de Freitas - BA' });
+    const [resp, setResp] = useState<Record<string, any>>({
+        instituicao: 'Colégio Universitário',
+        cidade: 'Teixeira de Freitas - BA',
+        pecas: ['Identidade visual', 'Instagram Feed', 'Instagram Stories', 'Capa de agenda',
+            'Cabeçalho de ofício', 'Pasta institucional', 'Outdoor (2 versões)', 'Folder',
+            'Guia acadêmico (capa + template)'],
+    });
     const [arquivos, setArquivos] = useState<File[]>([]);
     const [enviando, setEnviando] = useState(false);
     const [erro, setErro] = useState<string | null>(null);
-    const [resultado, setResultado] = useState<{ folder_url: string; enviados: number } | null>(null);
+    const [resultado, setResultado] = useState<{ enviados: number } | null>(null);
     const [progresso, setProgresso] = useState('');
     const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
 
     const passo = PASSOS[i];
     const total = PASSOS.length - 1;
     const pct = Math.round((i / total) * 100);
-    const mins = Math.max(1, Math.round(8 - (i / total) * 7));
+    const mins = Math.max(1, Math.round(10 - (i / total) * 9));
 
     const set = (id: string, v: any) => setResp((p) => ({ ...p, [id]: v }));
 
@@ -271,19 +385,15 @@ export default function BriefingCampanha() {
     const voltar = () => { setI((n) => Math.max(n - 1, 0)); window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
     useEffect(() => {
-        const t = setTimeout(() => inputRef.current?.focus(), 320);
+        const t = setTimeout(() => inputRef.current?.focus(), 340);
         return () => clearTimeout(t);
     }, [i]);
 
-    // Atalhos numéricos nas telas de escolha
     useEffect(() => {
         const h = (e: KeyboardEvent) => {
             if (passo.tipo !== 'escolha' || !passo.opcoes) return;
             const n = parseInt(e.key, 10);
-            if (n >= 1 && n <= passo.opcoes.length) {
-                set(passo.id, passo.opcoes[n - 1].valor);
-                avancar();
-            }
+            if (n >= 1 && n <= passo.opcoes.length) { set(passo.id, passo.opcoes[n - 1].valor); avancar(); }
         };
         window.addEventListener('keydown', h);
         return () => window.removeEventListener('keydown', h);
@@ -317,19 +427,17 @@ export default function BriefingCampanha() {
             let enviados = 0;
             for (let k = 0; k < arquivos.length; k++) {
                 const f = arquivos[k];
-                setProgresso(`Enviando anexo ${k + 1} de ${arquivos.length}: ${f.name}`);
+                setProgresso(`Enviando arquivo ${k + 1} de ${arquivos.length}: ${f.name}`);
                 try {
                     const base64 = await toBase64(f);
                     const up = await supabase.functions.invoke('briefing-campanha', {
                         body: { action: 'UPLOAD', briefing_id: data.briefing_id, name: f.name, mime: f.type, base64 },
                     });
                     if (!up.error && !up.data?.error) enviados++;
-                } catch {
-                    /* segue para o próximo arquivo */
-                }
+                } catch { /* segue para o próximo */ }
             }
 
-            setResultado({ folder_url: data.folder_url, enviados });
+            setResultado({ enviados });
             setProgresso('');
             setI(total);
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -341,273 +449,303 @@ export default function BriefingCampanha() {
     };
 
     const podeAvancar = !passo.obrigatorio || String(resp[passo.id] || '').trim().length > 0;
+    const c1 = resp.c1 || PADRAO.c1;
+    const c2 = resp.c2 || PADRAO.c2;
 
     return (
         <div className="bc-root">
             <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" />
             <style>{CSS}</style>
 
-            <div className="bc-top">
-                <div className="bc-bar"><span style={{ width: `${pct}%` }} /></div>
-                <div className="bc-topin">
-                    <span>Briefing de campanha · Colégio Universitário</span>
-                    <span>{i === total ? 'Concluído' : `${mins} ${mins === 1 ? 'minuto' : 'minutos'}`}</span>
-                </div>
-            </div>
+            <div className="bc-shell">
+                <aside className="bc-rail">
+                    <div className="bc-brand">
+                        <small>Briefing de campanha</small>
+                        Colégio Universitário
+                    </div>
+                    <ol className="bc-blocos">
+                        {BLOCOS.slice(1).map((b, n) => {
+                            const num = n + 1;
+                            const cls = passo.bloco === num ? 'ativo' : passo.bloco > num ? 'feito' : '';
+                            return (
+                                <li key={b} className={cls}>
+                                    <span className="n">{passo.bloco > num ? '✓' : num}</span>
+                                    {b}
+                                </li>
+                            );
+                        })}
+                    </ol>
+                    <div className="bc-railfoot">
+                        Matrículas 2027 · Teixeira de Freitas<br />
+                        {i === total ? 'Concluído' : `cerca de ${mins} min restantes`}
+                    </div>
+                </aside>
 
-            <main className="bc-stage">
-                <section className="bc-step" key={passo.id}>
-                    {passo.kicker && <p className="bc-kicker">{passo.kicker}</p>}
-                    {passo.id === 'cargo' && resp.nome && (
-                        <p className="bc-react">Prazer, {String(resp.nome).split(' ')[0]} 👋</p>
-                    )}
-                    {passo.tipo === 'fim' && <p className="bc-react">Pronto ✓</p>}
+                <div className="bc-main">
+                    <div className="bc-mob">
+                        <b>{BLOCOS[passo.bloco]}</b>
+                        <span>{i === total ? 'Concluído' : `${mins} min`}</span>
+                    </div>
+                    <div className="bc-prog"><span style={{ width: `${pct}%` }} /></div>
 
-                    <h1 className="bc-q">{passo.pergunta}</h1>
-                    {passo.ajuda && <p className="bc-help">{passo.ajuda}</p>}
+                    <main className="bc-stage">
+                        <section className="bc-step" key={passo.id}>
+                            {passo.bloco > 0 && passo.tipo !== 'fim' && (
+                                <p className="bc-eyebrow">{BLOCOS[passo.bloco]}</p>
+                            )}
+                            {passo.id === 'cargo' && resp.nome && (
+                                <p className="bc-react">Prazer, {String(resp.nome).split(' ')[0]} 👋</p>
+                            )}
+                            {passo.tipo === 'fim' && <p className="bc-react">Pronto ✓</p>}
 
-                    {/* INTRO */}
-                    {passo.tipo === 'intro' && (
-                        <>
-                            <button className="bc-go" onClick={avancar}>Começar &nbsp;→</button>
-                            <p className="bc-hint">Leva uns 8 minutos. A maioria das perguntas é só clicar.</p>
-                        </>
-                    )}
+                            <h1 className="bc-q">{passo.pergunta}</h1>
+                            {passo.ajuda && <p className="bc-help">{passo.ajuda}</p>}
 
-                    {/* TEXTO */}
-                    {passo.tipo === 'texto' && (
-                        <>
-                            <input
-                                ref={inputRef as any}
-                                className="bc-line"
-                                placeholder={passo.placeholder}
-                                value={resp[passo.id] || ''}
-                                onChange={(e) => set(passo.id, e.target.value)}
-                                onKeyDown={(e) => { if (e.key === 'Enter' && podeAvancar) avancar(); }}
-                            />
-                            <p className="bc-hint">Enter para continuar</p>
-                        </>
-                    )}
+                            {passo.tipo === 'intro' && (
+                                <>
+                                    <button className="bc-go" onClick={avancar}>Começar &nbsp;→</button>
+                                    <p className="bc-hint">Cerca de 10 minutos. Pode parar e voltar depois.</p>
+                                </>
+                            )}
 
-                    {/* ESCOLHA */}
-                    {passo.tipo === 'escolha' && (
-                        <div className="bc-cards">
-                            {passo.opcoes?.map((o, n) => (
-                                <button key={o.valor} className="bc-opt" onClick={() => { set(passo.id, o.valor); avancar(); }}>
-                                    <span className="bc-key">{n + 1}</span>
-                                    <span><strong>{o.titulo}</strong>{o.nota && <small>{o.nota}</small>}</span>
-                                </button>
-                            ))}
-                        </div>
-                    )}
+                            {passo.tipo === 'texto' && (
+                                <>
+                                    <input
+                                        ref={inputRef as any}
+                                        className="bc-line"
+                                        placeholder={passo.placeholder}
+                                        value={resp[passo.id] || ''}
+                                        type={passo.id === 'email' ? 'email' : passo.id === 'whatsapp' ? 'tel' : 'text'}
+                                        inputMode={passo.id === 'whatsapp' ? 'tel' : passo.id === 'email' ? 'email'
+                                            : ['meta', 'vagas', 'quantosalunos'].indexOf(passo.id) >= 0 ? 'numeric' : 'text'}
+                                        enterKeyHint="next"
+                                        autoComplete={passo.id === 'email' ? 'email' : passo.id === 'whatsapp' ? 'tel' : passo.id === 'nome' ? 'name' : 'off'}
+                                        onChange={(e) => set(passo.id, e.target.value)}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' && podeAvancar) avancar(); }}
+                                    />
+                                    <button className="bc-go" onClick={avancar} disabled={!podeAvancar}>Continuar &nbsp;→</button>
+                                    <p className="bc-hint bc-so-desktop">ou aperte Enter</p>
+                                </>
+                            )}
 
-                    {/* MÚLTIPLA */}
-                    {passo.tipo === 'multipla' && (
-                        <>
-                            <div className="bc-chips">
-                                {passo.chips?.map((c) => {
-                                    const sel: string[] = resp[passo.id] || [];
-                                    const on = sel.includes(c);
-                                    return (
-                                        <button key={c} className="bc-chip" aria-pressed={on}
-                                            onClick={() => set(passo.id, on ? sel.filter((x) => x !== c) : [...sel, c])}>
-                                            {c}
+                            {passo.tipo === 'escolha' && (
+                                <div className="bc-cards">
+                                    {passo.opcoes?.map((o, n) => (
+                                        <button key={o.valor} className="bc-opt" onClick={() => { set(passo.id, o.valor); avancar(); }}>
+                                            <span className="bc-key">{n + 1}</span>
+                                            <span><strong>{o.titulo}</strong>{o.nota && <small>{o.nota}</small>}</span>
                                         </button>
-                                    );
-                                })}
-                            </div>
-                            <button className="bc-go" onClick={avancar}>Continuar &nbsp;→</button>
-                        </>
-                    )}
-
-                    {/* TRÊS CAMPOS */}
-                    {passo.tipo === 'tres' && (
-                        <>
-                            <div className="bc-stack">
-                                {passo.campos?.map((ph, n) => (
-                                    <input key={n} ref={n === 0 ? (inputRef as any) : undefined} placeholder={ph}
-                                        value={(resp[passo.id] || [])[n] || ''}
-                                        onChange={(e) => {
-                                            const arr = [...(resp[passo.id] || ['', '', ''])];
-                                            arr[n] = e.target.value;
-                                            set(passo.id, arr);
-                                        }} />
-                                ))}
-                            </div>
-                            <button className="bc-go" onClick={avancar}>Continuar &nbsp;→</button>
-                        </>
-                    )}
-
-                    {/* TEXTO LONGO */}
-                    {passo.tipo === 'longo' && (
-                        <>
-                            <textarea ref={inputRef as any} className="bc-area" placeholder={passo.placeholder}
-                                value={resp[passo.id] || ''} onChange={(e) => set(passo.id, e.target.value)} />
-                            <button className="bc-go" onClick={avancar} disabled={!podeAvancar}>Continuar &nbsp;→</button>
-                        </>
-                    )}
-
-                    {/* ESCALA */}
-                    {passo.tipo === 'escala' && (
-                        <>
-                            <div className="bc-scale">
-                                {[1, 2, 3, 4, 5].map((n) => (
-                                    <button key={n} aria-pressed={resp[passo.id] === n}
-                                        onClick={() => { set(passo.id, n); avancar(); }}>{n}</button>
-                                ))}
-                            </div>
-                            <div className="bc-ends"><span>{passo.extremos?.[0]}</span><span>{passo.extremos?.[1]}</span></div>
-                        </>
-                    )}
-
-                    {/* CORES */}
-                    {passo.tipo === 'cores' && (
-                        <div className="bc-split">
-                            <div>
-                                <div className="bc-colorset">
-                                    <label className="bc-pick">
-                                        <input type="color" value={resp.c1 || OUTDOOR_PADRAO.c1} onChange={(e) => set('c1', e.target.value)} />
-                                        <div><b>Cor principal</b><code>{(resp.c1 || OUTDOOR_PADRAO.c1).toUpperCase()}</code></div>
-                                    </label>
-                                    <label className="bc-pick">
-                                        <input type="color" value={resp.c2 || OUTDOOR_PADRAO.c2} onChange={(e) => set('c2', e.target.value)} />
-                                        <div><b>Cor de destaque</b><code>{(resp.c2 || OUTDOOR_PADRAO.c2).toUpperCase()}</code></div>
-                                    </label>
-                                </div>
-                                <button className="bc-go" onClick={avancar}>Gostei &nbsp;→</button>
-                            </div>
-                            <div>
-                                <p className="bc-plabel">Seu outdoor, ao vivo</p>
-                                <Outdoor c1={resp.c1 || OUTDOOR_PADRAO.c1} c2={resp.c2 || OUTDOOR_PADRAO.c2} frase={resp.frase || ''} />
-                                <p className="bc-hint">Rascunho para sentir a cor — não é a arte final.</p>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* FRASE */}
-                    {passo.tipo === 'frase' && (
-                        <div className="bc-split">
-                            <div>
-                                <input ref={inputRef as any} className="bc-line" style={{ fontSize: 23 }}
-                                    placeholder="Digite a frase..." value={resp.frase || ''}
-                                    onChange={(e) => set('frase', e.target.value)}
-                                    onKeyDown={(e) => { if (e.key === 'Enter') avancar(); }} />
-                                <button className="bc-go" onClick={avancar}>Continuar &nbsp;→</button>
-                            </div>
-                            <div>
-                                <p className="bc-plabel">Seu outdoor, ao vivo</p>
-                                <Outdoor c1={resp.c1 || OUTDOOR_PADRAO.c1} c2={resp.c2 || OUTDOOR_PADRAO.c2} frase={resp.frase || ''} />
-                            </div>
-                        </div>
-                    )}
-
-                    {/* LINKS */}
-                    {passo.tipo === 'links' && (
-                        <>
-                            <div className="bc-stack">
-                                {[0, 1, 2].map((n) => (
-                                    <input key={n} ref={n === 0 ? (inputRef as any) : undefined}
-                                        placeholder={n === 0 ? 'Cole um link aqui' : 'Outro link (opcional)'}
-                                        value={(resp[passo.id] || [])[n] || ''}
-                                        onChange={(e) => {
-                                            const arr = [...(resp[passo.id] || ['', '', ''])];
-                                            arr[n] = e.target.value;
-                                            set(passo.id, arr);
-                                        }} />
-                                ))}
-                            </div>
-                            <button className="bc-go" onClick={avancar}>Continuar &nbsp;→</button>
-                        </>
-                    )}
-
-                    {/* UPLOAD — link primeiro, anexo como alternativa */}
-                    {passo.tipo === 'upload' && (
-                        <>
-                            <div className="bc-stack">
-                                {[0, 1].map((n) => (
-                                    <input key={n} ref={n === 0 ? (inputRef as any) : undefined}
-                                        placeholder={n === 0 ? 'Cole aqui o link da pasta de fotos' : 'Outro link — logo, manual de marca, referências (opcional)'}
-                                        value={(resp.links_arquivos || [])[n] || ''}
-                                        onChange={(e) => {
-                                            const arr = [...(resp.links_arquivos || ['', ''])];
-                                            arr[n] = e.target.value;
-                                            set('links_arquivos', arr);
-                                            set('fotos', arr.filter(Boolean).join(' · '));
-                                        }} />
-                                ))}
-                            </div>
-                            <p className="bc-hint" style={{ marginTop: 22 }}>Não tem link? Pode anexar por aqui:</p>
-                            <label className="bc-drop" style={{ marginTop: 8, padding: '22px 24px' }} htmlFor="bc-files">
-                                <b>Anexar arquivos</b>
-                                <small>melhor para coisas leves, como o logo ou um PDF</small>
-                            </label>
-                            <input id="bc-files" type="file" multiple hidden
-                                onChange={(e) => {
-                                    const novos = Array.from(e.target.files || []);
-                                    setArquivos((p) => [...p, ...novos]);
-                                    e.target.value = '';
-                                }} />
-                            {arquivos.length > 0 && (
-                                <div className="bc-files">
-                                    {arquivos.map((f, n) => (
-                                        <div className="bc-file" key={n}>
-                                            <span>{f.name}</span>
-                                            <small>{(f.size / 1024 / 1024).toFixed(1)} MB</small>
-                                            <button onClick={() => setArquivos((p) => p.filter((_, x) => x !== n))}>remover</button>
-                                        </div>
                                     ))}
                                 </div>
                             )}
-                            <button className="bc-go" onClick={avancar}>Continuar &nbsp;→</button>
-                        </>
-                    )}
 
-                    {/* FIM */}
-                    {passo.tipo === 'fim' && (
-                        <>
-                            {!resultado ? (
+                            {passo.tipo === 'multipla' && (
                                 <>
-                                    <p className="bc-help">
-                                        Confere se está tudo certo e envia. {arquivos.length > 0 && `${arquivos.length} arquivo(s) vão junto.`}
-                                    </p>
-                                    <div className="bc-done">
-                                        <p style={{ margin: 0, fontSize: 14.5, color: 'var(--ink-soft)' }}>
-                                            <b>{resp.nome || '—'}</b> · {resp.cargo || '—'}<br />
-                                            Objetivo: {resp.objetivo || '—'}<br />
-                                            Séries: {(resp.series || []).join(', ') || '—'}<br />
-                                            Cores: {(resp.c1 || OUTDOOR_PADRAO.c1).toUpperCase()} e {(resp.c2 || OUTDOOR_PADRAO.c2).toUpperCase()}<br />
-                                            Frase: {resp.frase || 'a criar'}<br />
-                                            Anexos: {arquivos.length}
-                                        </p>
+                                    <div className="bc-chips">
+                                        {passo.chips?.map((c) => {
+                                            const sel: string[] = resp[passo.id] || [];
+                                            const on = sel.indexOf(c) >= 0;
+                                            return (
+                                                <button key={c} className="bc-chip" aria-pressed={on}
+                                                    onClick={() => set(passo.id, on ? sel.filter((x) => x !== c) : [...sel, c])}>
+                                                    {c}
+                                                </button>
+                                            );
+                                        })}
                                     </div>
-                                    {erro && <div className="bc-err">{erro}</div>}
-                                    {progresso && <p className="bc-hint">{progresso}</p>}
-                                    <button className="bc-go" onClick={enviar} disabled={enviando}>
-                                        {enviando ? 'Enviando...' : 'Enviar briefing  →'}
-                                    </button>
-                                </>
-                            ) : (
-                                <>
-                                    <p className="bc-help">
-                                        Levou menos que um café. Vou usar exatamente o que você respondeu — e chamo no
-                                        WhatsApp se faltar alguma coisa.
-                                    </p>
-                                    <div className="bc-done">
-                                        <p style={{ margin: 0 }}>
-                                            <b>{resultado.enviados}</b> anexo(s) guardado(s) com segurança.<br />
-                                            <span style={{ color: 'var(--ink-soft)', fontSize: 14 }}>
-                                                Suas respostas já estão com a equipe da Fontes Graphics.
-                                            </span>
-                                        </p>
-                                    </div>
+                                    <button className="bc-go" onClick={avancar}>Continuar &nbsp;→</button>
                                 </>
                             )}
-                        </>
-                    )}
 
-                    {i > 0 && i < total && <button className="bc-back" onClick={voltar}>← voltar</button>}
-                </section>
-            </main>
+                            {passo.tipo === 'tres' && (
+                                <>
+                                    <div className="bc-stack">
+                                        {passo.campos?.map((ph, n) => (
+                                            <input key={n} ref={n === 0 ? (inputRef as any) : undefined} placeholder={ph}
+                                                enterKeyHint="next"
+                                                value={(resp[passo.id] || [])[n] || ''}
+                                                onChange={(e) => {
+                                                    const arr = [...(resp[passo.id] || ['', '', ''])];
+                                                    arr[n] = e.target.value;
+                                                    set(passo.id, arr);
+                                                }} />
+                                        ))}
+                                    </div>
+                                    <button className="bc-go" onClick={avancar}>Continuar &nbsp;→</button>
+                                </>
+                            )}
+
+                            {passo.tipo === 'longo' && (
+                                <>
+                                    <textarea ref={inputRef as any} className="bc-area" placeholder={passo.placeholder}
+                                        value={resp[passo.id] || ''} onChange={(e) => set(passo.id, e.target.value)} />
+                                    <button className="bc-go" onClick={avancar} disabled={!podeAvancar}>Continuar &nbsp;→</button>
+                                </>
+                            )}
+
+                            {passo.tipo === 'escala' && (
+                                <>
+                                    <div className="bc-scale">
+                                        {[1, 2, 3, 4, 5].map((n) => (
+                                            <button key={n} aria-pressed={resp[passo.id] === n}
+                                                onClick={() => { set(passo.id, n); avancar(); }}>{n}</button>
+                                        ))}
+                                    </div>
+                                    <div className="bc-ends"><span>{passo.extremos?.[0]}</span><span>{passo.extremos?.[1]}</span></div>
+                                </>
+                            )}
+
+                            {passo.tipo === 'cores' && (
+                                <div className="bc-split">
+                                    <div>
+                                        <div className="bc-colorset">
+                                            <label className="bc-pick">
+                                                <input type="color" value={c1} onChange={(e) => set('c1', e.target.value)} />
+                                                <div><b>Cor principal</b><code>{c1.toUpperCase()}</code></div>
+                                            </label>
+                                            <label className="bc-pick">
+                                                <input type="color" value={c2} onChange={(e) => set('c2', e.target.value)} />
+                                                <div><b>Cor de destaque</b><code>{c2.toUpperCase()}</code></div>
+                                            </label>
+                                        </div>
+                                        <button className="bc-go" onClick={avancar}>Gostei &nbsp;→</button>
+                                    </div>
+                                    <div>
+                                        <p className="bc-plabel">Seu outdoor, ao vivo</p>
+                                        <Outdoor c1={c1} c2={c2} frase={resp.frase || ''} />
+                                        <p className="bc-hint">Rascunho para sentir a cor — não é a arte final.</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {passo.tipo === 'frase' && (
+                                <div className="bc-split">
+                                    <div>
+                                        <input ref={inputRef as any} className="bc-line" style={{ fontSize: 22 }}
+                                            enterKeyHint="next" autoComplete="off"
+                                            placeholder="Digite a frase..." value={resp.frase || ''}
+                                            onChange={(e) => set('frase', e.target.value)}
+                                            onKeyDown={(e) => { if (e.key === 'Enter') avancar(); }} />
+                                        <button className="bc-go" onClick={avancar}>Continuar &nbsp;→</button>
+                                    </div>
+                                    <div>
+                                        <p className="bc-plabel">Seu outdoor, ao vivo</p>
+                                        <Outdoor c1={c1} c2={c2} frase={resp.frase || ''} />
+                                    </div>
+                                </div>
+                            )}
+
+                            {passo.tipo === 'links' && (
+                                <>
+                                    <div className="bc-stack">
+                                        {[0, 1, 2].map((n) => (
+                                            <input key={n} ref={n === 0 ? (inputRef as any) : undefined}
+                                                enterKeyHint="next" inputMode="url"
+                                                placeholder={n === 0 ? 'Cole um link aqui' : 'Outro link (opcional)'}
+                                                value={(resp[passo.id] || [])[n] || ''}
+                                                onChange={(e) => {
+                                                    const arr = [...(resp[passo.id] || ['', '', ''])];
+                                                    arr[n] = e.target.value;
+                                                    set(passo.id, arr);
+                                                }} />
+                                        ))}
+                                    </div>
+                                    <button className="bc-go" onClick={avancar}>Continuar &nbsp;→</button>
+                                </>
+                            )}
+
+                            {passo.tipo === 'upload' && (
+                                <>
+                                    <div className="bc-stack">
+                                        {[0, 1].map((n) => (
+                                            <input key={n} ref={n === 0 ? (inputRef as any) : undefined}
+                                                enterKeyHint="next" inputMode="url"
+                                                placeholder={n === 0 ? 'Cole aqui o link da pasta de fotos' : 'Outro link (opcional)'}
+                                                value={(resp.links_arquivos || [])[n] || ''}
+                                                onChange={(e) => {
+                                                    const arr = [...(resp.links_arquivos || ['', ''])];
+                                                    arr[n] = e.target.value;
+                                                    set('links_arquivos', arr);
+                                                    set('fotos', arr.filter(Boolean).join(' · '));
+                                                }} />
+                                        ))}
+                                    </div>
+                                    <p className="bc-hint" style={{ marginTop: 22 }}>Não tem link? Anexa por aqui:</p>
+                                    <label className="bc-drop" htmlFor="bc-files">
+                                        <b>Anexar arquivos</b>
+                                        <small>melhor para coisas leves, como o logo ou um PDF</small>
+                                    </label>
+                                    <input id="bc-files" type="file" multiple hidden
+                                        onChange={(e) => {
+                                            setArquivos((p) => [...p, ...Array.from(e.target.files || [])]);
+                                            e.target.value = '';
+                                        }} />
+                                    {arquivos.length > 0 && (
+                                        <div className="bc-files">
+                                            {arquivos.map((f, n) => (
+                                                <div className="bc-file" key={n}>
+                                                    <span>{f.name}</span>
+                                                    <small>{(f.size / 1024 / 1024).toFixed(1)} MB</small>
+                                                    <button onClick={() => setArquivos((p) => p.filter((_, x) => x !== n))}>remover</button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                    <button className="bc-go" onClick={avancar} disabled={!podeAvancar}>Continuar &nbsp;→</button>
+                                </>
+                            )}
+
+                            {passo.tipo === 'fim' && (
+                                <>
+                                    {!resultado ? (
+                                        <>
+                                            <p className="bc-help">
+                                                Confere se está tudo certo e envia.
+                                                {arquivos.length > 0 && ` ${arquivos.length} arquivo(s) vão junto.`}
+                                            </p>
+                                            <div className="bc-done">
+                                                <dl>
+                                                    <div className="row"><dt>Quem respondeu</dt><dd>{resp.nome || '—'}{resp.cargo ? ` · ${resp.cargo}` : ''}</dd></div>
+                                                    <div className="row"><dt>Objetivo</dt><dd>{resp.objetivo || '—'}</dd></div>
+                                                    <div className="row"><dt>Séries</dt><dd>{(resp.series || []).join(', ') || '—'}</dd></div>
+                                                    <div className="row"><dt>Cores</dt><dd>
+                                                        <span className="bc-sw" style={{ background: c1 }} />{c1.toUpperCase()}
+                                                        &nbsp; <span className="bc-sw" style={{ background: c2 }} />{c2.toUpperCase()}
+                                                    </dd></div>
+                                                    <div className="row"><dt>Frase</dt><dd>{resp.frase || 'a criar'}</dd></div>
+                                                    <div className="row"><dt>Entrega</dt><dd>{resp.entrega || '—'}</dd></div>
+                                                </dl>
+                                            </div>
+                                            {erro && <div className="bc-err">{erro}</div>}
+                                            {progresso && <p className="bc-hint">{progresso}</p>}
+                                            <button className="bc-go" onClick={enviar} disabled={enviando}>
+                                                {enviando ? 'Enviando...' : 'Enviar briefing  →'}
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <p className="bc-help">
+                                                Levou menos que um café. Vou usar exatamente o que você respondeu — e
+                                                chamo no WhatsApp se faltar alguma coisa.
+                                            </p>
+                                            <div className="bc-done">
+                                                <p style={{ margin: 0 }}>
+                                                    <b>{resultado.enviados}</b> arquivo(s) guardado(s) com segurança.<br />
+                                                    <span style={{ color: 'var(--ink-soft)', fontSize: 14.5 }}>
+                                                        Suas respostas já estão com a equipe da Fontes Graphics.
+                                                    </span>
+                                                </p>
+                                            </div>
+                                        </>
+                                    )}
+                                </>
+                            )}
+
+                            {i > 0 && i < total && <button className="bc-back" onClick={voltar}>← voltar</button>}
+                        </section>
+                    </main>
+                </div>
+            </div>
         </div>
     );
 }
