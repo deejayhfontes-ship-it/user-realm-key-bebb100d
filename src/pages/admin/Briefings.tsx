@@ -48,6 +48,13 @@ const CAMPANHA_SECOES: { t: string; campos: string[] }[] = [
   { t: '06 · Fechamento', campos: ['prazo', 'livre'] },
 ];
 
+// Campos que sao 3 respostas separadas: cada uma ganha seu proprio rotulo
+// em vez de virar etiqueta solta ("Data 1", "Contato 1").
+const CAMPANHA_TRIOS: Record<string, string[]> = {
+  periodo: ['Começa em', 'Termina em', 'Observação'],
+  contatos: ['Endereço', 'Telefones', 'Site e Instagram'],
+};
+
 const CAMPANHA_ESCALAS: Record<string, [string, string]> = {
   tom: ['Sóbrio, institucional', 'Jovem, energético'],
 };
@@ -78,23 +85,61 @@ function CampoCampanha({ k, v }: { k: string; v: any }) {
     );
   }
 
-  // listas viram tags
-  if (Array.isArray(v)) {
-    const itens = v.filter(Boolean);
+  // trio de respostas: uma linha rotulada para cada
+  if (CAMPANHA_TRIOS[k] && Array.isArray(v)) {
+    const rotulos = CAMPANHA_TRIOS[k];
+    const itens = v.map((x: any, i: number) => [rotulos[i] || '', String(x || '')])
+      .filter(([, val]) => val.trim());
     if (!itens.length) return null;
     return (
       <div className="qa">
         <div className="q">{rotulo}</div>
-        <div className="tags">{itens.map((x: any, i: number) => <span key={i}>{String(x)}</span>)}</div>
+        {itens.map(([sub, val], i) => (
+          <div className="a" key={i} style={{ marginBottom: 6 }}>
+            <b style={{ opacity: .6, fontWeight: 600 }}>{sub}:</b> {val}
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // listas viram tags — links viram links clicaveis
+  if (Array.isArray(v)) {
+    const itens = v.filter(Boolean).map(String);
+    if (!itens.length) return null;
+    const saoLinks = itens.every((x) => /^https?:\/\//i.test(x.trim()));
+    return (
+      <div className="qa">
+        <div className="q">{rotulo}</div>
+        {saoLinks ? (
+          itens.map((x, i) => (
+            <div className="a" key={i} style={{ marginBottom: 6 }}>
+              <a href={x} target="_blank" rel="noreferrer">{x}</a>
+            </div>
+          ))
+        ) : (
+          <div className="tags">{itens.map((x, i) => <span key={i}>{x}</span>)}</div>
+        )}
       </div>
     );
   }
 
   if (v === null || v === undefined || v === '') return null;
+  const txt = String(v);
+  const partes = txt.split(' · ').filter((x) => x.trim());
+  const todosLinks = partes.length > 0 && partes.every((x) => /^https?:\/\//i.test(x.trim()));
   return (
     <div className="qa">
       <div className="q">{rotulo}</div>
-      <div className="a">{String(v)}</div>
+      {todosLinks ? (
+        partes.map((x, i) => (
+          <div className="a" key={i} style={{ marginBottom: 6 }}>
+            <a href={x.trim()} target="_blank" rel="noreferrer">{x.trim()}</a>
+          </div>
+        ))
+      ) : (
+        <div className="a">{txt}</div>
+      )}
     </div>
   );
 }
