@@ -22,6 +22,92 @@ const SECTIONS = [
   { t: '06 · Aplicações & Próximos passos', qs: [['q6_1', '6.1 Marca da gestão ou pessoal'], ['q6_2', '6.2 Prazo / data de lançamento'], ['q6_3', '6.3 Espaço livre']] }
 ];
 
+
+// ── Briefing de campanha (/briefing-campanha) ──
+// Formato diferente do briefing estrategico: aqui as respostas sao chave/valor
+// livres, entao renderizamos com rotulos amigaveis e os anexos ao final.
+const CAMPANHA_LABELS: Record<string, string> = {
+  nome: 'Quem respondeu', cargo: 'Cargo', whatsapp: 'WhatsApp', email: 'E-mail',
+  aprovador: 'Quem aprova a arte', objetivo: 'Objetivo principal', series: 'Series prioritarias',
+  meta: 'Meta de matriculas', lancamento: 'Data de lancamento', canais: 'Onde vai circular',
+  nota2026: 'Nota da campanha 2026 (1-5)', funcionou: 'O que funcionou em 2026',
+  naorepetir: 'O que nao repetir', direcao: 'Direcao visual 2027', decisor: 'Quem decide a matricula',
+  objecoes: 'Objecoes mais ouvidas', concorrentes: 'Concorrentes', porque: 'Por que escolhem voces',
+  temfrase: 'Ja tem frase?', diferenciais: 'Diferenciais', numeros: 'Numeros de orgulho',
+  tom: 'Tom de voz (1-5)', naopode: 'O que nao pode aparecer', c1: 'Cor principal',
+  c2: 'Cor de destaque', frase: 'Frase da campanha', sensacao: 'Sensacao das cores',
+  referencias: 'Referencias (links)', naogosta: 'Referencia que nao gosta',
+  autorizacao: 'Autorizacao de uso de imagem', outdoor: 'Outdoor', guia: 'Guia academico',
+  fixos: 'Textos fixos nas pecas', matriculas: 'Informacoes de matricula', livre: 'Observacoes',
+};
+const CAMPANHA_ORDEM = Object.keys(CAMPANHA_LABELS);
+
+function isCampanha(r: any): boolean {
+  return !!r && (r.objetivo !== undefined || r.instituicao !== undefined || Array.isArray(r.anexos));
+}
+
+function valorLegivel(v: any): string {
+  if (v === null || v === undefined || v === '') return '';
+  if (Array.isArray(v)) return v.filter(Boolean).join(' · ');
+  return String(v);
+}
+
+function BriefingCampanhaView({ respostas }: { respostas: any }) {
+  const anexos: any[] = Array.isArray(respostas?.anexos) ? respostas.anexos : [];
+  return (
+    <>
+      <div className="sec">
+        <h3>Respostas</h3>
+        {CAMPANHA_ORDEM.map((k) => {
+          const txt = valorLegivel(respostas?.[k]);
+          if (!txt) return null;
+          const cor = (k === 'c1' || k === 'c2') ? txt : null;
+          return (
+            <div className="qa" key={k}>
+              <div className="q">{CAMPANHA_LABELS[k]}</div>
+              <div className="a">
+                {cor ? (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ width: 16, height: 16, borderRadius: 4, background: cor,
+                                   border: '1px solid rgba(0,0,0,.15)', display: 'inline-block' }} />
+                    {txt}
+                  </span>
+                ) : txt}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="sec">
+        <h3>Anexos ({anexos.length})</h3>
+        {anexos.length === 0 ? (
+          <div className="qa"><div className="a">Nenhum arquivo enviado.</div></div>
+        ) : (
+          anexos.map((a, i) => (
+            <div className="qa" key={i}>
+              <div className="q">{a.nome}</div>
+              <div className="a">
+                {a.url ? <a href={a.url} target="_blank" rel="noreferrer">Abrir / baixar</a> : 'sem link'}
+                {a.tamanho ? ` · ${(a.tamanho / 1024 / 1024).toFixed(2)} MB` : ''}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {respostas?.drive_folder_url && (
+        <div className="sec">
+          <h3>Pasta no Drive</h3>
+          <div className="qa">
+            <div className="a"><a href={respostas.drive_folder_url} target="_blank" rel="noreferrer">Abrir pasta</a></div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 export default function AdminBriefings() {
   const { briefings, isLoading, deleteBriefing, isDeleting } = useBriefings();
   const { videoBriefings, isLoading: vLoading, deleteVideoBriefing, isDeleting: vDeleting } = useVideoBriefings();
@@ -194,7 +280,9 @@ export default function AdminBriefings() {
                   <button className="danger" onClick={handleDelete} disabled={isDeleting}>Excluir</button>
                 </div>
 
-                {SECTIONS.map((sec, idx) => (
+                {isCampanha(activeBriefing.respostas) ? (
+                  <BriefingCampanhaView respostas={activeBriefing.respostas} />
+                ) : SECTIONS.map((sec, idx) => (
                   <div className="sec" key={idx}>
                     <h3>{sec.t}</h3>
                     
