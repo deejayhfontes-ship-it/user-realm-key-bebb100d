@@ -29,3 +29,6 @@ verify_jwt = false
 
 [functions.gerar-imagem-teste]
 verify_jwt = true
+
+[functions.briefing-campanha]
+verify_jwt = false

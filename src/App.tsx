@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { PrefeituraRoute } from "@/components/PrefeituraRoute";
 import { ClientRoute } from "@/components/ClientRoute";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { ClientLayout } from "@/layouts/ClientLayout";
@@ -33,8 +34,8 @@ import AdminAgenda from "@/pages/admin/Agenda";
 import NotFound from "@/pages/NotFound";
 import Platform from "@/pages/Platform";
 import AdminGeneratorPreview from "@/pages/admin/AdminGeneratorPreview";
-import PromptGenerator from "@/pages/PromptGenerator";
 import AdminGeradoresTestar2026 from "@/pages/admin/GeradoresTestar2026";
+import PromptGenerator from "@/pages/PromptGenerator";
 import ArcanoHub from "@/pages/admin/ArcanoHub";
 import ArcanoCloner from "@/pages/admin/ArcanoCloner";
 import ArcanoUpscaler from "@/pages/admin/arcano/ArcanoUpscaler";
@@ -57,6 +58,7 @@ import Portfolio from "@/pages/public/Portfolio";
 import Consultar from "@/pages/public/Consultar";
 import PrefeituraVIP from "@/pages/prefeitura/PrefeituraVIP";
 import PrefeituraMaisFacil from "@/pages/prefeitura/PrefeituraMaisFacil";
+import GeradorVideo from "@/pages/prefeitura/GeradorVideo";
 import GeradorAvisos from "@/pages/prefeitura/GeradorAvisos";
 import SolicitacaoArtes from "@/pages/prefeitura/SolicitacaoArtes";
 import BrandKit from "@/pages/prefeitura/BrandKit";
@@ -76,6 +78,7 @@ import CorridaAutismo from "@/pages/public/CorridaAutismo";
 import AdminCorridaAutismo from "@/pages/admin/AdminCorridaAutismo";
 import BreefingEstrategico from "@/pages/public/BreefingEstrategico";
 import BriefingVideo from "@/pages/public/BriefingVideo";
+import BriefingCampanha from "@/pages/public/BriefingCampanha";
 
 // Client Pages
 import ClientLogin from "@/pages/client/Login";
@@ -144,8 +147,9 @@ const App = () => (
               <Route path="/consultar" element={<Consultar />} />
               <Route path="/termos" element={<Terms />} />
               <Route path="/privacidade" element={<Privacy />} />
-              <Route path="/prefeitura" element={<PrefeituraVIP />} />
+              <Route path="/prefeitura" element={<PrefeituraRoute><PrefeituraVIP /></PrefeituraRoute>} />
               <Route path="/prefeitura/gerador-conteudo" element={<PrefeituraMaisFacil />} />
+              <Route path="/prefeitura/gerador-video" element={<GeradorVideo />} />
               <Route path="/prefeitura/gerador-avisos" element={<GeradorAvisos />} />
               <Route path="/prefeitura/solicitacao-artes" element={<SolicitacaoArtes />} />
               <Route path="/prefeitura/brand-kit" element={<BrandKit />} />
@@ -163,6 +167,7 @@ const App = () => (
               <Route path="/corridadoautismo" element={<CorridaAutismo />} />
               <Route path="/breefingestrategico" element={<BreefingEstrategico />} />
               <Route path="/briefing-video" element={<BriefingVideo />} />
+              <Route path="/briefing-campanha" element={<BriefingCampanha />} />
 
               {/* Faculdade routes */}
               <Route path="/faculdade" element={<FaculdadeRoute><FaculdadeHub /></FaculdadeRoute>} />
@@ -214,10 +219,10 @@ const App = () => (
                 <Route path="biblioteca" element={<AdminBiblioteca />} />
                 <Route path="prompt-generator" element={<PromptGenerator />} />
                 <Route path="gerador/:slug" element={<AdminGeneratorPreview />} />
+                <Route path="geradores-testar-2026" element={<AdminGeradoresTestar2026 />} />
                 <Route path="settings" element={<AdminSettings />} />
                 <Route path="arcano" element={<ArcanoHub />} />
                 <Route path="arcano/cloner" element={<ArcanoCloner />} />
-                <Route path="geradores-testar-2026" element={<AdminGeradoresTestar2026 />} />
                 <Route path="arcano/upscaler" element={<ArcanoUpscaler />} />
                 <Route path="arcano/pose-changer" element={<ArcanoPoseChanger />} />
                 <Route path="arcano/veste-ai" element={<ArcanoVesteAI />} />
