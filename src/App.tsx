@@ -5,7 +5,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { PrefeituraRoute } from "@/components/PrefeituraRoute";
 import { ClientRoute } from "@/components/ClientRoute";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { ClientLayout } from "@/layouts/ClientLayout";
@@ -58,7 +57,6 @@ import Portfolio from "@/pages/public/Portfolio";
 import Consultar from "@/pages/public/Consultar";
 import PrefeituraVIP from "@/pages/prefeitura/PrefeituraVIP";
 import PrefeituraMaisFacil from "@/pages/prefeitura/PrefeituraMaisFacil";
-import GeradorVideo from "@/pages/prefeitura/GeradorVideo";
 import GeradorAvisos from "@/pages/prefeitura/GeradorAvisos";
 import SolicitacaoArtes from "@/pages/prefeitura/SolicitacaoArtes";
 import BrandKit from "@/pages/prefeitura/BrandKit";
@@ -147,9 +145,8 @@ const App = () => (
               <Route path="/consultar" element={<Consultar />} />
               <Route path="/termos" element={<Terms />} />
               <Route path="/privacidade" element={<Privacy />} />
-              <Route path="/prefeitura" element={<PrefeituraRoute><PrefeituraVIP /></PrefeituraRoute>} />
+              <Route path="/prefeitura" element={<PrefeituraVIP />} />
               <Route path="/prefeitura/gerador-conteudo" element={<PrefeituraMaisFacil />} />
-              <Route path="/prefeitura/gerador-video" element={<GeradorVideo />} />
               <Route path="/prefeitura/gerador-avisos" element={<GeradorAvisos />} />
               <Route path="/prefeitura/solicitacao-artes" element={<SolicitacaoArtes />} />
               <Route path="/prefeitura/brand-kit" element={<BrandKit />} />
