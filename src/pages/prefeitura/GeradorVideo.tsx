@@ -66,7 +66,10 @@ const calculateFontSize = (text: string): number => {
   return 45;
 };
 
-const GeradorVideo = () => {
+// `embutido` = renderizado como aba dentro do Gerador de Conteudo.
+// Nesse caso a pagina de fora ja traz titulo e botao de voltar, entao
+// o cabecalho e o espacamento proprios saem para nao duplicar.
+const GeradorVideo = ({ embutido = false }: { embutido?: boolean } = {}) => {
   const { user } = useAuth();
   const [photoCount, setPhotoCount] = useState<PhotoCount>(1);
   const [backgroundMedia, setBackgroundMedia] = useState<(MediaItem | null)[]>([null, null, null]);
@@ -398,20 +401,22 @@ const GeradorVideo = () => {
   const formatTime = (ms: number) => `${(ms / 1000).toFixed(1)}s`;
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex items-center gap-4 mb-6">
-          {user && (
-            <Link to="/prefeitura">
-              <Button variant="ghost" size="icon" className="hover:bg-primary/10">
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-            </Link>
-          )}
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">
-            Gerador de Vídeos - Prefeitura
-          </h1>
-        </div>
+    <div className={embutido ? "" : "min-h-screen bg-background p-4 md:p-8"}>
+      <div className={embutido ? "" : "max-w-7xl mx-auto"}>
+        {!embutido && (
+          <div className="flex items-center gap-4 mb-6">
+            {user && (
+              <Link to="/prefeitura">
+                <Button variant="ghost" size="icon" className="hover:bg-primary/10">
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+              </Link>
+            )}
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+              Gerador de Vídeos - Prefeitura
+            </h1>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Formulário */}

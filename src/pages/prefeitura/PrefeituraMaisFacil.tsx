@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { Download, Upload, ArrowLeft, X, Image, ZoomIn, MoveHorizontal, MoveVertical, Check } from "lucide-react";
 import CarrosselInteracoes from "@/components/prefeitura/CarrosselInteracoes";
 import StoriesNoticia from "@/components/prefeitura/StoriesNoticia";
+import GeradorVideo from "@/pages/prefeitura/GeradorVideo";
 
 const defaultMask = "/prefeitura-assets/mascaras/02 CAPA PARA INSTA - MASK LOGO color.png";
 
@@ -23,7 +24,7 @@ const CUSTOM_MASKS = [
 ];
 
 
-type GeneratorType = "stories" | "carrossel" | "custom" | "noticia";
+type GeneratorType = "stories" | "carrossel" | "custom" | "noticia" | "video";
 type PhotoCount = 1 | 2 | 3;
 
 interface ImageSettings {
@@ -43,7 +44,7 @@ const PrefeituraMaisFacil = () => {
   const { user } = useAuth();
   // Stories Noticia e o gerador oficial, entao e ele que abre por padrao.
   // 'stories' continua acessivel por ?tab=stories, mas sem botao na tela.
-  const initialTab = searchParams.get('tab') === 'carrossel' ? 'carrossel' : searchParams.get('tab') === 'custom' ? 'custom' : searchParams.get('tab') === 'stories' ? 'stories' : 'noticia';
+  const initialTab = searchParams.get('tab') === 'carrossel' ? 'carrossel' : searchParams.get('tab') === 'custom' ? 'custom' : searchParams.get('tab') === 'stories' ? 'stories' : searchParams.get('tab') === 'video' ? 'video' : 'noticia';
   const [generatorType, setGeneratorType] = useState<GeneratorType>(initialTab);
   const [photoCount, setPhotoCount] = useState<PhotoCount>(1);
   const [backgroundImages, setBackgroundImages] = useState<(string | null)[]>([null, null, null]);
@@ -466,12 +467,21 @@ const PrefeituraMaisFacil = () => {
           >
             Stories Notícia
           </Button>
+          <Button
+            variant={generatorType === "video" ? "default" : "outline"}
+            onClick={() => setGeneratorType("video")}
+            className="flex-1 md:flex-none"
+          >
+            Vídeo
+          </Button>
         </div>
 
         {generatorType === "carrossel" ? (
           <CarrosselInteracoes />
         ) : generatorType === "noticia" ? (
           <StoriesNoticia />
+        ) : generatorType === "video" ? (
+          <GeradorVideo embutido />
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Formulário */}
