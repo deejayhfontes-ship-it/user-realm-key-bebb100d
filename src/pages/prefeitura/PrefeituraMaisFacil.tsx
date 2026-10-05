@@ -41,7 +41,9 @@ const defaultImageSettings: ImageSettings = {
 const PrefeituraMaisFacil = () => {
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
-  const initialTab = searchParams.get('tab') === 'carrossel' ? 'carrossel' : searchParams.get('tab') === 'custom' ? 'custom' : searchParams.get('tab') === 'noticia' ? 'noticia' : 'stories';
+  // Stories Noticia e o gerador oficial, entao e ele que abre por padrao.
+  // 'stories' continua acessivel por ?tab=stories, mas sem botao na tela.
+  const initialTab = searchParams.get('tab') === 'carrossel' ? 'carrossel' : searchParams.get('tab') === 'custom' ? 'custom' : searchParams.get('tab') === 'stories' ? 'stories' : 'noticia';
   const [generatorType, setGeneratorType] = useState<GeneratorType>(initialTab);
   const [photoCount, setPhotoCount] = useState<PhotoCount>(1);
   const [backgroundImages, setBackgroundImages] = useState<(string | null)[]>([null, null, null]);
@@ -433,6 +435,8 @@ const PrefeituraMaisFacil = () => {
 
         {/* Seletor de tipo de gerador */}
         <div className="flex flex-wrap gap-4 mb-8">
+          {/* Aba "Gerador de Stories" desativada a pedido: o oficial e o Stories Noticia.
+              O codigo continua aqui e volta so descomentando este bloco.
           <Button
             variant={generatorType === "stories" ? "default" : "outline"}
             onClick={() => setGeneratorType("stories")}
@@ -440,6 +444,7 @@ const PrefeituraMaisFacil = () => {
           >
             Gerador de Stories
           </Button>
+          */}
           <Button
             variant={generatorType === "custom" ? "default" : "outline"}
             onClick={() => setGeneratorType("custom")}
