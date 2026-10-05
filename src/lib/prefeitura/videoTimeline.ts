@@ -183,6 +183,30 @@ function hexToRgba(hex: string, alpha: number): string {
   return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
 }
 
+const TARJA_Y = 1894;   // topo da tarjinha dentro da mascara
+const TARJA_H = 26;     // altura ate a base do canvas
+
+let tarjaCache: { cor: string; mask: HTMLImageElement; canvas: HTMLCanvasElement } | null = null;
+
+/** Devolve a faixa da tarjinha repintada na cor dada, preservando o contorno. */
+function tarjaRecolorida(mask: HTMLImageElement, cor: string): HTMLCanvasElement {
+  if (tarjaCache && tarjaCache.cor === cor && tarjaCache.mask === mask) {
+    return tarjaCache.canvas;
+  }
+  const canvas = document.createElement("canvas");
+  canvas.width = VIDEO_WIDTH;
+  canvas.height = TARJA_H;
+  const c = canvas.getContext("2d");
+  if (c) {
+    c.drawImage(mask, 0, TARJA_Y, VIDEO_WIDTH, TARJA_H, 0, 0, VIDEO_WIDTH, TARJA_H);
+    c.globalCompositeOperation = "source-in";
+    c.fillStyle = cor;
+    c.fillRect(0, 0, VIDEO_WIDTH, TARJA_H);
+  }
+  tarjaCache = { cor, mask, canvas };
+  return canvas;
+}
+
 export function drawFrame(
   ctx: CanvasRenderingContext2D,
   assets: LoadedAssets,
@@ -235,38 +259,17 @@ export function drawFrame(
   if (maskAlpha > 0) {
     ctx.save();
     ctx.globalAlpha = maskAlpha;
-    // Desenha a mascara em 3 janelas que excluem o retangulo da tarjinha azul
-    // original (x227-853, ultimos 30px) — assim a tarjinha nova entra na cor
-    // escolhida sem sobra azul por baixo. Mesmo recorte do Stories Noticia.
-    for (const janela of [
-      { x: 0, w: 227, h: VIDEO_HEIGHT },
-      { x: 853, w: VIDEO_WIDTH - 853, h: VIDEO_HEIGHT },
-      { x: 227, w: 626, h: VIDEO_HEIGHT - 30 },
-    ]) {
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(janela.x, 0, janela.w, janela.h);
-      ctx.clip();
-      ctx.drawImage(assets.mask, 0, 0, VIDEO_WIDTH, VIDEO_HEIGHT);
-      ctx.restore();
-    }
+    ctx.drawImage(assets.mask, 0, 0, VIDEO_WIDTH, VIDEO_HEIGHT);
+    ctx.restore();
 
-    // Tarjinha do rodape na cor de destaque (622x14, centralizada, topo arredondado)
-    const barW = 622;
-    const barH = 14;
-    const barR = 7;
-    const barX = Math.round((VIDEO_WIDTH - barW) / 2);
-    const barY = VIDEO_HEIGHT - barH;
-    ctx.fillStyle = config.accentColor || "#004691";
-    ctx.beginPath();
-    ctx.moveTo(barX, VIDEO_HEIGHT);
-    ctx.lineTo(barX, barY + barR);
-    ctx.quadraticCurveTo(barX, barY, barX + barR, barY);
-    ctx.lineTo(barX + barW - barR, barY);
-    ctx.quadraticCurveTo(barX + barW, barY, barX + barW, barY + barR);
-    ctx.lineTo(barX + barW, VIDEO_HEIGHT);
-    ctx.closePath();
-    ctx.fill();
+    // A tarjinha do rodape vem desenhada em azul dentro do PNG da mascara.
+    // Recortar e cobrir com um retangulo deixava emenda, porque a forma real
+    // vai de x=229 ate a borda direita e tem a ponta esquerda inclinada.
+    // Entao repintamos a propria forma: recorta a faixa, usa source-in para
+    // trocar a cor preservando o contorno, e devolve por cima.
+    ctx.save();
+    ctx.globalAlpha = maskAlpha;
+    ctx.drawImage(tarjaRecolorida(assets.mask, config.accentColor || "#004691"), 0, TARJA_Y);
     ctx.restore();
   }
 
