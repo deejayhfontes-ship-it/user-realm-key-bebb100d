@@ -43,6 +43,24 @@ const CUSTOM_MASKS = [
 ];
 const defaultMask = CUSTOM_MASKS[1];
 
+// Mesma paleta do Stories Noticia, para as duas pecas sairem com a mesma cor.
+interface ColorPreset { nome: string; cor: string; textoTarja: string; }
+const COLOR_PRESETS: ColorPreset[] = [
+  { nome: "Verde", cor: "#5CB136", textoTarja: "#ffffff" },
+  { nome: "Azul Claro", cor: "#3B9EDD", textoTarja: "#ffffff" },
+  { nome: "Azul Escuro", cor: "#14395C", textoTarja: "#ffffff" },
+  { nome: "Amarelo", cor: "#F8C617", textoTarja: "#14395C" },
+  { nome: "Azul Prefeitura", cor: "#004691", textoTarja: "#ffffff" },
+  { nome: "Verde Institucional", cor: "#2D7D46", textoTarja: "#ffffff" },
+  { nome: "Verde Saúde", cor: "#00995D", textoTarja: "#ffffff" },
+  { nome: "Azul Educação", cor: "#005EB8", textoTarja: "#ffffff" },
+  { nome: "Roxo Cultura", cor: "#9C27B0", textoTarja: "#ffffff" },
+  { nome: "Rosa Pink", cor: "#F5127E", textoTarja: "#ffffff" },
+  { nome: "Laranja", cor: "#FF8A00", textoTarja: "#ffffff" },
+  { nome: "Verde Limão", cor: "#C6E326", textoTarja: "#14395C" },
+  { nome: "Roxo Vibrante", cor: "#5B2AB5", textoTarja: "#ffffff" },
+];
+
 type PhotoCount = 1 | 2 | 3;
 
 interface MediaItem {
@@ -81,6 +99,8 @@ const GeradorVideo = ({ embutido = false }: { embutido?: boolean } = {}) => {
   const [secretaria, setSecretaria] = useState("");
   const [descricao, setDescricao] = useState("");
   const [maskSrc, setMaskSrc] = useState(defaultMask);
+  const [colorPreset, setColorPreset] = useState<ColorPreset>(COLOR_PRESETS[4]); // Azul Prefeitura
+  const [fontSizeOverride, setFontSizeOverride] = useState<number | null>(null);
   const [gradientIntensity, setGradientIntensity] = useState(100);
   const [isPlaying, setIsPlaying] = useState(false);
   const [previewTime, setPreviewTime] = useState(0);
@@ -103,7 +123,7 @@ const GeradorVideo = ({ embutido = false }: { embutido?: boolean } = {}) => {
     year: "numeric",
   });
 
-  const fontSize = calculateFontSize(descricao);
+  const fontSize = fontSizeOverride ?? calculateFontSize(descricao);
   const totalDuration = getTotalDuration(photoCount);
 
   // Config sempre atual para o loop de desenho
@@ -115,6 +135,8 @@ const GeradorVideo = ({ embutido = false }: { embutido?: boolean } = {}) => {
     formattedDate,
     gradientIntensity,
     fontSize,
+    accentColor: colorPreset.cor,
+    accentTextColor: colorPreset.textoTarja,
   };
 
   const hasRequiredImages = useCallback(() => {
@@ -150,15 +172,27 @@ const GeradorVideo = ({ embutido = false }: { embutido?: boolean } = {}) => {
   useEffect(() => {
     let cancelled = false;
     const items = backgroundMedia.slice(0, photoCount).filter(Boolean) as MediaItem[];
+
+    // Sem todas as fotos ainda: desenha fundo + mascara + textos, para a pessoa
+    // ver a arte montada desde o inicio (igual ao Stories Noticia). Antes aqui
+    // so pintava um retangulo liso e a mascara so aparecia depois do upload.
     if (items.length < photoCount) {
-      assetsRef.current = null;
-      const canvas = previewCanvasRef.current;
-      const ctx = canvas?.getContext("2d");
-      if (ctx) {
-        ctx.fillStyle = "#1a1a2e";
-        ctx.fillRect(0, 0, VIDEO_WIDTH, VIDEO_HEIGHT);
-      }
-      return;
+      (async () => {
+        try {
+          await loadFonts();
+          const mask = await loadImage(maskSrc);
+          if (cancelled) return;
+          assetsRef.current = { media: [], mask };
+          drawPreviewFrame(VIDEO_DURATION_MS);
+        } catch {
+          const ctx = previewCanvasRef.current?.getContext("2d");
+          if (ctx) {
+            ctx.fillStyle = "#1a1a2e";
+            ctx.fillRect(0, 0, VIDEO_WIDTH, VIDEO_HEIGHT);
+          }
+        }
+      })();
+      return () => { cancelled = true; };
     }
     (async () => {
       try {
@@ -192,6 +226,8 @@ const GeradorVideo = ({ embutido = false }: { embutido?: boolean } = {}) => {
     gradientIntensity,
     imageSettings,
     photoCount,
+    colorPreset,
+    fontSize,
     drawPreviewFrame,
   ]);
 
@@ -590,9 +626,35 @@ const GeradorVideo = ({ embutido = false }: { embutido?: boolean } = {}) => {
               </div>
             </div>
 
+            <div>
+              <Label className="text-foreground mb-3 block">Cor de Destaque</Label>
+              <div className="grid grid-cols-4 gap-2">
+                {COLOR_PRESETS.map((preset) => (
+                  <button
+                    key={preset.nome}
+                    type="button"
+                    onClick={() => setColorPreset(preset)}
+                    className={`flex flex-col items-center gap-1.5 p-2 rounded-lg border transition-all ${
+                      colorPreset.nome === preset.nome
+                        ? "border-primary ring-1 ring-primary"
+                        : "border-border hover:border-primary/50"
+                    }`}
+                  >
+                    <span
+                      className="w-8 h-8 rounded-full border border-black/10"
+                      style={{ backgroundColor: preset.cor }}
+                    />
+                    <span className="text-[11px] leading-tight text-center text-muted-foreground">
+                      {preset.nome}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <Label className="text-foreground">Intensidade do Fundo Azul</Label>
+                <Label className="text-foreground">Intensidade do Fundo</Label>
                 <span className="text-sm text-muted-foreground">{gradientIntensity}%</span>
               </div>
               <div className="flex items-center gap-3">
@@ -634,8 +696,41 @@ const GeradorVideo = ({ embutido = false }: { embutido?: boolean } = {}) => {
                 className="mt-2 min-h-[120px]"
               />
               <p className="text-xs text-muted-foreground mt-1">
-                Tamanho da fonte: {fontSize}px — a manchete entra com animação no início do vídeo
+                A manchete entra com animação no início do vídeo
               </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <Label className="text-foreground">Tamanho da Fonte</Label>
+                <span className="text-sm text-muted-foreground">
+                  {fontSize}px{" "}
+                  {fontSizeOverride === null && (
+                    <span className="text-xs opacity-70">(automático)</span>
+                  )}
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-muted-foreground">Menor</span>
+                <Slider
+                  value={[fontSize]}
+                  onValueChange={(v) => setFontSizeOverride(v[0])}
+                  min={30}
+                  max={80}
+                  step={1}
+                  className="flex-1"
+                />
+                <span className="text-xs text-muted-foreground">Maior</span>
+              </div>
+              {fontSizeOverride !== null && (
+                <button
+                  type="button"
+                  onClick={() => setFontSizeOverride(null)}
+                  className="text-xs text-muted-foreground underline"
+                >
+                  voltar ao automático
+                </button>
+              )}
             </div>
 
             <div className="p-4 bg-secondary/50 rounded-lg">

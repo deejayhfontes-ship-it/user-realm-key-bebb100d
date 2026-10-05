@@ -31,6 +31,8 @@ export interface VideoConfig {
   formattedDate: string;
   gradientIntensity: number; // 0 a 100
   fontSize: number; // fonte da manchete (45-55, mesma regra do gerador de stories)
+  accentColor: string;     // cor de destaque: gradiente de fundo e tarja da secretaria
+  accentTextColor: string; // cor do texto dentro da tarja
 }
 
 export type MediaElement = HTMLImageElement | HTMLVideoElement;
@@ -171,6 +173,15 @@ function drawShadowedText(
   ctx.restore();
 }
 
+/** #RRGGBB -> rgba(r,g,b,alpha). Usado para o gradiente sumir na cor certa. */
+function hexToRgba(hex: string, alpha: number): string {
+  const h = hex.replace('#', '');
+  const full = h.length === 3 ? h.split('').map((c) => c + c).join('') : h;
+  const n = parseInt(full, 16);
+  if (Number.isNaN(n)) return `rgba(0, 70, 145, ${alpha})`;
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
+}
+
 export function drawFrame(
   ctx: CanvasRenderingContext2D,
   assets: LoadedAssets,
@@ -200,11 +211,12 @@ export function drawFrame(
     ctx.restore();
   }
 
-  // Gradiente azul (linear-gradient(to top, #004691, transparent), 960px)
+  // Gradiente da cor de destaque (linear-gradient(to top, cor, transparent), 960px)
   if (config.gradientIntensity > 0) {
     const gradient = ctx.createLinearGradient(0, VIDEO_HEIGHT, 0, VIDEO_HEIGHT - 960);
-    gradient.addColorStop(0, "#004691");
-    gradient.addColorStop(1, "rgba(0, 70, 145, 0)");
+    const base = config.accentColor || "#004691";
+    gradient.addColorStop(0, base);
+    gradient.addColorStop(1, hexToRgba(base, 0));
     ctx.save();
     ctx.globalAlpha = config.gradientIntensity / 100;
     ctx.fillStyle = gradient;
@@ -237,15 +249,31 @@ export function drawFrame(
     ? wrapText(ctx, config.descricao, textMaxWidth)
     : [];
 
-  const secretariaBlock = config.secretaria ? 24 + 16 : 0; // fonte 24 + margem 16
+  const secretariaBlock = config.secretaria ? 72 + 24 : 0; // tarja 72px + margem 24
   const blockHeight = secretariaBlock + descLines.length * lineHeight;
   let y = textBottom - blockHeight;
   let itemIndex = 0;
 
   if (config.secretaria) {
+    // Tarja colorida com o nome da secretaria, mesma proporcao do Stories Noticia:
+    // altura 72, padding lateral 48, fonte 30 em peso 800.
     const { alpha, offsetY } = textIntro(tMs, itemIndex++);
-    ctx.font = "800 24px 'Aspekta', Arial, sans-serif";
-    drawShadowedText(ctx, config.secretaria, textLeft, y + offsetY, alpha);
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.font = "800 30px 'Aspekta', Arial, sans-serif";
+    (ctx as CanvasRenderingContext2D & { letterSpacing?: string }).letterSpacing = "1px";
+    const texto = config.secretaria;
+    const larguraTexto = ctx.measureText(texto).width;
+    const tarjaW = larguraTexto + 96;
+    const tarjaY = y + offsetY;
+    ctx.fillStyle = config.accentColor || "#004691";
+    ctx.fillRect(textLeft, tarjaY, tarjaW, 72);
+    ctx.fillStyle = config.accentTextColor || "#ffffff";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    ctx.fillText(texto, textLeft + 48, tarjaY + 36);
+    ctx.restore();
+    ctx.textBaseline = "top";
     y += secretariaBlock;
   }
 
