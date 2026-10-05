@@ -231,57 +231,108 @@ export function drawFrame(
   if (maskAlpha > 0) {
     ctx.save();
     ctx.globalAlpha = maskAlpha;
-    ctx.drawImage(assets.mask, 0, 0, VIDEO_WIDTH, VIDEO_HEIGHT);
+    // Desenha a mascara em 3 janelas que excluem o retangulo da tarjinha azul
+    // original (x227-853, ultimos 30px) — assim a tarjinha nova entra na cor
+    // escolhida sem sobra azul por baixo. Mesmo recorte do Stories Noticia.
+    for (const janela of [
+      { x: 0, w: 227, h: VIDEO_HEIGHT },
+      { x: 853, w: VIDEO_WIDTH - 853, h: VIDEO_HEIGHT },
+      { x: 227, w: 626, h: VIDEO_HEIGHT - 30 },
+    ]) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(janela.x, 0, janela.w, janela.h);
+      ctx.clip();
+      ctx.drawImage(assets.mask, 0, 0, VIDEO_WIDTH, VIDEO_HEIGHT);
+      ctx.restore();
+    }
+
+    // Tarjinha do rodape na cor de destaque (622x14, centralizada, topo arredondado)
+    const barW = 622;
+    const barH = 14;
+    const barR = 7;
+    const barX = Math.round((VIDEO_WIDTH - barW) / 2);
+    const barY = VIDEO_HEIGHT - barH;
+    ctx.fillStyle = config.accentColor || "#004691";
+    ctx.beginPath();
+    ctx.moveTo(barX, VIDEO_HEIGHT);
+    ctx.lineTo(barX, barY + barR);
+    ctx.quadraticCurveTo(barX, barY, barX + barR, barY);
+    ctx.lineTo(barX + barW - barR, barY);
+    ctx.quadraticCurveTo(barX + barW, barY, barX + barW, barY + barR);
+    ctx.lineTo(barX + barW, VIDEO_HEIGHT);
+    ctx.closePath();
+    ctx.fill();
     ctx.restore();
   }
 
-  // Bloco de texto ancorado com base em y=1680 (bottom: 240px do stories)
+  // Bloco de texto — mesma estrutura do Stories Noticia: barra colorida de 14px,
+  // manchete em peso 800 ao lado dela e, abaixo, a tarja da secretaria.
   const textLeft = 90;
-  const textMaxWidth = 900;
-  const textBottom = VIDEO_HEIGHT - 240;
-  const lineHeight = config.fontSize * 1.1;
+  const barraW = 14;
+  const barraGap = 36;
+  const textX = textLeft + barraW + barraGap;
+  const textMaxWidth = VIDEO_WIDTH - textLeft - 90 - barraW - barraGap;
+  const textBottom = VIDEO_HEIGHT - 280;
+  const lineHeight = config.fontSize * 1.15;
 
   ctx.textAlign = "left";
   ctx.textBaseline = "top";
+  ctx.font = `800 ${config.fontSize}px 'Aspekta', Arial, sans-serif`;
 
-  ctx.font = `500 ${config.fontSize}px 'Aspekta', Arial, sans-serif`;
   const descLines = config.descricao
     ? wrapText(ctx, config.descricao, textMaxWidth)
     : [];
 
-  const secretariaBlock = config.secretaria ? 72 + 24 : 0; // tarja 72px + margem 24
-  const blockHeight = secretariaBlock + descLines.length * lineHeight;
-  let y = textBottom - blockHeight;
+  const mancheteH = descLines.length * lineHeight;
+  const tarjaBlock = config.secretaria ? 48 + 72 : 0;
+  let y = textBottom - mancheteH - tarjaBlock;
   let itemIndex = 0;
 
+  // Manchete com a barra colorida a esquerda
+  if (descLines.length) {
+    const topoBarra = Math.round(config.fontSize * 0.2);
+    const baseBarra = Math.round(config.fontSize * 0.12);
+    const { alpha: barraAlpha, offsetY: barraOffset } = textIntro(tMs, 0);
+    ctx.save();
+    ctx.globalAlpha = barraAlpha;
+    ctx.fillStyle = config.accentColor || "#004691";
+    ctx.fillRect(
+      textLeft,
+      y + topoBarra + barraOffset,
+      barraW,
+      Math.max(0, mancheteH - topoBarra - baseBarra)
+    );
+    ctx.restore();
+
+    for (const line of descLines) {
+      const { alpha, offsetY } = textIntro(tMs, itemIndex++);
+      drawShadowedText(ctx, line, textX, y + offsetY, alpha);
+      y += lineHeight;
+    }
+  }
+
+  // Tarja da secretaria, abaixo da manchete
   if (config.secretaria) {
-    // Tarja colorida com o nome da secretaria, mesma proporcao do Stories Noticia:
-    // altura 72, padding lateral 48, fonte 30 em peso 800.
     const { alpha, offsetY } = textIntro(tMs, itemIndex++);
+    const tarjaY = y + 48 + offsetY;
     ctx.save();
     ctx.globalAlpha = alpha;
     ctx.font = "800 30px 'Aspekta', Arial, sans-serif";
     (ctx as CanvasRenderingContext2D & { letterSpacing?: string }).letterSpacing = "1px";
     const texto = config.secretaria;
-    const larguraTexto = ctx.measureText(texto).width;
-    const tarjaW = larguraTexto + 96;
-    const tarjaY = y + offsetY;
+    const tarjaW = ctx.measureText(texto).width + 96;
+    const tarjaX = textLeft + 50;
     ctx.fillStyle = config.accentColor || "#004691";
-    ctx.fillRect(textLeft, tarjaY, tarjaW, 72);
+    ctx.fillRect(tarjaX, tarjaY, tarjaW, 72);
     ctx.fillStyle = config.accentTextColor || "#ffffff";
     ctx.textAlign = "left";
     ctx.textBaseline = "middle";
-    ctx.fillText(texto, textLeft + 48, tarjaY + 36);
+    ctx.fillText(texto, tarjaX + 48, tarjaY + 36);
     ctx.restore();
+    ctx.textAlign = "left";
     ctx.textBaseline = "top";
-    y += secretariaBlock;
-  }
-
-  ctx.font = `500 ${config.fontSize}px 'Aspekta', Arial, sans-serif`;
-  for (const line of descLines) {
-    const { alpha, offsetY } = textIntro(tMs, itemIndex++);
-    drawShadowedText(ctx, line, textLeft, y + offsetY, alpha);
-    y += lineHeight;
+    y += 48 + 72;
   }
 
   // Data e setinha (bottom: 150px, right: 90px, gap 60px)
