@@ -147,7 +147,8 @@ function kenBurns(segment: SegmentState) {
 }
 
 // Intro: fade + slide-up com stagger. Retorna {alpha, offsetY} do item n.
-function textIntro(tMs: number, itemIndex: number) {
+function textIntro(tMs: number, itemIndex: number, composto = false) {
+  if (composto) return { alpha: 1, offsetY: 0 };
   const start = TEXT_INTRO_START + itemIndex * TEXT_ITEM_STAGGER;
   const p = clamp01((tMs - start) / TEXT_ITEM_DURATION);
   const e = easeOutCubic(p);
@@ -186,7 +187,10 @@ export function drawFrame(
   ctx: CanvasRenderingContext2D,
   assets: LoadedAssets,
   config: VideoConfig,
-  tMs: number
+  tMs: number,
+  /** Pulа as animacoes de entrada: usado no preview pausado, para quem edita
+   *  ver a arte montada em vez de uma tela vazia no instante 0. */
+  composto = false
 ) {
   ctx.save();
   ctx.globalAlpha = 1;
@@ -225,9 +229,9 @@ export function drawFrame(
   }
 
   // Máscara oficial com fade-in
-  const maskAlpha = easeInOutSine(
-    clamp01((tMs - MASK_FADE_START) / (MASK_FADE_END - MASK_FADE_START))
-  );
+  const maskAlpha = composto
+    ? 1
+    : easeInOutSine(clamp01((tMs - MASK_FADE_START) / (MASK_FADE_END - MASK_FADE_START)));
   if (maskAlpha > 0) {
     ctx.save();
     ctx.globalAlpha = maskAlpha;
@@ -293,7 +297,7 @@ export function drawFrame(
   if (descLines.length) {
     const topoBarra = Math.round(config.fontSize * 0.2);
     const baseBarra = Math.round(config.fontSize * 0.12);
-    const { alpha: barraAlpha, offsetY: barraOffset } = textIntro(tMs, 0);
+    const { alpha: barraAlpha, offsetY: barraOffset } = textIntro(tMs, 0, composto);
     ctx.save();
     ctx.globalAlpha = barraAlpha;
     ctx.fillStyle = config.accentColor || "#004691";
@@ -306,7 +310,7 @@ export function drawFrame(
     ctx.restore();
 
     for (const line of descLines) {
-      const { alpha, offsetY } = textIntro(tMs, itemIndex++);
+      const { alpha, offsetY } = textIntro(tMs, itemIndex++, composto);
       drawShadowedText(ctx, line, textX, y + offsetY, alpha);
       y += lineHeight;
     }
@@ -314,7 +318,7 @@ export function drawFrame(
 
   // Tarja da secretaria, abaixo da manchete
   if (config.secretaria) {
-    const { alpha, offsetY } = textIntro(tMs, itemIndex++);
+    const { alpha, offsetY } = textIntro(tMs, itemIndex++, composto);
     const tarjaY = y + 48 + offsetY;
     ctx.save();
     ctx.globalAlpha = alpha;
@@ -336,7 +340,7 @@ export function drawFrame(
   }
 
   // Data e setinha (bottom: 150px, right: 90px, gap 60px)
-  const { alpha: footAlpha, offsetY: footOffset } = textIntro(tMs, itemIndex);
+  const { alpha: footAlpha, offsetY: footOffset } = textIntro(tMs, itemIndex, composto);
   const footBaseline = VIDEO_HEIGHT - 150;
   ctx.textBaseline = "alphabetic";
 

@@ -158,14 +158,16 @@ const GeradorVideo = ({ embutido = false }: { embutido?: boolean } = {}) => {
     }
   }, []);
 
-  const drawPreviewFrame = useCallback((tMs: number) => {
+  // `composto` deixa mascara e textos ja visiveis: no preview pausado a pessoa
+  // precisa ver a arte montada enquanto digita, nao o frame vazio do instante 0.
+  const drawPreviewFrame = useCallback((tMs: number, composto = false) => {
     const canvas = previewCanvasRef.current;
     const assets = assetsRef.current;
     const config = configRef.current;
     if (!canvas || !assets || !config) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    drawFrame(ctx, assets, config, tMs);
+    drawFrame(ctx, assets, config, tMs, composto);
   }, []);
 
   // Carrega mídias (foto/vídeo) + máscara + fontes sempre que mudarem
@@ -183,7 +185,7 @@ const GeradorVideo = ({ embutido = false }: { embutido?: boolean } = {}) => {
           const mask = await loadImage(maskSrc);
           if (cancelled) return;
           assetsRef.current = { media: [], mask };
-          drawPreviewFrame(VIDEO_DURATION_MS);
+          drawPreviewFrame(0, true);
         } catch {
           const ctx = previewCanvasRef.current?.getContext("2d");
           if (ctx) {
@@ -205,7 +207,7 @@ const GeradorVideo = ({ embutido = false }: { embutido?: boolean } = {}) => {
         ]);
         if (cancelled) return;
         assetsRef.current = { media, mask };
-        drawPreviewFrame(previewTimeRef.current);
+        drawPreviewFrame(previewTimeRef.current, true);
       } catch (error) {
         console.error("Erro ao carregar mídias do vídeo:", error);
         if (!cancelled) toast.error("Erro ao carregar as mídias");
@@ -218,7 +220,7 @@ const GeradorVideo = ({ embutido = false }: { embutido?: boolean } = {}) => {
 
   // Redesenha o frame pausado quando texto/sliders mudam
   useEffect(() => {
-    if (!isPlaying) drawPreviewFrame(previewTimeRef.current);
+    if (!isPlaying) drawPreviewFrame(previewTimeRef.current, true);
   }, [
     isPlaying,
     secretaria,
@@ -270,7 +272,7 @@ const GeradorVideo = ({ embutido = false }: { embutido?: boolean } = {}) => {
         }
       });
     }
-    if (!isPlaying) drawPreviewFrame(tMs);
+    if (!isPlaying) drawPreviewFrame(tMs, true);
   };
 
   const handleImageUpload = (index: number) => (event: React.ChangeEvent<HTMLInputElement>) => {
