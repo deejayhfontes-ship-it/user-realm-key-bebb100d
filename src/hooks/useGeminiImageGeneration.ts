@@ -237,15 +237,17 @@ const DEFAULT_TEXT_MODEL = 'gemini-3.1-pro-preview';
 // 🍌    Nano Banana Pro = gemini-3-pro-image — máxima qualidade contextual
 const IMAGE_MODEL_FALLBACKS: string[] = [
     'gemini-3-pro-image',           // 🥇 Nano Banana Pro (GA) — máxima qualidade, contextual
-    'gemini-3.1-flash-image',       // 🥈 Nano Banana 2 (GA) — rápido, alto volume
-    'gemini-3.1-flash-lite-image',  // 🥉 Nano Banana 2 Lite — alto volume, mais barato
+    'gemini-nano-banana-2.1',       // 🥈 Nano Banana 2.1 (GA) — reserva atual
+    'gemini-3.1-flash-image',       // 🥉 Nano Banana 2 — DEPRECADO em 06/10/2026, sai em breve
+    'gemini-3.1-flash-lite-image',  // 4º Nano Banana 2 Lite — último recurso
 ];
 
 // Fallbacks de TEXTO (ordem de prioridade) — só geração atual, sem modelos antigos
 const TEXT_MODEL_FALLBACKS: string[] = [
     'gemini-3.1-pro-preview',   // 🥇 Principal — Pro: prompts ricos e fiéis ao template
-    'gemini-3.7-flash',         // 🥈 Reserva — Flash stable mais recente
-    'gemini-3.6-flash',         // 🥉 Reserva — Flash geração anterior
+    'gemini-3.8-flash',         // 🥈 Reserva — Flash stable mais recente (GA 02/09/2026)
+    'gemini-3.7-flash',         // 🥉 Reserva — Flash geração anterior
+    'gemini-3.6-flash',         // 4º Reserva — último recurso
 ];
 
 const SDK_VERSION = '@google/genai@^2.18.0';
@@ -471,6 +473,8 @@ async function callWithKeyPool<T>(
     let roundHad429 = false; // rastreia se houve 429 no round anterior (merece espera)
     let saw429 = false;      // houve pelo menos um 429 (cota) em qualquer tentativa
     let saw5xx = false;      // houve pelo menos um 5xx (sobrecarga) em qualquer tentativa
+    let ultimoErro = '';     // última mensagem real do Google — vai pra tela no diagnóstico
+    let ultimoStatus: number | string = '';
     for (let round = 0; round < rounds; round++) {
         if (round > 0) {
             if (roundHad429) {
@@ -495,6 +499,8 @@ async function callWithKeyPool<T>(
                     const status = err?.status || err?.httpCode || 0;
                     if (is429) saw429 = true;
                     if (is5xx) saw5xx = true;
+                    ultimoErro = msg;
+                    ultimoStatus = status;
                     if (!isRetryable) throw err;
                     console.warn(`[KeyPool] Key ${ki + 1}/${shuffled.length} falhou (${status || msg.substring(0, 60)}), tentando próxima... [round ${round + 1}, retry ${retry + 1}/${maxRetries}]`);
                     // Detalhe completo do erro — em 429 mostra qual cota estourou (FreeTier vs paga)
@@ -519,9 +525,16 @@ async function callWithKeyPool<T>(
     // Mensagem diagnóstica — mantém o trecho "falharam após múltiplas tentativas"
     // (classifyError usa esse texto para acionar o fallback de modelos)
     if (saw429 && !saw5xx) {
-        throw new Error(`Chaves falharam após múltiplas tentativas: COTA ESGOTADA (429) nas ${keys.length} key(s). Adicione billing no Google AI Studio (aistudio.google.com) ou cadastre mais keys no painel Provedores IA. Cota gratuita reseta à meia-noite (horário do Pacífico, ~4h da manhã no Brasil).`);
+        throw new Error(`Chaves falharam após múltiplas tentativas: COTA ESGOTADA (429) nas ${keys.length} key(s). Adicione billing no Google AI Studio (aistudio.google.com) ou cadastre mais keys no painel Provedores IA. Cota gratuita reseta à meia-noite (horário do Pacífico, ~4h da manhã no Brasil). Detalhe: ${ultimoErro.substring(0, 300)}`);
     }
-    throw new Error('Todas as chaves do pool falharam após múltiplas tentativas. Tente novamente em alguns minutos.');
+    // Diagnóstico visível: sem o motivo real do Google é impossível saber se é
+    // sobrecarga do modelo, chave suspensa, projeto sem billing ou outra coisa.
+    const detalhe = ultimoErro
+        ? ` Último erro do Google${ultimoStatus ? ` (HTTP ${ultimoStatus})` : ''}: ${ultimoErro.substring(0, 300)}`
+        : '';
+    throw new Error(
+        `Todas as chaves do pool falharam após múltiplas tentativas.${detalhe}`
+    );
 }
 
 // ============================================================
@@ -554,7 +567,11 @@ async function callWithModelFallback<T>(
             return { result, usedModel: model };
         } catch (err: any) {
             lastError = err;
-            const { is5xx, isDeprecated } = classifyError(err);
+            const { is429, is5xx, isDeprecated } = classifyError(err);
+            // Cota estourada é da CHAVE, não do modelo: trocar de modelo não resolve
+            // e ainda faz o usuário ver "modelo indisponível" no lugar de "cota esgotada".
+            const cotaEsgotada = String(err?.message || '').includes('COTA ESGOTADA');
+            if ((cotaEsgotada || (is429 && !is5xx)) && !isDeprecated) throw err;
             if (isDeprecated) {
                 // Modelo descontinuado (404/NOT_FOUND) — tenta o próximo
                 console.warn(`[ModelFallback] 🚧 Modelo ${model} descontinuado (404), tentando próximo...`);
